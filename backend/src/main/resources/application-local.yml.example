@@ -1,0 +1,15 @@
+# 이 파일을 application-local.yml 로 복사해서 실제 값을 채우세요.
+# application-local.yml 은 .gitignore 에 등록되어 있어 커밋되지 않습니다.
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/utago?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: your-password-here
+  jpa:
+    hibernate:
+      ddl-auto: update   # 개발 초반엔 update, 스키마 안정화 후 validate 로 전환
+
+# 예: YouTube Data API 키 등 외부 연동 키가 생기면 여기에 추가
+# youtube:
+#   api-key: your-api-key-here
