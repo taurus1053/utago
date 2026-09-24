@@ -1,0 +1,43 @@
+.page-transition-overlay {
+  position: fixed;
+  z-index: 9999;
+  background: linear-gradient(150deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  box-sizing: border-box;
+}
+.page-transition-overlay--grow {
+  transition: top 0.48s cubic-bezier(0.65, 0, 0.35, 1),
+    left 0.48s cubic-bezier(0.65, 0, 0.35, 1),
+    width 0.48s cubic-bezier(0.65, 0, 0.35, 1),
+    height 0.48s cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 0.18s ease;
+}
+/* 왼쪽으로 줄어드는 구간은 확대보다 살짝 느리고 부드럽게 (ease-out 성격을
+   더 준 커브) 움직여야 "훅 이동"하는 느낌 없이 자연스럽다. */
+.page-transition-overlay--shrink {
+  transition: top 0.64s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.64s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.64s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.64s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.18s ease;
+}
+
+.page-transition-overlay-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.page-transition-overlay-circle--top {
+  width: 420px;
+  height: 420px;
+  top: -140px;
+  left: -120px;
+}
+.page-transition-overlay-circle--bottom {
+  width: 300px;
+  height: 300px;
+  bottom: -100px;
+  right: -80px;
+}

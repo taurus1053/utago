@@ -13,3 +13,8 @@ spring:
 
 server:
   port: 8080
+
+# 개발용 기본값. 운영 배포 전에는 반드시 JWT_SECRET 환경변수로 덮어쓸 것.
+jwt:
+  secret: ${JWT_SECRET:utago-dev-secret-key-change-this-before-production-please-1234567890}
+  expiration-ms: 86400000

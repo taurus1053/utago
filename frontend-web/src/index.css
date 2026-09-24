@@ -1,7 +1,18 @@
 :root {
-  color-scheme: light dark;
+  /* 다크모드는 아직 실제로 구현 전이라, 브라우저가 임의로 폼 요소를
+     어둡게 렌더링하지 않도록 light로 고정. 다크모드 만들 때 여기서 전환. */
+  color-scheme: light;
 }
 
 body {
   margin: 0;
+  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
 }

@@ -1,22 +1,29 @@
-import { useEffect, useState } from 'react'
-import { getHealth } from './api/client'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Home from './pages/Home'
+import Landing from './pages/Landing'
+import PageTransitionOverlay from './components/PageTransitionOverlay'
+import { isLoggedIn } from './api/auth'
+
+// "/" 는 로그인 여부에 따라 다른 화면을 보여준다.
+// - 로그인 상태: 홈 화면
+// - 비로그인 상태: 가입/로그인을 유도하는 랜딩 페이지 (넷플릭스/쿠팡플레이 스타일)
+function RootRoute() {
+  return isLoggedIn() ? <Home /> : <Landing />
+}
 
 function App() {
-  const [status, setStatus] = useState('checking...')
-
-  useEffect(() => {
-    getHealth()
-      .then((data) => setStatus(`backend ok (${data.timestamp})`))
-      .catch(() => setStatus('backend에 연결하지 못했습니다. 백엔드가 실행 중인지 확인하세요.'))
-  }, [])
-
   return (
-    <main className="app">
-      <h1>우타고 (Utago)</h1>
-      <p>좋아하는 노래의 가사를 통해 언어를 공부하는 앱</p>
-      <p className="status">backend status: {status}</p>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/" element={<RootRoute />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <PageTransitionOverlay />
+    </BrowserRouter>
   )
 }
 

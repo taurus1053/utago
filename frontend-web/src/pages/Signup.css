@@ -1,0 +1,397 @@
+.signup-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: #ffffff;
+}
+
+/* 좌측 브랜드 패널 */
+.signup-brand {
+  width: 40%;
+  min-width: 360px;
+  background: linear-gradient(150deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.signup-brand-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.signup-brand-circle--top {
+  width: 420px;
+  height: 420px;
+  top: -140px;
+  left: -120px;
+}
+.signup-brand-circle--bottom {
+  width: 300px;
+  height: 300px;
+  bottom: -100px;
+  right: -80px;
+}
+/* 랜딩 페이지에서 전환 애니메이션을 타고 넘어왔을 때만(--animate 수식자),
+   브랜드 패널이 자리를 잡는 타이밍에 맞춰 로고/문구가 갑자기 뜨지 않고
+   부드럽게 페이드인 되도록 한다. 뒤로가기/새로고침 등으로 바로 들어온
+   경우엔 이 클래스가 붙지 않아 즉시 보인다. */
+@keyframes signup-brand-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signup-logo {
+  height: 64px;
+  width: auto;
+  display: block;
+  position: relative;
+}
+.signup-logo--animate {
+  animation: signup-brand-fade-in 0.5s ease both;
+  animation-delay: 0.55s;
+}
+.signup-tagline {
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.signup-tagline--animate {
+  animation: signup-brand-fade-in 0.5s ease both;
+  animation-delay: 0.65s;
+}
+.signup-tagline-main {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+}
+.signup-tagline-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 우측 폼 영역 */
+.signup-form-area {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.signup-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.signup-form--wide {
+  max-width: 400px;
+  gap: 22px;
+}
+
+.signup-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.signup-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #201a14;
+}
+.signup-title--spaced {
+  margin-top: 6px;
+}
+.signup-title-lg {
+  font-size: 24px;
+  font-weight: 700;
+  color: #201a14;
+}
+.signup-subtitle {
+  font-size: 13.5px;
+  color: #a89c86;
+}
+.signup-eyebrow {
+  font-size: 15px;
+  font-weight: 700;
+  color: #5b5346;
+  line-height: 1.35;
+}
+.signup-eyebrow-sub {
+  font-size: 12.5px;
+  color: #a89c86;
+}
+
+.signup-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.signup-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #5b5346;
+}
+.signup-optional {
+  color: #c3b6a3;
+  font-weight: 500;
+}
+
+.signup-field input,
+.signup-code-row input {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #201a14;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+}
+.signup-field input:focus,
+.signup-code-row input:focus {
+  border-color: #7636f6;
+}
+.signup-field input::placeholder {
+  color: #b6ac9c;
+}
+.signup-field input:disabled {
+  background: #f2f2f0;
+  color: #8a8a86;
+  cursor: not-allowed;
+}
+.signup-field input.has-error,
+.signup-code-row input.has-error {
+  border: 1.5px solid #e0453c;
+}
+
+.signup-row {
+  display: flex;
+  gap: 8px;
+}
+.signup-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.signup-btn-accent {
+  flex-shrink: 0;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.signup-btn-accent:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.signup-btn-outline {
+  flex-shrink: 0;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.signup-btn-light-accent {
+  flex-shrink: 0;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid #d8c9ff;
+  background: #f4efff;
+  color: #7636f6;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.signup-btn-light-accent:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signup-code-row {
+  display: flex;
+  gap: 8px;
+}
+.signup-code-row input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 56px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.signup-error-text {
+  font-size: 11.5px;
+  color: #e0453c;
+}
+.signup-success-text {
+  font-size: 11.5px;
+  color: #2f9e5c;
+  font-weight: 600;
+}
+.signup-hint-text {
+  font-size: 11.5px;
+  color: #a89c86;
+}
+
+/* 비밀번호 확인 상태 문구: 항상 한 줄을 차지해서 문구가 생겼다 사라져도
+   레이아웃이 움직이지 않게 한다. */
+.signup-confirm-status {
+  display: block;
+  min-height: 15px;
+  font-size: 11.5px;
+  line-height: 15px;
+}
+.signup-confirm-status--muted {
+  color: #a89c86;
+}
+.signup-confirm-status--error {
+  color: #e0453c;
+}
+.signup-confirm-status--ok {
+  color: #2f9e5c;
+  font-weight: 600;
+}
+
+.signup-submit {
+  height: 48px;
+  border-radius: 24px;
+  border: none;
+  background: linear-gradient(90deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.signup-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signup-muted-row {
+  text-align: center;
+  font-size: 13px;
+  color: #a89c86;
+}
+.signup-link {
+  color: #7636f6;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.signup-email-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e2e2df;
+  background: #f2f2f0;
+  padding: 0 14px;
+  box-sizing: border-box;
+}
+.signup-email-locked span {
+  flex: 1 1 auto;
+  font-size: 14px;
+  color: #6f6f6b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signup-lang-row {
+  display: flex;
+  gap: 8px;
+}
+.signup-lang-pill {
+  flex: 1 1 0;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.signup-lang-pill.is-active {
+  border: none;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+}
+
+.signup-banner-error {
+  font-size: 13px;
+  color: #b0512f;
+  background: #fdeee0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+/* 완료 화면 */
+.signup-done {
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+.signup-done-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  background: #f4efff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.signup-done-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #201a14;
+}
+.signup-done-sub {
+  font-size: 13.5px;
+  color: #a89c86;
+  line-height: 1.5;
+}
+.signup-done-btn {
+  padding: 0 28px;
+  width: auto;
+  margin-top: 8px;
+}

@@ -1,0 +1,228 @@
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: #ffffff;
+}
+
+/* 좌측 브랜드 패널 */
+.login-brand {
+  width: 40%;
+  min-width: 360px;
+  background: linear-gradient(150deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.login-brand-circle--top {
+  width: 420px;
+  height: 420px;
+  top: -140px;
+  left: -120px;
+}
+.login-brand-circle--bottom {
+  width: 300px;
+  height: 300px;
+  bottom: -100px;
+  right: -80px;
+}
+
+/* 랜딩 페이지에서 전환 애니메이션을 타고 넘어왔을 때만(--animate 수식자),
+   브랜드 패널이 자리를 잡는 타이밍에 맞춰 로고/문구가 갑자기 뜨지 않고
+   부드럽게 페이드인 되도록 한다. 뒤로가기/새로고침 등으로 바로 들어온
+   경우엔 이 클래스가 붙지 않아 즉시 보인다. (Signup.css와 타이밍 동일) */
+@keyframes login-brand-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-logo {
+  height: 64px;
+  width: auto;
+  display: block;
+  position: relative;
+}
+.login-logo--animate {
+  animation: login-brand-fade-in 0.5s ease both;
+  animation-delay: 0.55s;
+}
+
+.login-tagline {
+  text-align: center;
+  position: relative;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+}
+.login-tagline--animate {
+  animation: login-brand-fade-in 0.5s ease both;
+  animation-delay: 0.65s;
+}
+
+/* 우측 폼 */
+.login-form-area {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.login-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #201a14;
+}
+.login-subtitle {
+  font-size: 13.5px;
+  color: #a89c86;
+}
+
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.login-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #5b5346;
+}
+.login-field input {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #201a14;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+}
+.login-field input:focus {
+  border-color: #7636f6;
+}
+.login-field input::placeholder {
+  color: #b6ac9c;
+}
+
+.login-error {
+  font-size: 13px;
+  color: #b0512f;
+  background: #fdeee0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+.login-forgot-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+.login-forgot-link {
+  font-size: 12.5px;
+  color: #7636f6;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-submit {
+  height: 48px;
+  border-radius: 24px;
+  border: none;
+  background: linear-gradient(90deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.login-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.login-divider-line {
+  flex: 1 1 auto;
+  height: 1px;
+  background: #eee4d2;
+}
+.login-divider span {
+  font-size: 12px;
+  color: #a89c86;
+}
+
+.login-google {
+  height: 48px;
+  border-radius: 24px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.login-google-notice {
+  margin-top: -12px;
+  font-size: 12px;
+  color: #a89c86;
+  text-align: center;
+}
+
+.login-signup-row {
+  text-align: center;
+  font-size: 13px;
+  color: #a89c86;
+}
+.login-signup-link {
+  color: #7636f6;
+  font-weight: 700;
+  text-decoration: none;
+}

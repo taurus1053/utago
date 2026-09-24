@@ -1,0 +1,385 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+
+.landing-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  color: #201a14;
+}
+.landing-page a {
+  text-decoration: none;
+}
+
+/* 상단바 */
+.landing-topbar {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+.landing-topbar-logo {
+  display: flex;
+  align-items: center;
+}
+.landing-logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+.landing-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 언어 선택 (커스텀 드롭다운) */
+.landing-lang-switcher {
+  position: relative;
+  margin-right: 4px;
+}
+.landing-lang-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  color: #5b5346;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+}
+.landing-lang-trigger:hover {
+  border-color: #d8c9ff;
+}
+.landing-lang-trigger[aria-expanded='true'] {
+  border-color: #7636f6;
+}
+.landing-lang-trigger svg:first-child {
+  color: #a89c86;
+  flex-shrink: 0;
+}
+.landing-lang-chevron {
+  color: #a89c86;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.landing-lang-chevron--open {
+  transform: rotate(180deg);
+}
+.landing-lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 132px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(32, 26, 20, 0.16);
+  z-index: 40;
+}
+.landing-lang-option {
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #5b5346;
+}
+.landing-lang-option:hover {
+  background: #f7f4ec;
+}
+.landing-lang-option--active {
+  background: #f4efff;
+  color: #5f26f3;
+  font-weight: 700;
+}
+.landing-login-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  border: 1px solid #e6ddcc;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+.landing-signup-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+
+/* 히어로 */
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(150deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+  padding: 96px 24px 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.landing-hero-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+.landing-hero-circle--top {
+  width: 520px;
+  height: 520px;
+  top: -220px;
+  left: -160px;
+}
+.landing-hero-circle--bottom {
+  width: 420px;
+  height: 420px;
+  bottom: -220px;
+  right: -140px;
+}
+.landing-hero-content {
+  position: relative;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+.landing-hero-title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.35;
+}
+.landing-hero-subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+}
+.landing-hero-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  margin-top: 16px;
+}
+.landing-cta-btn {
+  height: 52px;
+  padding: 0 32px;
+  border-radius: 26px;
+  background: #ffffff;
+  color: #5f26f3;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+.landing-hero-login-link {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+.landing-hero-login-link:hover {
+  color: #ffffff;
+}
+
+/* 지금 인기있는 곡 - 무한 스크롤 마퀴 */
+.landing-popular {
+  padding: 56px 0 24px;
+  background: #f9f6ee;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow: hidden;
+}
+.landing-popular-title {
+  margin: 0;
+  padding: 0 24px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #201a14;
+  text-align: center;
+}
+.landing-marquee {
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+}
+.landing-marquee-track {
+  display: flex;
+  width: max-content;
+  padding: 4px 0;
+  will-change: transform;
+}
+/* 세트(원본/복제본) 하나의 실제 렌더링 폭을 JS가 직접 측정해서 그만큼만
+   이동시키기 때문에, 두 세트 사이의 이어지는 지점이 항상 정확히 맞는다. */
+.landing-marquee-set {
+  display: flex;
+  flex-shrink: 0;
+  gap: 24px;
+  padding-right: 24px;
+}
+.landing-marquee-item {
+  flex: 0 0 auto;
+  width: 148px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.landing-marquee-cover {
+  width: 148px;
+  height: 148px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.landing-marquee-song-title {
+  width: 100%;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #201a14;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.landing-marquee-song-artist {
+  width: 100%;
+  font-size: 12px;
+  color: #a89c86;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 특징 */
+.landing-features {
+  padding: 88px 24px;
+  background: #f9f6ee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+}
+.landing-features-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #201a14;
+  text-align: center;
+}
+.landing-features-grid {
+  width: 100%;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.landing-feature-card {
+  background: #ffffff;
+  border: 1px solid #eee4d2;
+  border-radius: 20px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  text-align: left;
+}
+.landing-feature-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #f4efff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.landing-feature-text-title {
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #201a14;
+}
+.landing-feature-text-desc {
+  font-size: 13.5px;
+  color: #7c7261;
+  line-height: 1.6;
+}
+
+/* 하단 CTA */
+.landing-bottom-cta {
+  padding: 96px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  background: #ffffff;
+}
+.landing-bottom-cta-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #201a14;
+}
+.landing-bottom-cta-subtitle {
+  margin: 0;
+  font-size: 14.5px;
+  color: #a89c86;
+}
+.landing-cta-btn--light {
+  margin-top: 12px;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(95, 38, 243, 0.28);
+}
+
+.landing-footer {
+  padding: 28px 24px 40px;
+  text-align: center;
+  font-size: 12px;
+  color: #b6ac9c;
+  background: #ffffff;
+}
+
+@media (max-width: 860px) {
+  .landing-hero-title {
+    font-size: 32px;
+  }
+  .landing-topbar {
+    padding: 0 20px;
+  }
+  .landing-features-grid {
+    grid-template-columns: 1fr;
+  }
+}

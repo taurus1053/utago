@@ -3,12 +3,67 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
-export async function apiGet(path) {
-  const res = await fetch(`${API_BASE_URL}${path}`)
-  if (!res.ok) {
-    throw new Error(`API 요청 실패: ${res.status} ${res.statusText}`)
+// 백엔드 GlobalExceptionHandler 가 내려주는 에러 모양을 감싸는 커스텀 에러.
+// - IllegalStateException 계열: { message: "..." }
+// - @Valid 검증 실패: { 필드명: "에러메시지", ... } (message 키 없음)
+export class ApiError extends Error {
+  constructor(status, body) {
+    const fallback = '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+    const message = body && typeof body === 'object' && body.message ? body.message : fallback
+    super(message)
+    this.status = status
+    this.body = body
+    // message 키가 없으면 필드별 검증 에러 맵으로 간주.
+    this.fieldErrors = body && typeof body === 'object' && !body.message ? body : null
   }
-  return res.json()
+}
+
+async function request(path, options = {}) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  })
+
+  if (!res.ok) {
+    let body = null
+    try {
+      body = await res.json()
+    } catch {
+      // 본문이 JSON이 아닌 경우(예: 500) 무시하고 기본 메시지 사용.
+    }
+    throw new ApiError(res.status, body)
+  }
+
+  // 204는 물론이고, 백엔드가 ResponseEntity.ok().build() 로 본문 없이 200을 내려주는
+  // 엔드포인트(request-signup-code, verify-signup-code 등)도 있어서 상태코드만으로는
+  // 판단할 수 없다. 본문이 비어있으면 JSON 파싱을 시도하지 않고 그냥 null 반환.
+  if (res.status === 204) {
+    return null
+  }
+
+  const text = await res.text()
+  if (!text) {
+    return null
+  }
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
+export function apiGet(path) {
+  return request(path, { method: 'GET' })
+}
+
+export function apiPost(path, data) {
+  return request(path, {
+    method: 'POST',
+    body: JSON.stringify(data ?? {}),
+  })
 }
 
 export async function getHealth() {
