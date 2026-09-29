@@ -8,6 +8,8 @@ import com.utago.content.dto.SongLookupResponse;
 import com.utago.content.dto.SongSummaryResponse;
 import com.utago.content.dto.TranslateLinesRequest;
 import com.utago.content.dto.TranslateLinesResponse;
+import com.utago.content.dto.UpdateLinesRequest;
+import com.utago.content.dto.UpdateSyncRequest;
 import com.utago.translation.LineTranslationCacheService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -137,6 +140,47 @@ public class SongController {
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         SongDetailResponse created = songService.createSong(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
+     * 가사 싱크(소절별 재생 구간) 저장/수정. 곡을 등록한 본인만 호출할 수 있다 — 다른 사람의
+     * 곡이거나 로그인하지 않았으면 403/401. 요청한 사용자가 ADMIN이면 서비스 내부에서
+     * SongSyncCache에도 함께 반영되어, 같은 유튜브 영상으로 다른 사용자가 곡을 새로 등록할
+     * 때 이 타이밍을 그대로 재사용한다(SongService.updateLineTimings 참고).
+     */
+    @PutMapping("/api/songs/{id}/sync")
+    public ResponseEntity<SongDetailResponse> updateSync(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateSyncRequest request,
+            Authentication authentication
+    ) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            return ResponseEntity.ok(songService.updateLineTimings(id, userId, request.lines()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    /**
+     * 가사 내용(원문/의역) 수정. 곡을 등록한 본인만 호출할 수 있다 — 다른 사람의 곡이거나
+     * 로그인하지 않았으면 403/401. 등록 후 오탈자를 발견했거나 잘못 입력한 가사를 고칠 때 쓴다
+     * (타이밍 수정은 /sync 엔드포인트가 따로 담당).
+     */
+    @PutMapping("/api/songs/{id}/lines")
+    public ResponseEntity<SongDetailResponse> updateLines(
+            @PathVariable Long id,
+            @RequestBody UpdateLinesRequest request,
+            Authentication authentication
+    ) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            return ResponseEntity.ok(songService.updateLineContent(id, userId, request.lines()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     private Long extractUserId(Authentication authentication) {

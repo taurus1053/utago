@@ -5,6 +5,8 @@ import com.utago.content.dto.CreateSongRequest;
 import com.utago.content.dto.SongDetailResponse;
 import com.utago.content.dto.SongLookupResponse;
 import com.utago.content.dto.SongSummaryResponse;
+import com.utago.content.dto.UpdateLinesRequest;
+import com.utago.content.dto.UpdateSyncRequest;
 import com.utago.dictionary.SongLineWord;
 import com.utago.dictionary.SongLineWordRepository;
 import com.utago.dictionary.Word;
@@ -13,6 +15,7 @@ import com.utago.dictionary.WordMeaningEnrichmentService;
 import com.utago.dictionary.WordMeaningRepository;
 import com.utago.dictionary.WordRepository;
 import com.utago.nlp.JapaneseTokenizerService;
+import com.utago.user.Role;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class SongService {
 
-    /** 아직 오디오 싱크 편집 도구가 없어서, 곡 등록 시 소절마다 임시로 배정하는 재생 구간 길이. */
+    /** 아직 오디오 싱크 편집 도구가 없어서, 곡 등록 시 소절마다 임시로 배정하는 재생 구간 길이.
+     * 관리자가 미리 맞춰둔 싱크(SongSyncCache)가 있는 소절은 이 값 대신 그걸 그대로 쓴다. */
     private static final int DEFAULT_LINE_DURATION_MS = 4000;
 
     private final SongRepository songRepository;
@@ -47,6 +51,8 @@ public class SongService {
     private final WordMeaningRepository wordMeaningRepository;
     private final SongLineWordRepository songLineWordRepository;
     private final WordMeaningEnrichmentService wordMeaningEnrichmentService;
+    private final SongSyncCacheService songSyncCacheService;
+    private final SongLineReadingService songLineReadingService;
 
     /**
      * 공개 카탈로그 검색/목록. PUBLIC + 게시된 곡만 노출한다 — 사용자가 직접 등록한 PRIVATE 곡은
@@ -125,10 +131,15 @@ public class SongService {
      * 곡 등록. 반드시 로그인한 사용자만 호출할 수 있고(컨트롤러에서 인증 확인), 등록한 곡은
      * 항상 그 사용자 본인 소유의 PRIVATE 곡으로 저장된다 — 다른 사용자에게는 보이지 않는다.
      * 가사 원문/번역은 요청한 사용자가 직접 입력한 텍스트를 그대로 저장한다
-     * (서버가 가사 내용을 생성/보완하지 않음). 소절 타이밍은 실제 오디오 싱크 도구가
-     * 생기기 전까지 일정 간격으로 임시 배정한다.
-     * 원어가 일본어(JA)면, 형태소 분석으로 후리가나·단어장용 단어 분리를 자동으로 만들어둔다
-     * (외부 API 없이 로컬 사전 기반 — 번역과는 별개 파이프라인).
+     * (서버가 가사 내용을 생성/보완하지 않음).
+     *
+     * 소절 타이밍: 같은 유튜브 영상으로 관리자가 이미 탭싱크를 맞춰둔 적이 있으면
+     * (SongSyncCache) 그 타이밍을 그대로 재사용하고, 캐시에 없는 소절만 일정 간격으로
+     * 임시 배정한다 — line_translation_cache와 같은 "관리자가 한 번 맞춰두면 모두가
+     * 재사용" 구조.
+     * 원어가 일본어(JA)면, 형태소 분석으로 후리가나·단어장용 단어 분리와 함께 한국어
+     * 발음 표기(SongLineReading)도 자동으로 만들어둔다(외부 API 없이 로컬 사전+규칙
+     * 기반 — 번역과는 별개 파이프라인).
      */
     @Transactional
     public SongDetailResponse createSong(CreateSongRequest request, Long ownerUserId) {
@@ -148,17 +159,29 @@ public class SongService {
                 .build();
         song = songRepository.save(song);
 
+        Map<Integer, SongSyncCache> cachedTimings = songSyncCacheService.lookupByVideoId(song.getYoutubeVideoId());
+
         List<SongLine> lines = new ArrayList<>();
         int order = 1;
         int cursorMs = 0;
         for (CreateSongRequest.LineInput lineInput : request.lines()) {
+            SongSyncCache cached = cachedTimings.get(order);
+            int startMs;
+            int endMs;
+            if (cached != null) {
+                startMs = cached.getStartMs();
+                endMs = cached.getEndMs();
+            } else {
+                startMs = cursorMs;
+                endMs = cursorMs + DEFAULT_LINE_DURATION_MS;
+            }
             lines.add(SongLine.builder()
                     .song(song)
                     .lineOrder(order++)
                     .originalText(lineInput.originalText())
                     .translationNatural(lineInput.translationNatural())
-                    .startMs(cursorMs)
-                    .endMs(cursorMs + DEFAULT_LINE_DURATION_MS)
+                    .startMs(startMs)
+                    .endMs(endMs)
                     .build());
             cursorMs += DEFAULT_LINE_DURATION_MS;
         }
@@ -166,9 +189,99 @@ public class SongService {
 
         if (song.getSourceLang() == Lang.JA) {
             analyzeJapaneseLines(lines);
+            songLineReadingService.generateKoReadings(lines);
         }
 
         return SongDetailResponse.from(song, lines, Map.of(), List.of());
+    }
+
+    /**
+     * 소절 타이밍(가사 싱크) 저장/수정. 곡을 등록한 본인만 호출할 수 있다.
+     * 요청한 사용자가 ADMIN이면, 이 타이밍을 SongSyncCache에도 함께 반영해서 같은 유튜브
+     * 영상으로 곡을 등록하는 다른 모든 사용자가 이후 그대로 재사용할 수 있게 한다 — 일반
+     * 사용자가 자기 곡 타이밍을 고치는 건 본인 곡에만 반영되고 공유 캐시는 건드리지 않는다.
+     */
+    @Transactional
+    public SongDetailResponse updateLineTimings(Long songId, Long userId, List<UpdateSyncRequest.LineTiming> timings) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+        if (userId == null || !userId.equals(song.getOwnerUserId())) {
+            throw new IllegalStateException("본인이 등록한 곡만 싱크를 수정할 수 있습니다.");
+        }
+
+        Map<Long, SongLine> lineById = songLineRepository.findBySongIdOrderByLineOrderAsc(songId).stream()
+                .collect(Collectors.toMap(SongLine::getId, l -> l));
+        for (UpdateSyncRequest.LineTiming t : timings) {
+            SongLine line = lineById.get(t.lineId());
+            if (line == null) continue;
+            line.setStartMs(t.startMs());
+            line.setEndMs(t.endMs());
+        }
+        List<SongLine> saved = songLineRepository.saveAll(lineById.values());
+        saved.sort((a, b) -> Integer.compare(a.getLineOrder(), b.getLineOrder()));
+
+        boolean isAdmin = userRepository.findById(userId).map(u -> u.getRole() == Role.ADMIN).orElse(false);
+        if (isAdmin) {
+            songSyncCacheService.upsertAdminBatch(song.getYoutubeVideoId(), saved);
+        }
+
+        return getSongDetail(songId, userId);
+    }
+
+    /**
+     * 가사 내용(원문/의역) 수정 — 등록할 때 오탈자를 냈거나 나중에 잘못된 걸 발견했을 때
+     * 고칠 수 있게. 곡을 등록한 본인만 호출할 수 있다(타이밍 수정과 동일한 권한 체크).
+     *
+     * 원문(originalText)이 실제로 바뀐 소절은, 그 소절에 딸려 있던 예전 분석 결과(단어장
+     * 연결 SongLineWord, 발음 표기 SongLineReading)가 더 이상 맞지 않으므로 지우고
+     * 다시 만든다 — createSong 때와 같은 파이프라인(analyzeJapaneseLines +
+     * SongLineReadingService)을 그 소절들만 대상으로 재실행. 의역만 고친 경우는
+     * 재분석이 필요 없어서 건드리지 않는다.
+     */
+    @Transactional
+    public SongDetailResponse updateLineContent(Long songId, Long userId, List<UpdateLinesRequest.LineEdit> edits) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+        if (userId == null || !userId.equals(song.getOwnerUserId())) {
+            throw new IllegalStateException("본인이 등록한 곡만 가사를 수정할 수 있습니다.");
+        }
+
+        Map<Long, SongLine> lineById = songLineRepository.findBySongIdOrderByLineOrderAsc(songId).stream()
+                .collect(Collectors.toMap(SongLine::getId, l -> l));
+
+        List<SongLine> toSave = new ArrayList<>();
+        List<SongLine> textChangedLines = new ArrayList<>();
+        for (UpdateLinesRequest.LineEdit edit : edits) {
+            if (edit == null || edit.lineId() == null) continue;
+            SongLine line = lineById.get(edit.lineId());
+            if (line == null) continue;
+
+            boolean textChanged = edit.originalText() != null && !edit.originalText().equals(line.getOriginalText());
+            if (edit.originalText() != null) {
+                line.setOriginalText(edit.originalText());
+            }
+            if (edit.translationNatural() != null) {
+                line.setTranslationNatural(edit.translationNatural());
+            }
+            toSave.add(line);
+            if (textChanged) {
+                textChangedLines.add(line);
+            }
+        }
+        songLineRepository.saveAll(toSave);
+
+        if (!textChangedLines.isEmpty()) {
+            List<Long> changedIds = textChangedLines.stream().map(SongLine::getId).toList();
+            songLineWordRepository.deleteAll(songLineWordRepository.findBySongLineIdIn(changedIds));
+            songLineReadingRepository.deleteAll(songLineReadingRepository.findBySongLineIdIn(changedIds));
+
+            if (song.getSourceLang() == Lang.JA) {
+                analyzeJapaneseLines(textChangedLines);
+                songLineReadingService.generateKoReadings(textChangedLines);
+            }
+        }
+
+        return getSongDetail(songId, userId);
     }
 
     /**

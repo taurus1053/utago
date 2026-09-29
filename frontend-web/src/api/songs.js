@@ -1,5 +1,5 @@
 // 곡 목록/검색/상세/등록 API 호출.
-import { apiGet, apiPost } from './client'
+import { apiGet, apiPost, apiPut } from './client'
 
 // GET /api/songs?query=&lang=&page=&size=
 // -> Spring Page<SongSummaryResponse>: { content: [...], totalElements, totalPages, number, size, ... }
@@ -57,6 +57,23 @@ export async function createSong(payload) {
 // 가사는 절대 채워주지 않는다 — 제목/아티스트 추측 + 중복 확인까지만.
 export async function lookupSongByYoutube(videoId) {
   return apiGet(`/api/songs/lookup?youtubeVideoId=${encodeURIComponent(videoId)}`)
+}
+
+// PUT /api/songs/{id}/sync (로그인 필요, 곡을 등록한 본인만)
+// payload lines: [{ lineId, startMs, endMs }, ...]
+// -> 갱신된 SongDetailResponse. 호출한 사용자가 ADMIN이면 서버가 이 타이밍을 공유 싱크
+// 캐시에도 반영해서, 같은 유튜브 영상으로 다른 사용자가 곡을 새로 등록할 때 재사용된다.
+export async function updateSongSync(id, lines) {
+  return apiPut(`/api/songs/${id}/sync`, { lines })
+}
+
+// PUT /api/songs/{id}/lines (로그인 필요, 곡을 등록한 본인만)
+// payload lines: [{ lineId, originalText, translationNatural }, ...]
+// 등록 후 오탈자 등을 발견했을 때 가사 원문/의역을 고치는 용도. 타이밍(startMs/endMs)은
+// 여기서 건드리지 않는다 — updateSongSync()가 담당.
+// -> 갱신된 SongDetailResponse (원문이 바뀐 줄은 서버가 후리가나/단어/발음 표기를 다시 만든다)
+export async function updateSongLines(id, lines) {
+  return apiPut(`/api/songs/${id}/lines`, { lines })
 }
 
 // 유튜브 URL(다양한 형식)에서 영상 ID만 뽑아낸다. 못 찾으면 null.

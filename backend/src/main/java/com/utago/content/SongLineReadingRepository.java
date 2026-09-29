@@ -13,4 +13,7 @@ public interface SongLineReadingRepository extends JpaRepository<SongLineReading
 
     /** 곡 전체를 한 번에 불러올 때, 특정 언어권 발음을 소절 ID 목록으로 일괄 조회 */
     List<SongLineReading> findBySongLineIdInAndTargetLang(List<Long> songLineIds, Lang targetLang);
+
+    /** 가사 내용(원문) 수정 시, 그 소절의 기존 발음 표기(언어 무관 전부)를 지우고 다시 만들기 위함 */
+    List<SongLineReading> findBySongLineIdIn(List<Long> songLineIds);
 }

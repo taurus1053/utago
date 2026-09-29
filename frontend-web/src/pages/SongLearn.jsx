@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getSong } from '../api/songs'
 import TopBar from '../components/TopBar'
+import useYoutubeApiReady from '../hooks/useYoutubeApiReady'
 import './SongLearn.css'
 
 const LANG_LABEL = { JA: '일본어', KO: '한국어', EN: '영어' }
@@ -9,6 +10,19 @@ const LANG_LABEL = { JA: '일본어', KO: '한국어', EN: '영어' }
 // 소절 원문을 단어 단위(line.words, 서버에서 형태소 분석으로 만들어줌)로 쪼개서
 // 한자 위에는 후리가나(ruby)를, 단어를 탭하면 뜻 팝업을 보여줄 수 있게 조각낸다.
 // words가 없는 곡(일본어가 아니거나 아직 분석 전)은 그냥 원문 텍스트 그대로 보여준다.
+// 후리가나가 있는 단어와 없는 단어가 소절마다 섞여 있으면, 그 소절에 ruby(후리가나) 태그가
+// 하나라도 있는지 여부에 따라 그 줄의 높이가 들쭉날쭉해진다(브라우저가 rt 높이만큼 줄 높이를
+// 늘리기 때문). 그래서 후리가나가 없는 단어도 항상 <ruby>로 감싸되, 안 보이는(투명) 빈 rt를
+// 넣어서 — 실제 발음이 있든 없든 모든 소절이 항상 같은 높이를 갖도록 한다.
+function rubyOrPlain(surface, furigana) {
+  return (
+    <ruby>
+      {surface}
+      <rt className={furigana ? undefined : 'song-learn-rt-empty'}>{furigana || ' '}</rt>
+    </ruby>
+  )
+}
+
 function renderOriginalWithWords(line, activeWordKey, onWordClick) {
   const text = line.originalText
   const words = line.words ?? []
@@ -20,7 +34,9 @@ function renderOriginalWithWords(line, activeWordKey, onWordClick) {
   let cursor = 0
   words.forEach((w, i) => {
     if (w.charOffsetStart > cursor) {
-      nodes.push(<span key={`plain-${i}`}>{text.slice(cursor, w.charOffsetStart)}</span>)
+      nodes.push(
+        <span key={`plain-${i}`}>{rubyOrPlain(text.slice(cursor, w.charOffsetStart), null)}</span>
+      )
     }
     const surface = text.slice(w.charOffsetStart, w.charOffsetEnd)
     const wordKey = `${line.id}-${i}`
@@ -34,14 +50,7 @@ function renderOriginalWithWords(line, activeWordKey, onWordClick) {
           onWordClick(wordKey)
         }}
       >
-        {w.furigana ? (
-          <ruby>
-            {surface}
-            <rt>{w.furigana}</rt>
-          </ruby>
-        ) : (
-          surface
-        )}
+        {rubyOrPlain(surface, w.furigana)}
         {isActive && (
           <span className="song-learn-word-popup">
             {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : '뜻 준비 중'}
@@ -52,7 +61,7 @@ function renderOriginalWithWords(line, activeWordKey, onWordClick) {
     cursor = w.charOffsetEnd
   })
   if (cursor < text.length) {
-    nodes.push(<span key="plain-end">{text.slice(cursor)}</span>)
+    nodes.push(<span key="plain-end">{rubyOrPlain(text.slice(cursor), null)}</span>)
   }
   return nodes
 }
@@ -121,6 +130,15 @@ function buildWordList(line) {
   return list
 }
 
+// ms를 mm:ss로.
+function formatTime(ms) {
+  if (!ms || ms < 0) return '0:00'
+  const totalSec = Math.floor(ms / 1000)
+  const m = Math.floor(totalSec / 60)
+  const s = totalSec % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 // 곡 학습 화면 — 우타고의 핵심 차별화 포인트:
 // 1) 소절별 원문(후리가나·단어 탭 포함) + 발음 표기(로그인 사용자 모국어 기준) + 의역 +
 //    그 소절에 쓰인 단어 목록을, 한 소절씩 집중해서 보여주는 것("한 줄씩 보기" 기본 모드).
@@ -139,6 +157,15 @@ export default function SongLearn() {
   const [activeWordKey, setActiveWordKey] = useState(null)
   const [activeLineIndex, setActiveLineIndex] = useState(0)
   const [expandedAll, setExpandedAll] = useState(false)
+  const [autoSync, setAutoSync] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [durationMs, setDurationMs] = useState(0)
+  const [currentMs, setCurrentMs] = useState(0)
+  const [isSeeking, setIsSeeking] = useState(false)
+  const [seekPreviewMs, setSeekPreviewMs] = useState(0)
+
+  const apiReady = useYoutubeApiReady()
+  const playerRef = useRef(null)
 
   function toggleWord(key) {
     setActiveWordKey((prev) => (prev === key ? null : key))
@@ -150,6 +177,10 @@ export default function SongLearn() {
     setError(null)
     setActiveLineIndex(0)
     setExpandedAll(false)
+    setAutoSync(false)
+    setIsPlaying(false)
+    setDurationMs(0)
+    setCurrentMs(0)
     getSong(id)
       .then((data) => {
         if (cancelled) return
@@ -167,6 +198,74 @@ export default function SongLearn() {
     }
   }, [id])
 
+  // 곡(영상)이 바뀌면 이전 플레이어를 정리하고, 새 유튜브 IFrame Player를 만든다.
+  useEffect(() => {
+    return () => {
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        playerRef.current.destroy()
+      }
+      playerRef.current = null
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (!apiReady || !song?.youtubeVideoId || playerRef.current) return
+    playerRef.current = new window.YT.Player('song-learn-yt-player', {
+      videoId: song.youtubeVideoId,
+      playerVars: { rel: 0, playsinline: 1, origin: window.location.origin },
+      events: {
+        onReady: (e) => {
+          setDurationMs(e.target.getDuration() * 1000)
+        },
+        onStateChange: (e) => {
+          setIsPlaying(e.data === window.YT.PlayerState.PLAYING)
+          if (e.data === window.YT.PlayerState.PLAYING) {
+            setDurationMs(e.target.getDuration() * 1000)
+          }
+        },
+      },
+    })
+  }, [apiReady, song])
+
+  // 재생 위치를 주기적으로 읽어서 (1) 커스텀 플레이어 바(재생 막대)를 갱신하고,
+  // (2) 자동 싱크가 켜져 있으면 그 위치가 속한 소절로 "한 줄씩 보기" 포커스를 옮긴다.
+  // 사용자가 재생 막대를 드래그하는 중(isSeeking)에는 값을 덮어쓰지 않는다.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const player = playerRef.current
+      if (!player || typeof player.getCurrentTime !== 'function') return
+      const nowMs = player.getCurrentTime() * 1000
+      if (!isSeeking) {
+        setCurrentMs(nowMs)
+      }
+      if (autoSync) {
+        const idx = lines.findIndex((l) => nowMs >= l.startMs && nowMs < l.endMs)
+        if (idx !== -1 && idx !== activeLineIndex) {
+          setActiveLineIndex(idx)
+          setExpandedAll(false)
+        }
+      }
+    }, 250)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSync, song, activeLineIndex, isSeeking])
+
+  function handlePlayPause() {
+    const player = playerRef.current
+    if (!player) return
+    if (isPlaying) player.pauseVideo()
+    else player.playVideo()
+  }
+
+  function commitSeek(newMs) {
+    const player = playerRef.current
+    if (player && typeof player.seekTo === 'function') {
+      player.seekTo(newMs / 1000, true)
+    }
+    setCurrentMs(newMs)
+    setIsSeeking(false)
+  }
+
   const thumbnail = song?.youtubeVideoId
     ? `https://img.youtube.com/vi/${song.youtubeVideoId}/hqdefault.jpg`
     : null
@@ -175,6 +274,8 @@ export default function SongLearn() {
   const clampedIndex = Math.min(activeLineIndex, Math.max(lines.length - 1, 0))
   const activeLine = lines[clampedIndex] ?? null
   const activeWordList = activeLine ? buildWordList(activeLine) : []
+
+  const displayMs = isSeeking ? seekPreviewMs : currentMs
 
   function focusLine(idx) {
     setActiveLineIndex(idx)
@@ -202,21 +303,22 @@ export default function SongLearn() {
         </div>
       ) : !song ? null : (
         <div className="song-learn-content">
+        <div className="song-learn-layout">
+        <div className="song-learn-left">
           <section className="song-learn-hero">
             {song.youtubeVideoId ? (
-              <div className="song-learn-video">
-                <iframe
-                  src={`https://www.youtube.com/embed/${song.youtubeVideoId}`}
-                  title={song.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
+              <div
+                className="song-learn-video"
+                style={thumbnail ? { backgroundImage: `url(${thumbnail})` } : undefined}
+              >
+                <div id="song-learn-yt-player" />
               </div>
             ) : (
               thumbnail && (
                 <img className="song-learn-hero-fallback" src={thumbnail} alt={`${song.title} 커버`} />
               )
             )}
+
             <div className="song-learn-hero-info">
               {song.sourceLang && (
                 <span className="song-learn-lang-badge">{LANG_LABEL[song.sourceLang] ?? song.sourceLang}</span>
@@ -224,8 +326,49 @@ export default function SongLearn() {
               <h1 className="song-learn-title">{song.title}</h1>
               <span className="song-learn-artist">{song.artist}</span>
             </div>
-          </section>
 
+            {song.youtubeVideoId && (
+              <div className="song-learn-player-bar">
+                <button
+                  type="button"
+                  className="song-learn-player-play"
+                  onClick={handlePlayPause}
+                  aria-label={isPlaying ? '일시정지' : '재생'}
+                >
+                  {isPlaying ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="5" y="4" width="5" height="16" rx="1"></rect>
+                      <rect x="14" y="4" width="5" height="16" rx="1"></rect>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7 4l14 8-14 8V4z"></path>
+                    </svg>
+                  )}
+                </button>
+                <span className="song-learn-player-time">{formatTime(displayMs)}</span>
+                <input
+                  type="range"
+                  className="song-learn-player-seek"
+                  min={0}
+                  max={durationMs || 0}
+                  step={100}
+                  value={isSeeking ? seekPreviewMs : Math.min(currentMs, durationMs || 0)}
+                  onChange={(e) => {
+                    setIsSeeking(true)
+                    setSeekPreviewMs(Number(e.target.value))
+                  }}
+                  onMouseUp={(e) => commitSeek(Number(e.target.value))}
+                  onTouchEnd={(e) => commitSeek(Number(e.target.value))}
+                  aria-label="재생 위치"
+                />
+                <span className="song-learn-player-time">{formatTime(durationMs)}</span>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <div className="song-learn-right">
           {song.grammarPoints?.length > 0 && (
             <section className="song-learn-section">
               <h2 className="song-learn-section-title">이 곡의 문법 포인트</h2>
@@ -248,15 +391,36 @@ export default function SongLearn() {
           <section className="song-learn-section">
             <div className="song-learn-section-header">
               <h2 className="song-learn-section-title">가사</h2>
-              {lines.length > 0 && (
-                <button
-                  type="button"
-                  className="song-learn-toggle-all"
-                  onClick={() => setExpandedAll((v) => !v)}
-                >
-                  {expandedAll ? '한 줄씩 보기' : '전체 가사 보기'}
-                </button>
-              )}
+              <div className="song-learn-section-actions">
+                {song.youtubeVideoId && (
+                  <button
+                    type="button"
+                    className={`song-learn-autosync-btn${autoSync ? ' song-learn-autosync-btn--on' : ''}`}
+                    onClick={() => setAutoSync((v) => !v)}
+                  >
+                    🎵 자동 싱크 {autoSync ? 'ON' : 'OFF'}
+                  </button>
+                )}
+                {song.youtubeVideoId && (
+                  <Link to={`/songs/${song.id}/sync`} className="song-learn-toggle-all">
+                    가사 싱크 편집
+                  </Link>
+                )}
+                {lines.length > 0 && (
+                  <Link to={`/songs/${song.id}/edit`} className="song-learn-toggle-all">
+                    가사 내용 편집
+                  </Link>
+                )}
+                {lines.length > 0 && (
+                  <button
+                    type="button"
+                    className="song-learn-toggle-all"
+                    onClick={() => setExpandedAll((v) => !v)}
+                  >
+                    {expandedAll ? '한 줄씩 보기' : '전체 가사 보기'}
+                  </button>
+                )}
+              </div>
             </div>
 
             {lines.length === 0 ? (
@@ -341,6 +505,8 @@ export default function SongLearn() {
               </div>
             )}
           </section>
+        </div>
+        </div>
         </div>
       )}
     </div>

@@ -4,6 +4,8 @@ import Signup from './pages/Signup'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
 import SongLearn from './pages/SongLearn'
+import SongSync from './pages/SongSync'
+import SongEdit from './pages/SongEdit'
 import AddSong from './pages/AddSong'
 import AdminTranslations from './pages/AdminTranslations'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
@@ -26,6 +28,24 @@ function App() {
         <Route path="/" element={<RootRoute />} />
         <Route path="/songs/new" element={<AddSong />} />
         <Route path="/songs/:id" element={<SongLearn />} />
+        {/* 가사 싱크(탭싱크) 편집 — 곡을 등록한 본인만 저장 가능(서버가 확인), 로그인은 필수 */}
+        <Route
+          path="/songs/:id/sync"
+          element={(
+            <RequireAuth>
+              <SongSync />
+            </RequireAuth>
+          )}
+        />
+        {/* 가사 내용(원문/의역) 편집 — 곡을 등록한 본인만 저장 가능(서버가 확인), 로그인은 필수 */}
+        <Route
+          path="/songs/:id/edit"
+          element={(
+            <RequireAuth>
+              <SongEdit />
+            </RequireAuth>
+          )}
+        />
         {/* 로그인은 필수, ADMIN 여부는 페이지 자체가 /api/users/me/role로 다시 확인함 */}
         <Route
           path="/admin/translations"

@@ -20,6 +20,13 @@ public class JapaneseTokenizerService {
     /** 조사/조동사/기호/공백처럼 단어장에 넣을 가치가 없는 품사는 제외한다. */
     private static final Set<String> SKIP_POS = Set.of("助詞", "助動詞", "記号", "空白", "接続詞", "連体詞");
 
+    /** 줄 전체 발음 표기를 구간(단어 단위)으로 나눌 때, 항상 앞 구간에 붙어야 하는
+     * 품사(대분류) — 조사/조동사류는 독립된 구간으로 취급하지 않는다. */
+    private static final Set<String> ALWAYS_ATTACH_POS1 = Set.of("助詞", "助動詞", "記号", "空白", "接続詞", "連体詞");
+
+    /** 세분류(품사 대분류가 독립어라도)가 이거면 접미사/의존형태소라 앞 구간에 붙는다. */
+    private static final Set<String> DEPENDENT_POS2 = Set.of("非自立", "接尾");
+
     private final Tokenizer tokenizer = new Tokenizer();
 
     public record TokenSpan(
@@ -62,6 +69,62 @@ public class JapaneseTokenizerService {
             }
 
             result.add(new TokenSpan(surface, start, end, furigana, baseForm, pos, vocabWorthy));
+        }
+        return result;
+    }
+
+    /**
+     * 줄 전체 발음 표기 생성(SongLineReadingService)에 쓰는, 한 토큰의 모든 정보.
+     * reading은 한자든 가나든 관계없이 항상 채워진다(가나 토큰은 표면형 자체가 이미 읽기이므로
+     * 그대로, 인식 실패한 토큰은 표면형을 그대로 폴백).
+     */
+    public record ReadingToken(
+            String surface,
+            int charOffsetStart,
+            int charOffsetEnd,
+            String reading,
+            String baseForm,
+            String partOfSpeechLevel1,
+            String partOfSpeechLevel2
+    ) {
+        /** 이 토큰이 (조사/조동사/접미사 등에 안 붙고) 새 구간을 시작할 수 있는 자립어인지. */
+        public boolean isIndependent() {
+            if (ALWAYS_ATTACH_POS1.contains(partOfSpeechLevel1)) return false;
+            return !DEPENDENT_POS2.contains(partOfSpeechLevel2);
+        }
+    }
+
+    /**
+     * 소절 원문을 형태소 단위로 분석해서, 줄 전체 발음 표기를 구간(대략 문절 단위)으로
+     * 나눌 수 있게 필요한 정보를 전부 담아 돌려준다. tokenize()와 별개로 두는 이유는
+     * tokenize()의 furigana는 한자 토큰에만 채워지지만, 여기서는 조사처럼 가나뿐인
+     * 토큰도 읽기가 항상 필요하기 때문.
+     */
+    public List<ReadingToken> analyzeForReading(String text) {
+        List<ReadingToken> result = new ArrayList<>();
+        int cursor = 0;
+        for (Token token : tokenizer.tokenize(text)) {
+            String surface = token.getSurface();
+            int start = text.indexOf(surface, cursor);
+            if (start < 0) {
+                continue;
+            }
+            int end = start + surface.length();
+            cursor = end;
+
+            String rawReading = token.getReading(); // 가타카나, 분석 실패 시 "*"
+            String reading = (rawReading != null && !rawReading.equals("*"))
+                    ? katakanaToHiragana(rawReading)
+                    : surface;
+
+            String baseForm = token.getBaseForm();
+            if (baseForm == null || baseForm.equals("*")) {
+                baseForm = surface;
+            }
+
+            result.add(new ReadingToken(
+                    surface, start, end, reading, baseForm,
+                    token.getPartOfSpeechLevel1(), token.getPartOfSpeechLevel2()));
         }
         return result;
     }

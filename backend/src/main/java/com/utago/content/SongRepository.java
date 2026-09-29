@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SongRepository extends JpaRepository<Song, Long> {
@@ -35,4 +36,7 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     /** 곡 추가 화면 - 다른 영상이라도 제목+아티스트가 같은(이미 가사가 있는) 공개 곡이 있는지 확인 */
     Optional<Song> findByVisibilityAndContentStatusAndTitleIgnoreCaseAndArtistIgnoreCase(
             Visibility visibility, ContentStatus contentStatus, String title, String artist);
+
+    /** 발음 표기 백필 등 배치 작업용 — 특정 원어의 곡 전체 조회(공개 범위 무관) */
+    List<Song> findBySourceLang(Lang sourceLang);
 }
