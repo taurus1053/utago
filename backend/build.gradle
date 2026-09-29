@@ -35,6 +35,10 @@ dependencies {
 
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // 일본어 형태소 분석기 — 후리가나(읽기) 자동 생성 + 단어 단위 분리(단어장/뜻 팝업용).
+    // 순수 자바 라이브러리라 외부 API/네트워크 호출 없이 서버에서 바로 처리된다.
+    implementation 'com.atilika.kuromoji:kuromoji-ipadic:0.9.0'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

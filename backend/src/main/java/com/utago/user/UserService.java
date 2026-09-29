@@ -32,6 +32,11 @@ public class UserService {
         return UserProfileResponse.from(user);
     }
 
+    @Transactional(readOnly = true)
+    public String getRole(Long userId) {
+        return findUser(userId).getRole().name();
+    }
+
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));

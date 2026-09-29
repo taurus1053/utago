@@ -33,4 +33,17 @@ public class UserController {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(userService.updateProfile(userId, request));
     }
+
+    /**
+     * GET /api/users/me/role — 프런트에서 관리자 페이지 노출 여부를 판단하기 위한 용도.
+     * UserProfileResponse(별도 dto 파일, 이미 다른 화면에서 쓰이는 구조)는 건드리지 않고
+     * 가볍게 role만 별도로 내려준다.
+     */
+    @GetMapping("/me/role")
+    public ResponseEntity<RoleResponse> myRole(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(new RoleResponse(userService.getRole(userId)));
+    }
+
+    public record RoleResponse(String role) {}
 }

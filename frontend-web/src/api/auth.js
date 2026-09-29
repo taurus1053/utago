@@ -1,7 +1,6 @@
 // 로그인/인증 관련 API 호출 + 토큰 저장.
-import { apiGet, apiPost } from './client'
+import { apiGet, apiPost, TOKEN_KEY } from './client'
 
-const TOKEN_KEY = 'utago_token'
 const USER_KEY = 'utago_user'
 
 // POST /api/auth/login -> { token, userId, email, nickname }

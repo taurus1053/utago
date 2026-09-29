@@ -1,0 +1,376 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+.song-learn-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+/* 상단바(TopBar)와 뒤로가기 서브바(.app-subbar)는 components/TopBar.css 공용 스타일을 쓴다. */
+
+.song-learn-status {
+  padding: 60px 24px;
+  text-align: center;
+  color: #a89c86;
+  font-size: 14px;
+}
+.song-learn-status--error {
+  color: #b0512f;
+}
+
+.song-learn-content {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* 히어로 — 유튜브 영상(있으면) + 곡 정보. 흰 배경 위에 카드 없이 깔끔하게. */
+.song-learn-hero {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.song-learn-video {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0b0b0c;
+  box-shadow: 0 8px 28px rgba(20, 20, 20, 0.14);
+}
+.song-learn-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.song-learn-hero-fallback {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(20, 20, 20, 0.1);
+}
+.song-learn-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 2px;
+}
+.song-learn-lang-badge {
+  align-self: flex-start;
+  background: #f3e9ff;
+  color: #5b3fa0;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  width: fit-content;
+}
+.song-learn-title {
+  margin: 2px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #16130f;
+  letter-spacing: -0.01em;
+}
+.song-learn-artist {
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+/* 섹션 공통 */
+.song-learn-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.song-learn-section-header .song-learn-section-title {
+  margin: 0;
+}
+.song-learn-section-title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #201a14;
+}
+.song-learn-toggle-all {
+  border: 1px solid #e0cdfb;
+  background: #f3e9ff;
+  color: #5b3fa0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.song-learn-toggle-all:hover {
+  background: #e9dcfd;
+}
+
+/* 문법 포인트 */
+.song-learn-grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.song-learn-grammar-card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.song-learn-grammar-card--active {
+  border-color: #8d47fa;
+  box-shadow: 0 0 0 2px rgba(141, 71, 250, 0.15);
+}
+.song-learn-grammar-pattern {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 14px;
+  color: #5f26f3;
+  margin-bottom: 4px;
+}
+.song-learn-grammar-explanation {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #5b5346;
+}
+
+/* 가사 */
+.song-learn-lyrics {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.song-learn-line {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+.song-learn-line:hover {
+  background: #f7f7f8;
+}
+.song-learn-line--highlight {
+  background: #f3e9ff;
+}
+.song-learn-line-reading {
+  font-size: 12px;
+  color: #a89c86;
+}
+.song-learn-line-original {
+  font-size: 17px;
+  font-weight: 600;
+  color: #201a14;
+  line-height: 1.5;
+}
+.song-learn-line-translation {
+  font-size: 13.5px;
+  color: #8a7f6e;
+}
+
+/* 단어 탭 + 후리가나(ruby) */
+.song-learn-line-original ruby {
+  ruby-position: over;
+}
+.song-learn-line-original rt {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b0512f;
+  user-select: none;
+}
+.song-learn-word {
+  position: relative;
+  display: inline;
+  cursor: pointer;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background 0.15s ease;
+}
+.song-learn-word:hover {
+  background: #f3e9ff;
+}
+.song-learn-word--active {
+  background: #e0cdfb;
+}
+.song-learn-word-popup {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #201a14;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 8px;
+  z-index: 5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.song-learn-word-popup::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #201a14;
+}
+.song-learn-word-hint {
+  margin: -8px 0 0;
+  font-size: 12px;
+  color: #a89c86;
+}
+
+/* 한 줄씩 보기(기본 모드) — 소절 하나를 집중해서 보여주고, 이전/다음으로 넘긴다. */
+.song-learn-focus {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* 소절마다 단어 개수가 달라서 카드 높이가 들쭉날쭉해지는 걸 줄이려고 최소 높이를 넉넉히 잡는다. */
+  min-height: 460px;
+}
+.song-learn-focus-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.song-learn-focus-nav-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 19px;
+  border: 1px solid #ececec;
+  background: #ffffff;
+  color: #201a14;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04);
+  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.song-learn-focus-nav-btn:hover:not(:disabled) {
+  border-color: #8d47fa;
+  color: #5f26f3;
+}
+.song-learn-focus-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.song-learn-focus-count {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #8a7f6e;
+  min-width: 54px;
+  text-align: center;
+}
+
+.song-learn-focus-card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-left: 3px solid #8d47fa;
+  border-radius: 16px;
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+}
+.song-learn-focus-reading {
+  font-size: 13px;
+  color: #a89c86;
+}
+.song-learn-focus-original {
+  font-size: 21px;
+  font-weight: 700;
+  color: #201a14;
+  line-height: 1.55;
+}
+.song-learn-focus-original ruby {
+  ruby-position: over;
+}
+.song-learn-focus-original rt {
+  font-size: 11px;
+  font-weight: 500;
+  color: #b0512f;
+  user-select: none;
+}
+.song-learn-focus-translation {
+  font-size: 15px;
+  color: #5b5346;
+  margin-top: 4px;
+}
+
+.song-learn-focus-words {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.03);
+}
+.song-learn-focus-words-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #8a7f6e;
+}
+.song-learn-word-table {
+  display: flex;
+  flex-direction: column;
+}
+.song-learn-word-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px dashed #ececec;
+}
+.song-learn-word-row:last-child {
+  border-bottom: none;
+}
+.song-learn-word-row-surface {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #201a14;
+  flex-shrink: 0;
+}
+.song-learn-word-row-reading {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #b0512f;
+}
+.song-learn-word-row-meaning {
+  font-size: 13.5px;
+  color: #5b5346;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .song-learn-title {
+    font-size: 20px;
+  }
+}

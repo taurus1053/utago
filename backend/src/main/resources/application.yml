@@ -18,3 +18,10 @@ server:
 jwt:
   secret: ${JWT_SECRET:utago-dev-secret-key-change-this-before-production-please-1234567890}
   expiration-ms: 86400000
+
+# 가사 자동 번역(AI 번역 초안)에 쓰는 Claude API 키.
+# 절대 이 파일에 실제 키를 직접 적지 말 것 — Windows 환경변수 ANTHROPIC_API_KEY 로만 설정.
+# (설정 안 하면 빈 값이라 번역 기능은 자동으로 비활성화되고, 다른 기능엔 영향 없음)
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+  model: claude-haiku-4-5-20251001

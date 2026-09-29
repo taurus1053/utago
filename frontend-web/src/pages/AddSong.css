@@ -1,0 +1,299 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+
+.add-song-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+/* 상단바(TopBar)와 뒤로가기 서브바(.app-subbar)는 components/TopBar.css 공용 스타일을 쓴다. */
+
+.add-song-content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.add-song-notice {
+  margin: 0;
+  padding: 14px 16px;
+  background: #f3e9ff;
+  border: 1px solid #e0cdfb;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5b3fa0;
+}
+.add-song-notice--warn {
+  background: #fbe9e2;
+  border-color: #f3cdb8;
+  color: #b0512f;
+}
+.add-song-notice--warn a {
+  color: #8a3a1e;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.add-song-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.03);
+}
+.add-song-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-song-lookup-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #8a7f6e;
+}
+.add-song-lookup-row {
+  display: flex;
+  gap: 8px;
+}
+.add-song-lookup-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: #f7f7f8;
+  color: #201a14;
+}
+.add-song-lookup-row input:focus {
+  outline: none;
+  border-color: #8d47fa;
+}
+.add-song-lookup-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-song-lookup-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.add-song-existing-match {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #eafbe8;
+  color: #2f7a3e;
+  font-size: 13.5px;
+}
+.add-song-existing-match a {
+  color: #1f5c2b;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.add-song-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.add-song-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #8a7f6e;
+}
+.add-song-field input,
+.add-song-field select {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: #f7f7f8;
+  color: #201a14;
+}
+.add-song-field input:focus,
+.add-song-field select:focus {
+  outline: none;
+  border-color: #8d47fa;
+}
+
+.add-song-section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-song-add-line {
+  border: none;
+  background: none;
+  color: #5f26f3;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.add-song-add-line:hover {
+  text-decoration: underline;
+}
+
+.add-song-translate-btn {
+  border: 1px solid #e0cdfb;
+  background: #f3e9ff;
+  color: #5b3fa0;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.add-song-translate-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.add-song-translate-notice {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+}
+.add-song-translate-notice--success {
+  background: #eafbe8;
+  color: #2f7a3e;
+}
+.add-song-translate-notice--error {
+  background: #fbe9e2;
+  color: #b0512f;
+}
+
+.add-song-lyrics-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: #f7f7f8;
+  color: #201a14;
+  resize: vertical;
+}
+.add-song-lyrics-textarea:focus {
+  outline: none;
+  border-color: #8d47fa;
+}
+
+.add-song-lyrics-empty-hint {
+  margin: 0;
+  padding: 18px 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b3b3b3;
+  background: #f7f7f8;
+  border: 1px dashed #ececec;
+  border-radius: 10px;
+}
+
+.add-song-lyric-rows {
+  display: flex;
+  flex-direction: column;
+}
+.add-song-lyric-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px dashed #ececec;
+}
+.add-song-lyric-row:last-child {
+  border-bottom: none;
+}
+.add-song-lyric-row-original {
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #201a14;
+  white-space: pre-wrap;
+}
+.add-song-lyric-row-num {
+  display: inline-block;
+  min-width: 20px;
+  margin-right: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b3b3b3;
+  vertical-align: middle;
+}
+.add-song-lyric-row-translation {
+  box-sizing: border-box;
+  width: 100%;
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 9px 12px 9px 32px;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  background: #f7f7f8;
+  color: #5b4a2f;
+}
+.add-song-lyric-row-translation:focus {
+  outline: none;
+  border-color: #8d47fa;
+}
+.add-song-lyric-row-spacer {
+  height: 8px;
+}
+
+.add-song-lookup-linked {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eafbe8;
+  color: #2f7a3e;
+  font-size: 12.5px;
+}
+
+.add-song-error {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fbe9e2;
+  color: #b0512f;
+  font-size: 13px;
+}
+
+.add-song-submit {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 0;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-song-submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .add-song-line-inputs {
+    grid-template-columns: 1fr;
+  }
+}

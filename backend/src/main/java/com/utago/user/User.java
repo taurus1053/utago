@@ -44,6 +44,12 @@ public class User {
     @Column(name = "auth_provider", nullable = false, length = 30)
     private String authProvider;
 
+    /** 일반 사용자(USER) / 운영진(ADMIN) — 번역 캐시 관리자 페이지 등 접근 제어에 쓰임. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private Role role = Role.USER;
+
     @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private boolean emailVerified = false;

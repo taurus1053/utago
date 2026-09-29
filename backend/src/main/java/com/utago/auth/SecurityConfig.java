@@ -3,6 +3,7 @@ package com.utago.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -43,7 +44,10 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/songs/**").permitAll()
+                        // 마이페이지(내 곡 목록)는 로그인 필수 — 더 구체적인 규칙이라 아래 permitAll보다 먼저 와야 함.
+                        .requestMatchers(HttpMethod.GET, "/api/songs/my").authenticated()
+                        // 나머지 곡 조회는 누구나, 곡 등록(POST)은 로그인한 사용자만.
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -3,6 +3,17 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
+// 로그인 토큰 로컬스토리지 키. auth.js 도 이 값을 그대로 가져다 쓴다(중복 정의 방지).
+export const TOKEN_KEY = 'utago_token'
+
+function getStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
 // 백엔드 GlobalExceptionHandler 가 내려주는 에러 모양을 감싸는 커스텀 에러.
 // - IllegalStateException 계열: { message: "..." }
 // - @Valid 검증 실패: { 필드명: "에러메시지", ... } (message 키 없음)
@@ -19,10 +30,14 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
+  const token = getStoredToken()
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      // 로그인 상태면 모든 요청에 토큰을 실어 보낸다 — 이게 빠져있으면 로그인 필요한
+      // 엔드포인트(POST /api/songs, GET /api/songs/my 등)는 항상 401이 난다.
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   })
@@ -64,6 +79,17 @@ export function apiPost(path, data) {
     method: 'POST',
     body: JSON.stringify(data ?? {}),
   })
+}
+
+export function apiPut(path, data) {
+  return request(path, {
+    method: 'PUT',
+    body: JSON.stringify(data ?? {}),
+  })
+}
+
+export function apiDelete(path) {
+  return request(path, { method: 'DELETE' })
 }
 
 export async function getHealth() {

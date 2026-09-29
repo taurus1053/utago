@@ -9,3 +9,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# 로컬 전용 설정 (DB 비밀번호, Anthropic API 키 등 실제 비밀값이 들어감).
+# application-local.yml.example 을 복사해서 만드세요.
+application-local.yml

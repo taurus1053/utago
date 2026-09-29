@@ -1,16 +1,30 @@
-import { useEffect, useRef, useState } from 'react'
-import { getCurrentUser, logout } from '../api/auth'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { isLoggedIn } from '../api/auth'
+import { getMySongs, listSongs } from '../api/songs'
+import { Link } from 'react-router-dom'
+import TopBar from '../components/TopBar'
 import './Home.css'
 
 // 디자인 목업(Main.dc.html)을 기반으로 한 실제 홈 화면.
-// 곡 관련 데이터(이어서 학습하기, 인기 급상승, 내 곡, 전체 곡 등)는
-// 아직 백엔드 곡 API가 없어서 임시 목업 데이터를 사용합니다.
-// 실제 곡 API가 생기면 이 파일의 MOCK_* 상수들을 API 호출로 교체하면 됩니다.
+//
+// "전체 곡"(공개 카탈로그, GET /api/songs)과 "내 곡"(내가 등록한 곡, GET /api/songs/my,
+// 로그인 필요)은 실제 백엔드에 연결되어 있습니다. 곡은 등록한 본인만 볼 수 있는 PRIVATE이
+// 기본값이라, "내 곡"에서만 보이고 "전체 곡"에는 안 뜨는 게 정상입니다(운영진이 저작권
+// 문제를 해결해서 공개 카탈로그로 승격한 곡만 "전체 곡"에 노출됩니다).
+//
+// 그 외 "이어서 학습하기" / "복습하기" / "인기 급상승" 은 진행도·인기순위를 내려주는
+// API가 아직 없어서(학습기록 도메인 미구현) 당분간 목업 데이터를 유지합니다. 해당 API가
+// 생기면 각 MOCK_* 상수를 API 호출로 교체하세요.
+// (앨범 자켓 이미지(CONTINUE_SONG/REVIEW_SONG.cover)만은 디자인 목업에서 쓰던 실제
+//  이미지를 public/covers/ 에 그대로 가져와 사용 중입니다 — 가사/진행도는 여전히 가짜.)
+//
+// 상단바(메뉴·로고·검색·알림·프로필)는 곡 추가/곡 학습 화면과 공유하는 components/TopBar로
+// 분리되어 있다 — 여기서는 검색창만 켠 채로 그 컴포넌트를 그대로 쓴다.
 
 const CONTINUE_SONG = {
   title: '踊り子',
   artist: 'Vaundy',
+  cover: '/covers/odoriko.webp',
   progressPercent: 35,
   progressLabel: '12 / 34줄',
 }
@@ -25,6 +39,7 @@ const CONTINUE_LINES = [
 const REVIEW_SONG = {
   title: 'アイドル',
   artist: 'YOASOBI',
+  cover: '/covers/idol.jpg',
   completedLabel: '완주 3회',
   lastLabel: '5일 전',
 }
@@ -58,19 +73,14 @@ const LANG_BADGE = {
   EN: { bg: '#e7edf3', color: '#3f6488' },
 }
 
-const MY_SONGS = [
-  { title: 'アイドル', artist: 'YOASOBI', lang: 'JA', color: '#f3e2d8' },
-  { title: '봄날', artist: '방탄소년단', lang: 'KO', color: '#eef1e6' },
-  { title: 'Shape of You', artist: 'Ed Sheeran', lang: 'EN', color: '#e7edf3' },
+const LANG_FILTER_OPTIONS = [
+  { label: '전체', lang: null },
+  { label: '일본어', lang: 'JA' },
+  { label: '한국어', lang: 'KO' },
+  { label: '영어', lang: 'EN' },
 ]
 
-const ALL_SONGS = [
-  { title: '怪物', artist: 'YOASOBI', lang: 'JA', color: '#f3e2d8' },
-  { title: 'Dynamite', artist: 'BTS', lang: 'EN', color: '#eef1e6' },
-  { title: '밤편지', artist: '아이유', lang: 'KO', color: '#eef1e6' },
-]
-
-const LANG_FILTERS = ['전체', '일본어', '한국어', '영어']
+const SONG_COVER_FALLBACK = '#e7e0d4'
 
 const ROW_PX = 23
 const SCROLL_MS = 480
@@ -109,221 +119,86 @@ function useLyricTicker(lines, intervalMs) {
 }
 
 export default function Home() {
-  const navigate = useNavigate()
-  const user = getCurrentUser()
-  const displayName = user?.nickname ?? user?.email ?? ''
-  const avatarInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : '?'
-
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
   const hasReviewSong = true
 
   const continueTicker = useLyricTicker(CONTINUE_LINES, 2600)
   const reviewTicker = useLyricTicker(REVIEW_LINES, 3000)
 
-  const rootRef = useRef(null)
-  const sidebarRef = useRef(null)
-  const menuBtnRef = useRef(null)
-  const profileRef = useRef(null)
-  const avatarBtnRef = useRef(null)
+  // "전체 곡" 섹션: 실제 GET /api/songs 연결.
+  const [langFilterIndex, setLangFilterIndex] = useState(0)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [songs, setSongs] = useState([])
+  const [songsTotal, setSongsTotal] = useState(0)
+  const [songsLoading, setSongsLoading] = useState(true)
+  const [songsError, setSongsError] = useState(null)
 
-  function toggleSidebar() {
-    setSidebarOpen((v) => !v)
-    setProfileOpen(false)
-  }
-  function toggleProfile() {
-    setProfileOpen((v) => !v)
-    setSidebarOpen(false)
-  }
-  function closeAll() {
-    setSidebarOpen(false)
-    setProfileOpen(false)
-  }
-
-  // 배경을 어둡게 가리는 스크림 없이, 바깥 영역을 클릭하면
-  // 사이드바/프로필 드롭다운이 닫히도록 한다.
+  // 검색어 입력은 400ms 디바운스 후 실제 쿼리에 반영.
   useEffect(() => {
-    if (!sidebarOpen && !profileOpen) return
-    function handleClickOutside(e) {
-      const t = e.target
-      const insideSidebar = sidebarRef.current && sidebarRef.current.contains(t)
-      const insideMenuBtn = menuBtnRef.current && menuBtnRef.current.contains(t)
-      const insideProfile = profileRef.current && profileRef.current.contains(t)
-      const insideAvatarBtn = avatarBtnRef.current && avatarBtnRef.current.contains(t)
-      if (!insideSidebar && !insideMenuBtn && !insideProfile && !insideAvatarBtn) {
-        closeAll()
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [sidebarOpen, profileOpen])
+    const t = setTimeout(() => setSearchQuery(searchInput), 400)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  function handleLogout() {
-    logout()
-    navigate('/login', { replace: true })
-  }
+  useEffect(() => {
+    let cancelled = false
+    setSongsLoading(true)
+    setSongsError(null)
+    const lang = LANG_FILTER_OPTIONS[langFilterIndex]?.lang ?? null
+    listSongs({ query: searchQuery, lang, page: 0, size: 24 })
+      .then((data) => {
+        if (cancelled) return
+        setSongs(data?.content ?? [])
+        setSongsTotal(data?.totalElements ?? (data?.content?.length ?? 0))
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setSongs([])
+        setSongsTotal(0)
+        setSongsError(err)
+      })
+      .finally(() => {
+        if (!cancelled) setSongsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [langFilterIndex, searchQuery])
+
+  // "내 곡" 섹션: 실제 GET /api/songs/my 연결 (로그인 필요).
+  const loggedIn = isLoggedIn()
+  const [mySongs, setMySongs] = useState([])
+  const [mySongsLoading, setMySongsLoading] = useState(loggedIn)
+  const [mySongsError, setMySongsError] = useState(null)
+
+  useEffect(() => {
+    if (!loggedIn) {
+      setMySongsLoading(false)
+      return
+    }
+    let cancelled = false
+    setMySongsLoading(true)
+    setMySongsError(null)
+    getMySongs({ page: 0, size: 8 })
+      .then((data) => {
+        if (cancelled) return
+        setMySongs(data?.content ?? [])
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setMySongs([])
+        setMySongsError(err)
+      })
+      .finally(() => {
+        if (!cancelled) setMySongsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [loggedIn])
 
   return (
-    <div className="home-page" ref={rootRef}>
-      {/* 상단바 */}
-      <div className="home-topbar">
-        <div className="home-topbar-left">
-          <button aria-label="메뉴 열기" onClick={toggleSidebar} className="home-icon-btn" ref={menuBtnRef}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round">
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-          <a href="/" className="home-logo-link">
-            <img src="/utago-logo.png" alt="UTAGO" className="home-logo" />
-          </a>
-        </div>
-
-        <label className="home-search">
-          <span className="home-search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a7f6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </span>
-          <input type="text" placeholder="곡, 아티스트 검색" />
-        </label>
-
-        <div className="home-topbar-right">
-          <button aria-label="알림" className="home-icon-btn home-bell-btn">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            <span className="home-bell-badge">3</span>
-          </button>
-          <button aria-label="프로필 메뉴 열기" onClick={toggleProfile} className="home-avatar-btn" ref={avatarBtnRef}>
-            {avatarInitial}
-          </button>
-        </div>
-      </div>
-
-      {/* 좌측 사이드바 드로어 - 항상 마운트해두고 transform으로만 여닫아야
-          왼쪽에서 부드럽게 슬라이드되는 애니메이션이 가능하다. */}
-      <div className={`home-sidebar${sidebarOpen ? ' home-sidebar--open' : ''}`} ref={sidebarRef} aria-hidden={!sidebarOpen}>
-          <nav aria-label="주요 메뉴" className="home-sidebar-nav">
-            <a href="#home" aria-current="page" className="home-sidebar-link home-sidebar-link--active" style={{ color: '#ffffff' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9.5 12 3l9 6.5"></path>
-                <path d="M5 10v10h14V10"></path>
-              </svg>
-              <span style={{ color: '#ffffff' }}>홈</span>
-            </a>
-            <a href="#wordbook" className="home-sidebar-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
-              </svg>
-              <span>단어장</span>
-            </a>
-            <a href="#grammar" className="home-sidebar-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 6h16M4 12h10M4 18h7"></path>
-              </svg>
-              <span>문법</span>
-            </a>
-            <a href="#mypage" className="home-sidebar-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
-              </svg>
-              <span>마이페이지</span>
-            </a>
-          </nav>
-
-          <div className="home-sidebar-spacer" />
-
-          <div className="home-sidebar-divider" />
-
-          <button className="home-sidebar-darkmode">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
-            </svg>
-            <span>다크 모드</span>
-          </button>
-          <a href="#logout" onClick={(e) => { e.preventDefault(); handleLogout() }} className="home-sidebar-link home-sidebar-logout">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>로그아웃</span>
-          </a>
-      </div>
-
-      {/* 프로필 드롭다운 */}
-      {profileOpen && (
-        <div className="home-profile-dropdown" ref={profileRef}>
-          <div className="home-profile-header">
-            <div className="home-profile-avatar">{avatarInitial}</div>
-            <div className="home-profile-info">
-              <span className="home-profile-name">{displayName}</span>
-              <span className="home-profile-email">{user?.email}</span>
-            </div>
-          </div>
-          <div className="home-profile-divider" />
-
-          <a href="#profile-settings" className="home-profile-item">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4"></circle>
-              <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
-            </svg>
-            <span>프로필 설정</span>
-          </a>
-          <a href="#lang-settings" className="home-profile-item">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 5h16M4 12h16M4 19h9"></path>
-            </svg>
-            <span>학습 언어 설정</span>
-          </a>
-          <div className="home-profile-toggle-row">
-            <div className="home-profile-item-left">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
-              </svg>
-              <span>다크 모드</span>
-            </div>
-            <div className="home-toggle-track">
-              <div className="home-toggle-knob" />
-            </div>
-          </div>
-          <a href="#display-lang" className="home-profile-item home-profile-item--between">
-            <div className="home-profile-item-left">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M2 12h20"></path>
-                <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
-              </svg>
-              <span>표시 언어</span>
-            </div>
-            <span className="home-profile-item-value">한국어</span>
-          </a>
-          <a href="#support" className="home-profile-item">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-            <span>고객센터</span>
-          </a>
-
-          <div className="home-profile-divider" />
-          <a href="#logout" onClick={(e) => { e.preventDefault(); handleLogout() }} className="home-profile-item home-profile-item--danger">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#b0512f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>로그아웃</span>
-          </a>
-        </div>
-      )}
+    <div className="home-page">
+      <TopBar showSearch searchValue={searchInput} onSearchChange={setSearchInput} />
 
       {/* 메인 콘텐츠 */}
       <div className="home-content">
@@ -331,10 +206,10 @@ export default function Home() {
         {/* 이어서 학습하기 · 복습하기 */}
         <div className="home-hero-row">
           <a href="#continue" className="home-hero-card home-hero-card--continue">
-            <div className="home-hero-bg" style={{ background: '#221533' }} />
+            <img className="home-hero-bg" src={CONTINUE_SONG.cover} alt="" aria-hidden="true" />
             <div className="home-hero-overlay" />
             <div className="home-hero-top">
-              <div className="home-hero-cover" style={{ background: '#3a2650' }} />
+              <img className="home-hero-cover" src={CONTINUE_SONG.cover} alt={`${CONTINUE_SONG.title} 앨범 자켓`} />
               <div className="home-hero-info">
                 <div className="home-hero-eyebrow">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -367,10 +242,10 @@ export default function Home() {
           <div className="home-hero-card-slot">
             {hasReviewSong ? (
               <a href="#review" className="home-hero-card home-hero-card--review">
-                <div className="home-hero-bg" style={{ background: '#131a33' }} />
+                <img className="home-hero-bg" src={REVIEW_SONG.cover} alt="" aria-hidden="true" />
                 <div className="home-hero-overlay" style={{ background: 'rgba(10,14,28,0.4)' }} />
                 <div className="home-hero-top">
-                  <div className="home-hero-cover" style={{ background: '#22304f' }} />
+                  <img className="home-hero-cover" src={REVIEW_SONG.cover} alt={`${REVIEW_SONG.title} 앨범 자켓`} />
                   <div className="home-hero-info">
                     <div className="home-hero-eyebrow">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -418,9 +293,13 @@ export default function Home() {
 
         {/* 언어 필터 */}
         <div className="home-lang-filters">
-          {LANG_FILTERS.map((label, i) => (
-            <button key={label} className={`home-lang-filter${i === 0 ? ' home-lang-filter--active' : ''}`}>
-              {label}
+          {LANG_FILTER_OPTIONS.map((opt, i) => (
+            <button
+              key={opt.label}
+              onClick={() => setLangFilterIndex(i)}
+              className={`home-lang-filter${i === langFilterIndex ? ' home-lang-filter--active' : ''}`}
+            >
+              {opt.label}
             </button>
           ))}
         </div>
@@ -454,48 +333,110 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 내 곡 */}
+        {/* 내 곡 - 실제 GET /api/songs/my 연결. 등록한 곡은 본인에게만 보인다(PRIVATE). */}
         <section className="home-section">
           <div className="home-section-header">
             <h2 className="home-section-title">내 곡</h2>
-            <span className="home-section-more">더보기</span>
+            <div className="home-section-header-right">
+              <Link to="/songs/new" className="home-section-add-song">+ 곡 추가</Link>
+            </div>
           </div>
-          <div className="home-song-grid">
-            {MY_SONGS.map((song) => (
-              <a key={song.title} href="#song" className="home-song-card">
-                <div className="home-song-cover" style={{ background: song.color }} />
-                <div className="home-song-meta">
-                  <span className="home-song-title">{song.title}</span>
-                  <span className="home-song-artist">{song.artist}</span>
+
+          {!loggedIn ? (
+            <div className="home-song-empty">
+              로그인하면 직접 등록한 곡들을 여기서 볼 수 있어요.{' '}
+              <Link to="/login">로그인하러 가기 →</Link>
+            </div>
+          ) : mySongsLoading ? (
+            <div className="home-song-grid">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="home-song-card home-song-card--skeleton">
+                  <div className="home-song-cover" style={{ background: SONG_COVER_FALLBACK }} />
+                  <div className="home-song-meta">
+                    <span className="home-song-title">불러오는 중...</span>
+                  </div>
                 </div>
-                <span className="home-song-badge" style={{ background: LANG_BADGE[song.lang].bg, color: LANG_BADGE[song.lang].color }}>
-                  {song.lang}
-                </span>
-              </a>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : mySongsError ? (
+            <div className="home-song-error">내 곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+          ) : mySongs.length === 0 ? (
+            <div className="home-song-empty">
+              아직 등록한 곡이 없어요. 좋아하는 곡을 직접 추가해보세요.
+            </div>
+          ) : (
+            <div className="home-song-grid">
+              {mySongs.map((song) => {
+                const lang = song.sourceLang ?? song.lang
+                const badge = LANG_BADGE[lang]
+                return (
+                  <Link key={song.id ?? song.title} to={`/songs/${song.id}`} className="home-song-card">
+                    <div className="home-song-cover" style={{ background: badge?.bg ?? SONG_COVER_FALLBACK }} />
+                    <div className="home-song-meta">
+                      <span className="home-song-title">{song.title}</span>
+                      <span className="home-song-artist">{song.artist}</span>
+                    </div>
+                    {badge && (
+                      <span className="home-song-badge" style={{ background: badge.bg, color: badge.color }}>
+                        {lang}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </section>
 
-        {/* 전체 곡 */}
+        {/* 전체 곡 - 실제 GET /api/songs 연결 */}
         <section className="home-section">
           <div className="home-section-header">
             <h2 className="home-section-title">전체 곡</h2>
-            <span className="home-section-count">{ALL_SONGS.length}곡</span>
+            <div className="home-section-header-right">
+              {!songsLoading && !songsError && (
+                <span className="home-section-count">{songsTotal}곡</span>
+              )}
+              <Link to="/songs/new" className="home-section-add-song">+ 곡 추가</Link>
+            </div>
           </div>
-          <div className="home-song-grid">
-            {ALL_SONGS.map((song) => (
-              <a key={song.title} href="#song" className="home-song-card">
-                <div className="home-song-cover" style={{ background: song.color }} />
-                <div className="home-song-meta">
-                  <span className="home-song-title">{song.title}</span>
-                  <span className="home-song-artist">{song.artist}</span>
+
+          {songsLoading ? (
+            <div className="home-song-grid">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="home-song-card home-song-card--skeleton">
+                  <div className="home-song-cover" style={{ background: SONG_COVER_FALLBACK }} />
+                  <div className="home-song-meta">
+                    <span className="home-song-title">불러오는 중...</span>
+                  </div>
                 </div>
-                <span className="home-song-badge" style={{ background: LANG_BADGE[song.lang].bg, color: LANG_BADGE[song.lang].color }}>
-                  {song.lang}
-                </span>
-              </a>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : songsError ? (
+            <div className="home-song-error">곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+          ) : songs.length === 0 ? (
+            <div className="home-song-empty">조건에 맞는 곡이 아직 없어요.</div>
+          ) : (
+            <div className="home-song-grid">
+              {songs.map((song) => {
+                const lang = song.sourceLang ?? song.lang
+                const badge = LANG_BADGE[lang]
+                return (
+                  <Link key={song.id ?? song.title} to={`/songs/${song.id}`} className="home-song-card">
+                    <div className="home-song-cover" style={{ background: badge?.bg ?? SONG_COVER_FALLBACK }} />
+                    <div className="home-song-meta">
+                      <span className="home-song-title">{song.title}</span>
+                      <span className="home-song-artist">{song.artist}</span>
+                    </div>
+                    {badge && (
+                      <span className="home-song-badge" style={{ background: badge.bg, color: badge.color }}>
+                        {lang}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </section>
 
       </div>

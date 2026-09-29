@@ -50,6 +50,22 @@ public class Song {
     @Column(nullable = false, length = 30)
     private Provenance provenance;
 
+    /**
+     * 이 곡을 등록한 사용자. PUBLIC 카탈로그 곡(운영진이 올리거나 승격시킨 곡)은
+     * 소유자가 없으므로 null일 수 있다. PRIVATE 곡은 항상 값이 있어야 한다.
+     */
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
+    /**
+     * 공개 범위. 사용자가 직접 등록한 곡은 항상 PRIVATE로 시작하며(본인만 조회 가능),
+     * 저작권 문제가 해결된 곡만 운영진이 PUBLIC으로 승격해 전체 카탈로그에 노출한다.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private Visibility visibility = Visibility.PRIVATE;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
