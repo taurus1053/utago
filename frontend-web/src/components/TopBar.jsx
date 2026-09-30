@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getCurrentUser, isLoggedIn, logout } from '../api/auth'
+import LangSwitcher from './LangSwitcher'
 import './TopBar.css'
 
 // 홈/곡 추가/곡 학습 등 여러 화면에서 공통으로 쓰는 상단바(원래 Home.jsx 안에만 있던
@@ -18,6 +19,23 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+
+  // 페이지 표시 언어(모국어 설정과는 별개) — 비로그인 랜딩 페이지의 언어 선택과
+  // 동일한 저장 방식을 쓰되 키만 다르게 둬서 서로 영향을 주지 않게 한다.
+  const [displayLang, setDisplayLang] = useState(() => {
+    try {
+      return localStorage.getItem('utago_display_lang') || 'ko'
+    } catch {
+      return 'ko'
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem('utago_display_lang', displayLang)
+    } catch {
+      // localStorage를 못 쓰는 환경이면 그냥 무시
+    }
+  }, [displayLang])
 
   const sidebarRef = useRef(null)
   const menuBtnRef = useRef(null)
@@ -57,7 +75,9 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
 
   function handleLogout() {
     logout()
-    navigate('/login', { replace: true })
+    // "/" 는 로그인 여부에 따라 자동으로 갈라진다(App.jsx의 RootRoute) — 로그아웃 직후엔
+    // 비로그인 상태라 랜딩 페이지가 보인다. 로그인 화면으로 곧장 보내지 않는다.
+    navigate('/', { replace: true })
   }
 
   return (
@@ -96,6 +116,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
         <div className="home-topbar-right">
           {loggedIn ? (
             <>
+              <LangSwitcher lang={displayLang} setLang={setDisplayLang} />
               <button aria-label="알림" className="home-icon-btn home-bell-btn">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -124,13 +145,13 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </svg>
             <span>홈</span>
           </a>
-          <a href="#wordbook" className="home-sidebar-link">
+          <Link to="/wordbook" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
             </svg>
             <span>단어장</span>
-          </a>
+          </Link>
           <a href="#grammar" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6h16M4 12h10M4 18h7"></path>

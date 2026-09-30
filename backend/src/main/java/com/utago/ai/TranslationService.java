@@ -31,6 +31,104 @@ public class TranslationService {
         return anthropicClient.isConfigured();
     }
 
+    /**
+     * "문장 재배열"/"빈칸 채우기" 게임용 입력 — 아직 어느 공개 가사에도 등장하지 않은 단어를
+     * 위해 AI로 예문을 새로 만들 때 쓴다. meaning은 자연스러운 예문을 만들 때 참고용.
+     */
+    public record WordExampleQuery(Long wordId, String lemma, Lang lang, String meaning) {}
+
+    /**
+     * AI가 만든 예문 하나 — 원문(단어의 언어)과 한국어 번역, 그리고 그 원문을 "단어/조사
+     * 단위"로 쪼갠 tokens(예: 私/は/学校/へ/行きます). tokens를 이어붙이면 exampleText와
+     * 정확히 같아야 한다 — 문장 재배열 게임에서 한 글자씩이 아니라 이 단위로 타일을 만든다.
+     */
+    public record GeneratedExample(String exampleText, String exampleTranslation, List<String> tokens) {}
+
+    /**
+     * @return queries와 같은 순서/개수의 결과. 실패하거나 키 미설정이면 전부 null로 채운
+     * 결과(호출부가 그 단어는 예문 없이 넘어감).
+     */
+    public List<GeneratedExample> generateWordExamples(List<WordExampleQuery> queries) {
+        if (queries == null || queries.isEmpty()) {
+            return List.of();
+        }
+        if (!anthropicClient.isConfigured()) {
+            return queries.stream().map(q -> (GeneratedExample) null).toList();
+        }
+        List<WordExampleQuery> trimmed = queries.size() > MAX_WORDS_PER_REQUEST
+                ? queries.subList(0, MAX_WORDS_PER_REQUEST)
+                : queries;
+
+        String prompt = buildExamplePrompt(trimmed);
+        return anthropicClient.complete(prompt, 3000)
+                .flatMap(this::parseExampleArray)
+                .filter(result -> result.size() == trimmed.size())
+                .orElseGet(() -> trimmed.stream().map(q -> (GeneratedExample) null).toList());
+    }
+
+    private String buildExamplePrompt(List<WordExampleQuery> queries) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("다음은 노래 가사 학습 앱 단어장에 있는 단어들이다. 각 단어마다, 그 단어의 언어로 ");
+        sb.append("아주 짧고 자연스러운 예문을 한 문장씩 만들어라(초중급 학습자 난이도, 그 단어를 ");
+        sb.append("반드시 원형 그대로 포함할 것). 그리고 그 예문을 자연스러운 한국어로 의역하라. ");
+        sb.append("또한 그 예문 원문을 \"단어/조사(형태소) 단위\"로 쪼갠 배열도 함께 제공하라 — ");
+        sb.append("예를 들어 일본어 \"私は学校へ行きます\"라면 [\"私\",\"は\",\"学校\",\"へ\",\"行きます\"] ");
+        sb.append("처럼. 반드시 tokens 배열의 모든 원소를 순서대로 이어붙이면 example 원문과 ");
+        sb.append("정확히 같아야 한다(공백이나 글자를 추가/누락하지 말 것). ");
+        sb.append("반드시 JSON 배열로만 응답하고, 각 원소는 ");
+        sb.append("{\"example\":\"...\",\"translation\":\"...\",\"tokens\":[\"...\",\"...\"]} ");
+        sb.append("형태여야 하며, 배열 길이는 입력 단어 수와 정확히 같아야 한다. ");
+        sb.append("다른 설명, 마크다운, 코드블록 표시 없이 순수 JSON 배열만 출력하라.\n\n");
+        for (int i = 0; i < queries.size(); i++) {
+            WordExampleQuery q = queries.get(i);
+            String langName = switch (q.lang()) {
+                case JA -> "일본어";
+                case EN -> "영어";
+                case KO -> "한국어";
+            };
+            sb.append(i + 1).append(". [").append(langName).append("] ").append(q.lemma());
+            if (q.meaning() != null && !q.meaning().isBlank()) {
+                sb.append(" (뜻: ").append(q.meaning()).append(")");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private java.util.Optional<List<GeneratedExample>> parseExampleArray(String text) {
+        try {
+            String jsonPart = extractJsonArray(text);
+            JsonNode node = objectMapper.readTree(jsonPart);
+            if (!node.isArray()) {
+                return java.util.Optional.empty();
+            }
+            List<GeneratedExample> out = new ArrayList<>();
+            for (JsonNode inner : node) {
+                String example = inner.path("example").asText(null);
+                String translation = inner.path("translation").asText(null);
+                List<String> rawTokens = new ArrayList<>();
+                JsonNode tokensNode = inner.path("tokens");
+                if (tokensNode.isArray()) {
+                    tokensNode.forEach(t -> rawTokens.add(t.asText("")));
+                }
+                // tokens가 원문과 정확히 이어붙여지지 않으면(모델이 실수한 경우) 신뢰할 수
+                // 없으므로 버리고, example/translation만 있어도 예문 자체는 그대로 쓴다
+                // (문장 재배열엔 못 쓰지만 플래시카드/빈칸채우기/퀴즈엔 여전히 쓸 수 있음).
+                List<String> tokens = (!rawTokens.isEmpty() && String.join("", rawTokens).equals(example))
+                        ? rawTokens
+                        : List.of();
+                if (example == null || example.isBlank() || translation == null || translation.isBlank()) {
+                    out.add(null);
+                } else {
+                    out.add(new GeneratedExample(example, translation, tokens));
+                }
+            }
+            return java.util.Optional.of(out);
+        } catch (Exception e) {
+            return java.util.Optional.empty();
+        }
+    }
+
     /** 단어 뜻 채우기(WordMeaningEnrichmentService)에서 쓰는 입력 — JMdict 영어 뜻 원문을 담는다. */
     public record WordGlossQuery(String lemma, String pos, List<String> englishGlosses) {}
 

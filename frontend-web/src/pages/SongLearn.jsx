@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getSong } from '../api/songs'
+import { addWordbookItem, createWordbook, getWordbookMembership, listWordbooks } from '../api/wordbook'
+import { isLoggedIn } from '../api/auth'
 import TopBar from '../components/TopBar'
 import useYoutubeApiReady from '../hooks/useYoutubeApiReady'
 import './SongLearn.css'
@@ -8,7 +10,8 @@ import './SongLearn.css'
 const LANG_LABEL = { JA: '일본어', KO: '한국어', EN: '영어' }
 
 // 소절 원문을 단어 단위(line.words, 서버에서 형태소 분석으로 만들어줌)로 쪼개서
-// 한자 위에는 후리가나(ruby)를, 단어를 탭하면 뜻 팝업을 보여줄 수 있게 조각낸다.
+// 한자 위에 후리가나(ruby)를 보여줄 수 있게 조각낸다. (단어 탭 시 뜻 팝업은 더 이상 없음 —
+// 뜻은 "이 소절의 단어" 목록에서 확인한다.)
 // words가 없는 곡(일본어가 아니거나 아직 분석 전)은 그냥 원문 텍스트 그대로 보여준다.
 // 후리가나가 있는 단어와 없는 단어가 소절마다 섞여 있으면, 그 소절에 ruby(후리가나) 태그가
 // 하나라도 있는지 여부에 따라 그 줄의 높이가 들쭉날쭉해진다(브라우저가 rt 높이만큼 줄 높이를
@@ -23,11 +26,14 @@ function rubyOrPlain(surface, furigana) {
   )
 }
 
-function renderOriginalWithWords(line, activeWordKey, onWordClick) {
+function renderOriginalWithWords(line) {
   const text = line.originalText
   const words = line.words ?? []
   if (words.length === 0) {
-    return text
+    // 단어가 하나도 인식 안 된 소절(감탄사 등)도 다른 소절과 똑같이 <ruby>로 감싸야 한다 —
+    // 그냥 텍스트만 반환하면 이 소절엔 rt(후리가나 자리)가 아예 없어서, 후리가나가 있는
+    // 다른 소절들보다 줄 높이가 낮아져 버린다(레이아웃이 소절마다 들쭉날쭉 움직이는 원인).
+    return <span key="plain-only">{rubyOrPlain(text, null)}</span>
   }
 
   const nodes = []
@@ -39,24 +45,8 @@ function renderOriginalWithWords(line, activeWordKey, onWordClick) {
       )
     }
     const surface = text.slice(w.charOffsetStart, w.charOffsetEnd)
-    const wordKey = `${line.id}-${i}`
-    const isActive = activeWordKey === wordKey
     nodes.push(
-      <span
-        key={wordKey}
-        className={`song-learn-word${isActive ? ' song-learn-word--active' : ''}`}
-        onClick={(e) => {
-          e.stopPropagation()
-          onWordClick(wordKey)
-        }}
-      >
-        {rubyOrPlain(surface, w.furigana)}
-        {isActive && (
-          <span className="song-learn-word-popup">
-            {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : '뜻 준비 중'}
-          </span>
-        )}
-      </span>
+      <span key={`${line.id}-${i}`}>{rubyOrPlain(surface, w.furigana)}</span>
     )
     cursor = w.charOffsetEnd
   })
@@ -154,7 +144,6 @@ export default function SongLearn() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeGrammarLineId, setActiveGrammarLineId] = useState(null)
-  const [activeWordKey, setActiveWordKey] = useState(null)
   const [activeLineIndex, setActiveLineIndex] = useState(0)
   const [expandedAll, setExpandedAll] = useState(false)
   const [autoSync, setAutoSync] = useState(false)
@@ -164,12 +153,20 @@ export default function SongLearn() {
   const [isSeeking, setIsSeeking] = useState(false)
   const [seekPreviewMs, setSeekPreviewMs] = useState(0)
 
+  // 로그인 사용자의 단어장 목록(단어장 선택 창에 띄울 용도) — 로그인 상태에서 한 번만 불러온다.
+  const [wordbooks, setWordbooks] = useState([])
+  // 지금 소절의 단어들이 이미 어느 단어장(들)에 담겨 있는지: { [lemma]: [wordbookId, ...] }
+  // 서버에서 다시 조회해오기 때문에, 페이지를 나갔다 다시 들어와도 체크 표시가 유지된다.
+  const [membershipByLemma, setMembershipByLemma] = useState({})
+  // "단어장에 추가" 버튼을 누르면 뜨는, 어느 단어장에 담을지 고르는 창. null이면 닫힘.
+  const [wordPicker, setWordPicker] = useState(null) // { key, lemma } | null
+  const [pickerCreating, setPickerCreating] = useState(false)
+  const [pickerNewName, setPickerNewName] = useState('')
+  const [pickerSavingNew, setPickerSavingNew] = useState(false)
+  const [pickerBusyId, setPickerBusyId] = useState(null)
+
   const apiReady = useYoutubeApiReady()
   const playerRef = useRef(null)
-
-  function toggleWord(key) {
-    setActiveWordKey((prev) => (prev === key ? null : key))
-  }
 
   useEffect(() => {
     let cancelled = false
@@ -208,6 +205,17 @@ export default function SongLearn() {
     }
   }, [id])
 
+  // 로그인 상태면, 단어장 선택 창에서 바로 고를 수 있도록 내 단어장 목록을 한 번 불러온다.
+  useEffect(() => {
+    if (!isLoggedIn()) return
+    listWordbooks()
+      .then((data) => setWordbooks(data ?? []))
+      .catch(() => {
+        // 실패해도 무시 — 선택 창을 열 때 다시 시도할 수 있다(openWordPicker에서 재조회하지는
+        // 않지만, 페이지를 새로고침하면 다시 시도된다).
+      })
+  }, [])
+
   useEffect(() => {
     if (!apiReady || !song?.youtubeVideoId || playerRef.current) return
     playerRef.current = new window.YT.Player('song-learn-yt-player', {
@@ -242,7 +250,6 @@ export default function SongLearn() {
         const idx = lines.findIndex((l) => nowMs >= l.startMs && nowMs < l.endMs)
         if (idx !== -1 && idx !== activeLineIndex) {
           setActiveLineIndex(idx)
-          setExpandedAll(false)
         }
       }
     }, 250)
@@ -275,12 +282,123 @@ export default function SongLearn() {
   const activeLine = lines[clampedIndex] ?? null
   const activeWordList = activeLine ? buildWordList(activeLine) : []
 
+  // 소절이 바뀔 때마다, 이번 소절 단어들이 이미 어느 단어장에 담겨 있는지 서버에 물어본다 —
+  // 로컬 상태만 쓰면 다른 페이지 갔다가 돌아왔을 때 체크 표시가 풀려 보이는 문제가 있었다.
+  useEffect(() => {
+    if (!isLoggedIn() || !song?.sourceLang || activeWordList.length === 0) return
+    let cancelled = false
+    const lemmas = activeWordList.map((w) => w.surface)
+    getWordbookMembership(lemmas, song.sourceLang)
+      .then((data) => {
+        if (cancelled) return
+        setMembershipByLemma((prev) => ({ ...prev, ...(data ?? {}) }))
+      })
+      .catch(() => {
+        // 실패해도 무시 — 체크 표시가 잠깐 안 보일 뿐, 다시 추가를 시도하면 정상 동작한다.
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLineIndex, song?.id])
+
   const displayMs = isSeeking ? seekPreviewMs : currentMs
+  const seekPercent = durationMs > 0 ? Math.min(100, Math.max(0, (displayMs / durationMs) * 100)) : 0
 
   function focusLine(idx) {
     setActiveLineIndex(idx)
     setExpandedAll(false)
-    setActiveWordKey(null)
+  }
+
+  // "한 줄씩 보기"에서 ◀/▶로 소절을 직접 넘길 때 — 자동 싱크가 켜져 있으면 영상도
+  // 그 소절의 싱크 지점으로 같이 이동시켜서, 가사 탐색과 영상 재생이 어긋나지 않게 한다.
+  function goToLine(idx) {
+    focusLine(idx)
+    if (autoSync) {
+      seekToLineStart(idx)
+    }
+  }
+
+  // 영상을 특정 소절의 시작 지점으로 이동시킨다. 보기 모드(한 줄씩/전체 가사)는 건드리지 않는다 —
+  // "전체 가사 보기"에서 가사를 클릭했을 때도 이 함수만 써서 보기가 끊기지 않게 한다.
+  function seekToLineStart(idx) {
+    const line = lines[idx]
+    if (!line) return
+    const player = playerRef.current
+    if (player && typeof player.seekTo === 'function') {
+      player.seekTo(line.startMs / 1000, true)
+    }
+    setCurrentMs(line.startMs)
+    setActiveLineIndex(idx)
+  }
+
+  // "이 소절의 단어" 목록에서 단어장 아이콘 버튼 — 비로그인이면 로그인 화면으로 보내고,
+  // 로그인 상태면 "어느 단어장에 담을지" 고르는 창을 띄운다. 이미 담겨 있는 단어라도 다른
+  // 단어장에 또 넣고 싶을 수 있으니, 클릭하면 항상 이 창이 뜬다(자동으로 즐겨찾기에 담지 않음).
+  function openWordPicker(key, lemma) {
+    if (!isLoggedIn()) {
+      navigate('/login')
+      return
+    }
+    setPickerCreating(false)
+    setPickerNewName('')
+    setWordPicker({ key, lemma })
+  }
+
+  function closeWordPicker() {
+    setWordPicker(null)
+    setPickerCreating(false)
+    setPickerNewName('')
+  }
+
+  // 단어장 선택 창에서 단어장 하나를 골랐을 때 — 이미 그 단어장에 있는 단어면 한 번 더
+  // 확인하고, 아니면 바로 담는다.
+  async function handlePickWordbook(book) {
+    if (!wordPicker || !song?.sourceLang || pickerBusyId) return
+    const lemma = wordPicker.lemma
+    const alreadyIn = (membershipByLemma[lemma] ?? []).includes(book.id)
+    if (alreadyIn) {
+      const ok = window.confirm(`선택하신 단어장에 이미 단어가 있습니다. 한 번 더 추가할까요?`)
+      if (!ok) return
+    }
+    setPickerBusyId(book.id)
+    try {
+      await addWordbookItem({ lemma, lang: song.sourceLang, wordbookId: book.id })
+      setMembershipByLemma((prev) => {
+        const existing = prev[lemma] ?? []
+        return existing.includes(book.id) ? prev : { ...prev, [lemma]: [...existing, book.id] }
+      })
+      if (!alreadyIn) {
+        setWordbooks((prev) => prev.map((b) => (b.id === book.id ? { ...b, itemCount: b.itemCount + 1 } : b)))
+      }
+      closeWordPicker()
+    } catch {
+      // 실패해도 창은 그대로 열어둬서 다시 시도할 수 있게 한다.
+    } finally {
+      setPickerBusyId(null)
+    }
+  }
+
+  function openPickerCreate() {
+    setPickerCreating(true)
+    setPickerNewName('')
+  }
+
+  async function handlePickerCreateSubmit(e) {
+    e.preventDefault()
+    const name = pickerNewName.trim()
+    if (!name || pickerSavingNew) return
+    setPickerSavingNew(true)
+    try {
+      const created = await createWordbook(name)
+      setWordbooks((prev) => [...prev, created])
+      setPickerCreating(false)
+      setPickerNewName('')
+    } catch {
+      // 실패해도 입력값은 남겨서 다시 시도할 수 있게 한다.
+    } finally {
+      setPickerSavingNew(false)
+    }
   }
 
   return (
@@ -321,7 +439,7 @@ export default function SongLearn() {
 
             <div className="song-learn-hero-info">
               {song.sourceLang && (
-                <span className="song-learn-lang-badge">{LANG_LABEL[song.sourceLang] ?? song.sourceLang}</span>
+                <span className={`song-learn-lang-badge song-learn-lang-badge--${song.sourceLang}`}>{LANG_LABEL[song.sourceLang] ?? song.sourceLang}</span>
               )}
               <h1 className="song-learn-title">{song.title}</h1>
               <span className="song-learn-artist">{song.artist}</span>
@@ -349,7 +467,7 @@ export default function SongLearn() {
                 <span className="song-learn-player-time">{formatTime(displayMs)}</span>
                 <input
                   type="range"
-                  className="song-learn-player-seek"
+                  className={`song-learn-player-seek${isSeeking ? ' song-learn-player-seek--active' : ''}`}
                   min={0}
                   max={durationMs || 0}
                   step={100}
@@ -358,8 +476,19 @@ export default function SongLearn() {
                     setIsSeeking(true)
                     setSeekPreviewMs(Number(e.target.value))
                   }}
+                  onMouseDown={() => {
+                    setSeekPreviewMs(Math.min(currentMs, durationMs || 0))
+                    setIsSeeking(true)
+                  }}
+                  onTouchStart={() => {
+                    setSeekPreviewMs(Math.min(currentMs, durationMs || 0))
+                    setIsSeeking(true)
+                  }}
                   onMouseUp={(e) => commitSeek(Number(e.target.value))}
                   onTouchEnd={(e) => commitSeek(Number(e.target.value))}
+                  style={{
+                    background: `linear-gradient(to right, #5f26f3 0%, #8d47fa ${seekPercent}%, #ececec ${seekPercent}%, #ececec 100%)`,
+                  }}
                   aria-label="재생 위치"
                 />
                 <span className="song-learn-player-time">{formatTime(durationMs)}</span>
@@ -425,88 +554,176 @@ export default function SongLearn() {
 
             {lines.length === 0 ? (
               <div className="song-learn-status">아직 등록된 가사가 없어요.</div>
-            ) : expandedAll ? (
-              <>
-                <div className="song-learn-lyrics" onClick={() => setActiveWordKey(null)}>
-                  {lines.map((line, idx) => (
-                    <div
-                      key={line.id}
-                      id={`line-${line.id}`}
-                      className={`song-learn-line${line.id === activeGrammarLineId ? ' song-learn-line--highlight' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        focusLine(idx)
-                      }}
-                    >
-                      {line.reading && <span className="song-learn-line-reading">{line.reading}</span>}
-                      <span className="song-learn-line-original">
-                        {renderOriginalWithWords(line, activeWordKey, toggleWord)}
-                      </span>
-                      <span className="song-learn-line-translation">{line.translationNatural}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="song-learn-word-hint">소절을 탭하면 그 줄만 자세히 볼 수 있어요.</p>
-              </>
             ) : (
-              <div className="song-learn-focus">
-                {activeLine && (
+              <div className="song-learn-lyrics-viewport">
+                {expandedAll ? (
                   <>
-                    <div className="song-learn-focus-card" onClick={() => setActiveWordKey(null)}>
-                      {activeLine.reading && (
-                        <span className="song-learn-focus-reading">{activeLine.reading}</span>
-                      )}
-                      <span className="song-learn-focus-original">
-                        {renderOriginalWithWords(activeLine, activeWordKey, toggleWord)}
-                      </span>
-                      <span className="song-learn-focus-translation">{activeLine.translationNatural}</span>
-                    </div>
-
-                    <div className="song-learn-focus-nav">
-                      <button
-                        type="button"
-                        className="song-learn-focus-nav-btn"
-                        onClick={() => focusLine(Math.max(0, clampedIndex - 1))}
-                        disabled={clampedIndex === 0}
-                        aria-label="이전 소절"
-                      >
-                        ‹
-                      </button>
-                      <span className="song-learn-focus-count">{clampedIndex + 1} / {lines.length}</span>
-                      <button
-                        type="button"
-                        className="song-learn-focus-nav-btn"
-                        onClick={() => focusLine(Math.min(lines.length - 1, clampedIndex + 1))}
-                        disabled={clampedIndex === lines.length - 1}
-                        aria-label="다음 소절"
-                      >
-                        ›
-                      </button>
-                    </div>
-
-                    {activeWordList.length > 0 && (
-                      <div className="song-learn-focus-words">
-                        <span className="song-learn-focus-words-title">이 소절의 단어</span>
-                        <div className="song-learn-word-table">
-                          {activeWordList.map((w) => (
-                            <div className="song-learn-word-row" key={w.key}>
-                              <span className="song-learn-word-row-surface">
-                                {w.surface}
-                                {w.reading && <span className="song-learn-word-row-reading">{w.reading}</span>}
-                              </span>
-                              <span className="song-learn-word-row-meaning">{w.meaning}</span>
-                            </div>
-                          ))}
+                    <div className="song-learn-lyrics">
+                      {lines.map((line, idx) => (
+                        <div
+                          key={line.id}
+                          id={`line-${line.id}`}
+                          className={`song-learn-line${line.id === activeGrammarLineId ? ' song-learn-line--highlight' : ''}`}
+                          onClick={() => seekToLineStart(idx)}
+                        >
+                          {line.reading && <span className="song-learn-line-reading">{line.reading}</span>}
+                          <span className="song-learn-line-original">
+                            {renderOriginalWithWords(line)}
+                          </span>
+                          <span className="song-learn-line-translation">{line.translationNatural}</span>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
+                    <p className="song-learn-word-hint">소절을 탭하면 영상이 그 지점으로 이동해요.</p>
                   </>
+                ) : (
+                  <div className="song-learn-focus">
+                    {activeLine && (
+                      <>
+                        <div className="song-learn-focus-card">
+                          {activeLine.reading && (
+                            <span className="song-learn-focus-reading">{activeLine.reading}</span>
+                          )}
+                          <span className="song-learn-focus-original">
+                            {renderOriginalWithWords(activeLine)}
+                          </span>
+                          <span className="song-learn-focus-translation">{activeLine.translationNatural}</span>
+                        </div>
+
+                        <div className="song-learn-focus-nav">
+                          <button
+                            type="button"
+                            className="song-learn-focus-nav-btn"
+                            onClick={() => goToLine(Math.max(0, clampedIndex - 1))}
+                            disabled={clampedIndex === 0}
+                            aria-label="이전 소절"
+                          >
+                            ‹
+                          </button>
+                          <span className="song-learn-focus-count">{clampedIndex + 1} / {lines.length}</span>
+                          <button
+                            type="button"
+                            className="song-learn-focus-nav-btn"
+                            onClick={() => goToLine(Math.min(lines.length - 1, clampedIndex + 1))}
+                            disabled={clampedIndex === lines.length - 1}
+                            aria-label="다음 소절"
+                          >
+                            ›
+                          </button>
+                        </div>
+
+                        {activeWordList.length > 0 && (
+                          <div className="song-learn-focus-words">
+                            <span className="song-learn-focus-words-title">이 소절의 단어</span>
+                            <div className="song-learn-word-table">
+                              {activeWordList.map((w) => {
+                                const inWordbook = (membershipByLemma[w.surface] ?? []).length > 0
+                                return (
+                                <div className="song-learn-word-row" key={w.key}>
+                                  <span className="song-learn-word-row-surface">
+                                    {w.surface}
+                                    {w.reading && <span className="song-learn-word-row-reading">{w.reading}</span>}
+                                  </span>
+                                  <span className="song-learn-word-row-meaning">{w.meaning}</span>
+                                  <button
+                                    type="button"
+                                    className={`song-learn-word-row-add${inWordbook ? ' song-learn-word-row-add--done' : ''}`}
+                                    onClick={() => openWordPicker(w.key, w.surface)}
+                                    aria-label={inWordbook ? '단어장에 담김 — 다른 단어장에도 추가' : '단어장에 추가'}
+                                    title={inWordbook ? '단어장에 담김 — 다른 단어장에도 추가' : '단어장에 추가'}
+                                  >
+                                    {inWordbook ? (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                      </svg>
+                                    ) : (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M19 21 12 16.5 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+                                        <line x1="9.5" y1="8.5" x2="14.5" y2="8.5"></line>
+                                        <line x1="12" y1="6" x2="12" y2="11"></line>
+                                      </svg>
+                                    )}
+                                  </button>
+                                </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             )}
           </section>
         </div>
         </div>
+        </div>
+      )}
+
+      {/* 단어장 선택 창 — 다운로드할 때 저장 폴더를 고르는 창처럼, 여기서 폴더(단어장)를
+          고르거나 바로 새 폴더(단어장)를 만들 수 있다. */}
+      {wordPicker && (
+        <div className="word-picker-overlay" onClick={closeWordPicker}>
+          <div className="word-picker-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="word-picker-header">
+              <span className="word-picker-title">
+                <strong>{wordPicker.lemma}</strong> 단어를 어느 단어장에 담을까요?
+              </span>
+              <button type="button" className="word-picker-close" onClick={closeWordPicker} aria-label="닫기">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div className="word-picker-list">
+              {wordbooks.map((book) => {
+                const already = (membershipByLemma[wordPicker.lemma] ?? []).includes(book.id)
+                return (
+                  <button
+                    type="button"
+                    key={book.id}
+                    className="word-picker-item"
+                    onClick={() => handlePickWordbook(book)}
+                    disabled={pickerBusyId === book.id}
+                  >
+                    <span className="word-picker-item-icon">{book.favoriteDefault ? '★' : '📁'}</span>
+                    <span className="word-picker-item-name">{book.name}</span>
+                    <span className="word-picker-item-count">{book.itemCount}개</span>
+                    {already && <span className="word-picker-item-already">담김</span>}
+                  </button>
+                )
+              })}
+            </div>
+
+            {pickerCreating ? (
+              <form className="word-picker-create-form" onSubmit={handlePickerCreateSubmit}>
+                <input
+                  type="text"
+                  className="word-picker-create-input"
+                  placeholder="새 단어장 이름"
+                  value={pickerNewName}
+                  onChange={(e) => setPickerNewName(e.target.value)}
+                  autoFocus
+                  maxLength={60}
+                />
+                <button type="submit" className="word-picker-create-confirm" disabled={pickerSavingNew}>
+                  {pickerSavingNew ? '만드는 중...' : '만들기'}
+                </button>
+              </form>
+            ) : (
+              <button type="button" className="word-picker-create-open" onClick={openPickerCreate}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                새 단어장 만들기
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

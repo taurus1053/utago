@@ -92,6 +92,13 @@ export function apiDelete(path) {
   return request(path, { method: 'DELETE' })
 }
 
+export function apiPatch(path, data) {
+  return request(path, {
+    method: 'PATCH',
+    body: JSON.stringify(data ?? {}),
+  })
+}
+
 export async function getHealth() {
   return apiGet('/api/health')
 }

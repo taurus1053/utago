@@ -6,6 +6,7 @@ import Landing from './pages/Landing'
 import SongLearn from './pages/SongLearn'
 import SongSync from './pages/SongSync'
 import SongEdit from './pages/SongEdit'
+import Wordbook from './pages/Wordbook'
 import AddSong from './pages/AddSong'
 import AdminTranslations from './pages/AdminTranslations'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
@@ -43,6 +44,25 @@ function App() {
           element={(
             <RequireAuth>
               <SongEdit />
+            </RequireAuth>
+          )}
+        />
+        {/* 단어장 — 왼쪽 사이드바(목록) + 오른쪽 본문(단어 목록·플래시카드 복습)을
+            한 화면에서 보여주는 위젯. /wordbook, /wordbook/:id 둘 다 같은 컴포넌트가
+            그리고, 내부에서 사이드바로 단어장을 바꾸면 URL만 바뀐다. 로그인 필수. */}
+        <Route
+          path="/wordbook"
+          element={(
+            <RequireAuth>
+              <Wordbook />
+            </RequireAuth>
+          )}
+        />
+        <Route
+          path="/wordbook/:id"
+          element={(
+            <RequireAuth>
+              <Wordbook />
             </RequireAuth>
           )}
         />

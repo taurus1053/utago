@@ -307,7 +307,7 @@ public class SongService {
                                 .orElseGet(() -> wordRepository.save(Word.builder()
                                         .lemma(lemma)
                                         .lang(Lang.JA)
-                                        .reading(token.furigana())
+                                        .reading(token.lemmaReading() != null ? token.lemmaReading() : token.furigana())
                                         .pos(token.partOfSpeech())
                                         .dictSource("kuromoji-ipadic")
                                         .build()))

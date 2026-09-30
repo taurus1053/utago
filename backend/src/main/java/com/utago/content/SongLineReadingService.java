@@ -118,6 +118,11 @@ public class SongLineReadingService {
             } else {
                 reading = token.reading();
             }
+            // 캐시된 Word.reading을 재사용하는 경우에도, 동형이의어 보정 규칙(예: 止める ->
+            // とめる/やめる)은 매번 문맥에 맞게 다시 적용한다 — 캐시가 만들어진 시점의 문맥과
+            // 지금 이 줄의 문맥이 다를 수 있기 때문(같은 단어가 다른 곡/문맥에서 재사용됨).
+            reading = japaneseTokenizerService.applyHomographOverride(
+                    token.baseForm(), reading, text.substring(token.charOffsetEnd()));
 
             boolean isSuruContinuation = "動詞".equals(token.partOfSpeechLevel1())
                     && "する".equals(token.baseForm())

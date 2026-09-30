@@ -11,4 +11,7 @@ public interface WordExampleRepository extends JpaRepository<WordExample, Long> 
     List<WordExample> findByWordId(Long wordId);
 
     List<WordExample> findByWordIdAndSourceType(Long wordId, ExampleSourceType sourceType);
+
+    /** 단어장 화면에서 여러 단어의 MASTER 예문(있으면)을 한 번에 조회할 때 쓴다. */
+    List<WordExample> findByWordIdIn(List<Long> wordIds);
 }

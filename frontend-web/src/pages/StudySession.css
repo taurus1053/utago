@@ -1,0 +1,484 @@
+/* ---------- 학습 방법 선택 창 ---------- */
+.study-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 26, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.study-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(32, 26, 20, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.study-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.study-modal-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: #201a14;
+}
+.study-modal-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: #f7f2e8;
+  color: #5b5346;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.study-modal-close:hover {
+  background: #efe6f5;
+  color: #5f26f3;
+}
+
+/* ---------- 학습 방법 선택 메뉴(카드 그리드) ---------- */
+.study-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.study-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.study-menu-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: #201a14;
+}
+.study-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.study-menu-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 20px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.study-menu-card:hover {
+  border-color: #d8c9ff;
+  box-shadow: 0 4px 16px rgba(141, 71, 250, 0.1);
+  transform: translateY(-1px);
+}
+.study-menu-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #201a14;
+}
+.study-menu-card-desc {
+  font-size: 13px;
+  color: #8a7f6e;
+  line-height: 1.5;
+}
+
+/* ---------- 게임 공통 헤더 ---------- */
+.study-game-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.study-game-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #201a14;
+}
+.study-game-progress {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a89c86;
+}
+.study-game-header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.study-game-back-btn {
+  border: 1px solid #ececec;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.study-game-back-btn:hover {
+  border-color: #d8c9ff;
+}
+.study-done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---------- 퀴즈/빈칸채우기 공용 선택지 ---------- */
+.study-quiz-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 0 4px;
+}
+.study-quiz-word {
+  font-size: 30px;
+  font-weight: 800;
+  color: #201a14;
+}
+.study-quiz-reading {
+  font-size: 14px;
+  color: #b0512f;
+}
+.study-quiz-choices {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.study-choice {
+  border: 1.5px solid #ececec;
+  background: #ffffff;
+  color: #201a14;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.study-choice:hover:not(:disabled) {
+  border-color: #dcdcdc;
+  background: #f2f2f2;
+}
+.study-choice--correct {
+  border-color: #6fc48a;
+  background: #ecf7ee;
+  color: #2f8f4e;
+  animation: study-pop 0.35s ease;
+}
+.study-choice--wrong {
+  border-color: #e79488;
+  background: #fbe9e4;
+  color: #b0512f;
+}
+.study-choice--dim {
+  opacity: 0.5;
+}
+@keyframes study-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.study-choice--shake {
+  animation: study-shake 0.4s ease;
+}
+@keyframes study-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.study-next-btn {
+  align-self: center;
+}
+
+/* ---------- 발음 힌트 버튼(플래시카드/퀴즈 공용) ---------- */
+.study-hint-btn {
+  border: 1px solid #ececec;
+  background: #ffffff;
+  color: #8a7f6e;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.study-hint-btn:hover {
+  border-color: #d8c9ff;
+  color: #5f26f3;
+}
+
+/* ---------- 빈칸 채우기 문장 ---------- */
+.study-fill-sentence {
+  width: 100%;
+  box-sizing: border-box;
+  background: #faf9f7;
+  border-radius: 16px;
+  padding: 24px 22px;
+  font-size: 19px;
+  font-weight: 600;
+  color: #201a14;
+  line-height: 1.9;
+  text-align: center;
+}
+.study-fill-blank {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 0 6px;
+  border-bottom: 2px solid #8d47fa;
+  color: #8d47fa;
+  font-weight: 800;
+}
+.study-fill-blank--revealed {
+  color: #5f26f3;
+}
+.study-fill-explain {
+  width: 100%;
+  box-sizing: border-box;
+  background: #faf9f7;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.study-fill-explain-line {
+  margin: 0;
+  font-size: 14.5px;
+  color: #6b6154;
+  line-height: 1.6;
+}
+.study-fill-explain-word {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #ececec;
+}
+.study-fill-explain-word + .study-fill-explain-word {
+  padding-top: 0;
+  border-top: none;
+}
+.study-fill-explain-word--target .study-fill-explain-word-lemma {
+  color: #5f26f3;
+}
+.study-fill-explain-word-lemma {
+  font-size: 15px;
+  font-weight: 700;
+  color: #201a14;
+}
+.study-fill-explain-word-meaning {
+  font-size: 14px;
+  color: #5b3fa0;
+}
+
+/* ---------- 문장 배열하기 ---------- */
+.study-reorder-hint {
+  font-size: 13.5px;
+  color: #8a7f6e;
+  margin: 0;
+  text-align: center;
+}
+.study-reorder-translation {
+  font-size: 15px;
+  font-weight: 600;
+  color: #201a14;
+  margin: -8px 0 0;
+  text-align: center;
+}
+/* 정답 칸도 답이 길어서 두 줄이 되면 높이가 늘어나면서 아래(보기/버튼)가 밀려나던 문제가
+   있었다 — 처음부터 두 줄 분량으로 높이를 고정해서, 한 줄짜리 문장은 가운데 표시되고
+   두 줄짜리 문장은 꽉 채워지게 하며, 어느 쪽이든 아래 요소 위치는 움직이지 않는다. */
+.study-reorder-assembled {
+  width: 100%;
+  height: 118px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: 1.5px dashed #d8c9ff;
+  border-radius: 14px;
+  background: #faf7ff;
+}
+.study-reorder-assembled--wrong {
+  border-color: #e79488;
+  background: #fbe9e4;
+}
+.study-reorder-assembled--correct {
+  border-color: #6fc48a;
+  background: #ecf7ee;
+  animation: study-pop 0.35s ease;
+}
+/* 보기 단어가 길어서 두 줄 이상으로 넘어가거나, 다 골라서 비거나(또는 확인 결과 메시지가
+   뜰 때도) 이 영역의 높이가 항상 똑같이 유지되도록 처음부터 두 줄 분량으로 고정한다.
+   타일은 왼쪽 정렬로 고정 — justify-content를 center로 두면 타일이 하나씩 답안 칸으로
+   빠질 때마다 남은 타일들이 계속 가운데로 쏠려 모이면서 자리를 옮기게 되는데, 그러지
+   않고 처음 섞인 자리에 그대로 있도록 하기 위함이다. */
+.study-reorder-pool {
+  width: 100%;
+  height: 100px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding-top: 4px;
+}
+/* 다 골라 넣어서 결과 메시지만 보여줄 때만 예외적으로 가운데 정렬한다. */
+.study-reorder-pool--message {
+  justify-content: center;
+}
+.study-reorder-result {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.study-reorder-result--correct {
+  color: #2f8f4e;
+}
+.study-reorder-result--wrong {
+  color: #b0512f;
+}
+.study-tile {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ececec;
+  background: #ffffff;
+  color: #201a14;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: grab;
+  /* 드래그 중 브라우저 기본 스크롤/제스처가 끼어들지 않도록(특히 터치) — 포인터 이벤트로
+     직접 드래그를 구현하므로 브라우저가 같은 제스처를 스크롤로 가로채면 안 된다. */
+  touch-action: none;
+  user-select: none;
+  /* transform 전환은 FLIP 애니메이션(StudySession.jsx)이 상황에 맞춰 직접 걸고 지운다 —
+     여기서 항상 걸어두면 의도한 이동 외의 변화(예: 드래그 시작)에도 트랜지션이 끼어든다. */
+  transition: opacity 0.15s ease;
+}
+.study-tile:hover {
+  border-color: #dcdcdc;
+}
+.study-tile--word {
+  width: auto;
+  min-width: 42px;
+  padding: 0 14px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.study-tile--picked {
+  border-color: #8d47fa;
+  background: #f4efff;
+  color: #5f26f3;
+}
+/* 답안 칸 안에서 지금 드래그로 옮기고 있는 타일 — 보기 칸에 있는 동안은(아직 답안 칸까지
+   끌고 가지 않았으면) study-tile--placeholder로 아예 안 보이게 되고, 일단 답안 칸에
+   들어오면 이렇게 살짝 강조만 해서 "여기 들어와 있다"는 걸 보여준다. */
+.study-tile--dragging {
+  cursor: grabbing;
+  box-shadow: 0 0 0 2px rgba(141, 71, 250, 0.35);
+}
+/* 답안 칸으로 이미 들어간 보기 칸 타일 — 지우지 않고 자리만 차지한 채 안 보이게 해서,
+   나머지 타일들이 가운데로 쏠려 모이지 않고 처음 그 자리에 그대로 있게 한다. */
+.study-tile--placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* 커서/손가락을 따라다니는 고스트 타일 — 실제 위치를 클릭 없이 바로 알 수 있게 한다. */
+.study-reorder-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.08);
+  pointer-events: none;
+  z-index: 1000;
+  border-color: #8d47fa;
+  background: #f4efff;
+  color: #5f26f3;
+  box-shadow: 0 8px 20px rgba(93, 38, 243, 0.25);
+}
+.study-reorder-actions {
+  display: flex;
+  gap: 10px;
+  align-self: center;
+}
+
+/* ---------- 카드 맞추기 ---------- */
+.study-match-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.study-match-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.study-match-card {
+  border: 1.5px solid #ececec;
+  background: #ffffff;
+  color: #201a14;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+.study-match-card:hover:not(:disabled) {
+  border-color: #dcdcdc;
+}
+.study-match-card--selected {
+  border-color: #8d47fa;
+  background: #f4efff;
+}
+.study-match-card--matched {
+  border-color: #d7ecdc;
+  background: #ecf7ee;
+  color: #2f8f4e;
+  opacity: 0.65;
+  cursor: default;
+}
+.study-match-card--wrong {
+  border-color: #e79488;
+  background: #fbe9e4;
+}
+
+@media (max-width: 640px) {
+  .study-match-grid {
+    gap: 10px;
+  }
+}

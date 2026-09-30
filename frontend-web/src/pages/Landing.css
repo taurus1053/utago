@@ -35,76 +35,9 @@
   gap: 10px;
 }
 
-/* 언어 선택 (커스텀 드롭다운) */
-.landing-lang-switcher {
-  position: relative;
+/* 언어 선택 드롭다운은 components/LangSwitcher.jsx + LangSwitcher.css로 분리됨 */
+.landing-topbar-actions .lang-switcher {
   margin-right: 4px;
-}
-.landing-lang-trigger {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 20px;
-  border: 1px solid #e6ddcc;
-  background: #ffffff;
-  color: #5b5346;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  transition: border-color 0.15s ease;
-}
-.landing-lang-trigger:hover {
-  border-color: #d8c9ff;
-}
-.landing-lang-trigger[aria-expanded='true'] {
-  border-color: #7636f6;
-}
-.landing-lang-trigger svg:first-child {
-  color: #a89c86;
-  flex-shrink: 0;
-}
-.landing-lang-chevron {
-  color: #a89c86;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
-}
-.landing-lang-chevron--open {
-  transform: rotate(180deg);
-}
-.landing-lang-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 132px;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(32, 26, 20, 0.16);
-  z-index: 40;
-}
-.landing-lang-option {
-  width: 100%;
-  text-align: left;
-  padding: 9px 12px;
-  border-radius: 9px;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #5b5346;
-}
-.landing-lang-option:hover {
-  background: #f7f4ec;
-}
-.landing-lang-option--active {
-  background: #f4efff;
-  color: #5f26f3;
-  font-weight: 700;
 }
 .landing-login-btn {
   height: 40px;

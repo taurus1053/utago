@@ -252,6 +252,142 @@
   font-weight: 600;
 }
 
+/* 오늘의 단어 · 단어 복습하기 */
+.home-word-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.home-word-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #eee4d2;
+  border-radius: 18px;
+  padding: 18px 20px;
+  /* 단어 개수가 달라져도(3개짜리 소절 vs 8개짜리 소절) 카드 높이가 들쑥날쑥하지 않도록
+     고정 높이로 통일한다. 단어 목록을 최대 6개(3열 x 2줄)까지만 보여주므로(LyricLineBody),
+     그 크기에 맞춰 이전보다 낮췄다 — 남는 여백이 없도록. */
+  height: 250px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.home-word-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.home-word-card-label {
+  font-size: 13px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.home-word-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: #f7f2e8;
+  color: #8a7f6e;
+  cursor: pointer;
+}
+.home-word-refresh-btn:hover:not(:disabled) {
+  background: #efe6f5;
+  color: #5f26f3;
+}
+.home-word-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.home-word-status {
+  font-size: 13px;
+  color: #a89c86;
+}
+.home-word-status--error {
+  color: #b0512f;
+}
+.home-word-status a {
+  color: #5f26f3;
+  font-weight: 600;
+}
+.home-lyric-original {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #201a14;
+  line-height: 1.5;
+}
+.home-lyric-translation {
+  margin: 0;
+  font-size: 13.5px;
+  color: #5b5346;
+  line-height: 1.5;
+}
+.home-lyric-source {
+  margin: 0;
+  font-size: 12px;
+  color: #a89c86;
+}
+.home-lyric-words {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid #f2ece0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 14px;
+  /* 카드 자체는 고정 높이(.home-word-card)이므로, 단어가 많을 땐 이 목록만 내부 스크롤. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+}
+.home-lyric-word-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 12.5px;
+  min-width: 0;
+}
+.home-lyric-word-lemma {
+  font-weight: 800;
+  color: #201a14;
+  white-space: nowrap;
+  flex: none;
+}
+.home-lyric-word-reading {
+  color: #b0512f;
+  font-size: 11.5px;
+  white-space: nowrap;
+  flex: none;
+}
+.home-lyric-word-meaning {
+  color: #8a7f6e;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-lyric-words-more {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: #c3b8a3;
+}
+
+@media (max-width: 720px) {
+  .home-word-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 섹션 공통 */
 .home-section {
   display: flex;

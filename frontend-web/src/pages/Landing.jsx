@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { startPageTransition } from '../utils/pageTransition'
+import LangSwitcher from '../components/LangSwitcher'
 import './Landing.css'
 
 // 비로그인 상태로 사이트에 접속했을 때 보여주는 랜딩(소개) 페이지.
 // 넷플릭스/쿠팡플레이 스타일의 "가입/로그인 유도" 페이지.
 // 첫 진입점이라 외국인 사용자도 바로 이해할 수 있도록 간단한 언어 선택을 제공한다.
-
-const LANGS = [
-  { code: 'ko', label: '한국어' },
-  { code: 'ja', label: '日本語' },
-  { code: 'en', label: 'English' },
-]
+// (언어 선택 드롭다운 자체는 components/LangSwitcher로 분리되어 TopBar에서도 재사용된다.)
 
 const ICONS = {
   song: (
@@ -211,65 +207,6 @@ function MarqueeItem({ song }) {
       </div>
       <span className="landing-marquee-song-title">{song.title}</span>
       <span className="landing-marquee-song-artist">{song.artist}</span>
-    </div>
-  )
-}
-
-// 모던한 커스텀 언어 선택 드롭다운 (네이티브 select 대신 직접 구현).
-function LangSwitcher({ lang, setLang }) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef(null)
-  const current = LANGS.find((l) => l.code === lang) ?? LANGS[0]
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  return (
-    <div className="landing-lang-switcher" ref={rootRef}>
-      <button
-        type="button"
-        className="landing-lang-trigger"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-      >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M2 12h20"></path>
-          <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
-        </svg>
-        <span>{current.label}</span>
-        <svg className={`landing-lang-chevron${open ? ' landing-lang-chevron--open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </button>
-      {open && (
-        <ul className="landing-lang-menu" role="listbox">
-          {LANGS.map((l) => (
-            <li key={l.code}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={l.code === lang}
-                className={`landing-lang-option${l.code === lang ? ' landing-lang-option--active' : ''}`}
-                onClick={() => {
-                  setLang(l.code)
-                  setOpen(false)
-                }}
-              >
-                {l.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }

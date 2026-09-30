@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { isLoggedIn } from '../api/auth'
 import { getMySongs, listSongs } from '../api/songs'
+import { getLyricOfDay, getLyricReview } from '../api/home'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import './Home.css'
@@ -73,6 +74,9 @@ const LANG_BADGE = {
   EN: { bg: '#e7edf3', color: '#3f6488' },
 }
 
+// 뱃지에는 내부 코드(JA/KO/EN) 대신 흔히 쓰는 국가 코드 스타일 약어로 표시한다.
+const LANG_BADGE_LABEL = { JA: 'JP', KO: 'KR', EN: 'EN' }
+
 const LANG_FILTER_OPTIONS = [
   { label: '전체', lang: null },
   { label: '일본어', lang: 'JA' },
@@ -116,6 +120,161 @@ function useLyricTicker(lines, intervalMs) {
     row1Color: offset === 0 ? '#ffffff' : 'rgba(255,255,255,0.55)',
     row2Color: offset === 0 ? 'rgba(255,255,255,0.55)' : '#ffffff',
   }
+}
+
+// 가사 한 소절에 보통 들어가는 단어(조사·어미까지 포함한 형태소 단위) 개수를 보면 6개 안팎이
+// 흔해서, 카드 크기를 지키기 위해 한 소절당 최대 6개까지만 보여주고 나머지는 "+N개 더"로
+// 뭉뚱그린다(전부 보고 싶으면 가사 상세 화면에서 볼 수 있다).
+const WORD_DISPLAY_LIMIT = 6
+
+// 가사 소절(원문+의역) + 그 소절에 등장하는 단어/뜻 목록을 함께 보여준다.
+// "오늘의 가사"/"가사 복습하기" 카드가 공통으로 쓴다.
+function LyricLineBody({ line }) {
+  const words = line.words ?? []
+  const shownWords = words.slice(0, WORD_DISPLAY_LIMIT)
+  const moreCount = words.length - shownWords.length
+  return (
+    <>
+      <p className="home-lyric-original">{line.originalText}</p>
+      <p className="home-lyric-translation">{line.translationNatural}</p>
+      {(line.songTitle || line.artist) && (
+        <p className="home-lyric-source">
+          {line.songTitle}
+          {line.songTitle && line.artist ? ' · ' : ''}
+          {line.artist}
+        </p>
+      )}
+      {shownWords.length > 0 && (
+        <ul className="home-lyric-words">
+          {shownWords.map((w) => (
+            <li key={w.wordId} className="home-lyric-word-row">
+              <span className="home-lyric-word-lemma">{w.lemma}</span>
+              {w.reading && <span className="home-lyric-word-reading">{w.reading}</span>}
+              <span className="home-lyric-word-meaning">
+                {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : '뜻 준비 중'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {moreCount > 0 && <p className="home-lyric-words-more">+{moreCount}개 단어 더</p>}
+    </>
+  )
+}
+
+function RefreshButton({ onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      className="home-word-refresh-btn"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label="다른 가사 보기"
+      title="다른 가사 보기"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+        <polyline points="21 3 21 9 15 9"></polyline>
+      </svg>
+    </button>
+  )
+}
+
+// 홈 화면 "오늘의 가사" 카드 — 단어장에 있고 없고 상관없이, 공개 가사 전체에서 무작위 소절 +
+// 의역 + 그 소절의 단어/뜻 목록을 보여준다. 새로고침 버튼으로 다른 소절을 다시 뽑을 수 있다.
+function LyricOfDayCard({ loggedIn }) {
+  const [line, setLine] = useState(null)
+  const [loading, setLoading] = useState(loggedIn)
+  const [error, setError] = useState(null)
+
+  const fetchLine = useCallback(() => {
+    if (!loggedIn) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    getLyricOfDay()
+      .then((data) => setLine(data))
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false))
+  }, [loggedIn])
+
+  useEffect(() => {
+    fetchLine()
+  }, [fetchLine])
+
+  return (
+    <div className="home-word-card">
+      <div className="home-word-card-header">
+        <span className="home-word-card-label">오늘의 가사</span>
+        {loggedIn && <RefreshButton onClick={fetchLine} disabled={loading} />}
+      </div>
+      {!loggedIn ? (
+        <div className="home-word-status">
+          로그인하면 오늘의 가사를 볼 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
+        </div>
+      ) : loading ? (
+        <div className="home-word-status">불러오는 중...</div>
+      ) : error ? (
+        <div className="home-word-status home-word-status--error">가사를 불러오지 못했어요.</div>
+      ) : !line ? (
+        <div className="home-word-status">아직 등록된 가사가 없어요.</div>
+      ) : (
+        <LyricLineBody line={line} />
+      )}
+    </div>
+  )
+}
+
+// 홈 화면 "가사 복습하기" 카드 — 내 단어장(즐겨찾기 포함 전체)에 담긴 단어가 실제로 등장하는
+// 소절 중 무작위 하나 + 그 소절의 단어/뜻 목록. 비로그인이거나 해당하는 가사가 없으면
+// 안내 문구와 함께 단어장으로 가는 링크를 보여준다.
+function LyricReviewCard({ loggedIn }) {
+  const [line, setLine] = useState(null)
+  const [loading, setLoading] = useState(loggedIn)
+  const [error, setError] = useState(null)
+
+  const fetchLine = useCallback(() => {
+    if (!loggedIn) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    getLyricReview()
+      .then((data) => setLine(data))
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false))
+  }, [loggedIn])
+
+  useEffect(() => {
+    fetchLine()
+  }, [fetchLine])
+
+  return (
+    <div className="home-word-card">
+      <div className="home-word-card-header">
+        <span className="home-word-card-label">가사 복습하기</span>
+        {loggedIn && <RefreshButton onClick={fetchLine} disabled={loading} />}
+      </div>
+      {!loggedIn ? (
+        <div className="home-word-status">
+          로그인하면 단어장에 담은 단어가 나오는 가사를 복습할 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
+        </div>
+      ) : loading ? (
+        <div className="home-word-status">불러오는 중...</div>
+      ) : error ? (
+        <div className="home-word-status home-word-status--error">가사를 불러오지 못했어요.</div>
+      ) : !line ? (
+        <div className="home-word-status">
+          단어장에 담은 단어가 등장하는 가사가 아직 없어요. <Link to="/wordbook">단어장 보러 가기 →</Link>
+        </div>
+      ) : (
+        <LyricLineBody line={line} />
+      )}
+    </div>
+  )
 }
 
 export default function Home() {
@@ -304,6 +463,12 @@ export default function Home() {
           ))}
         </div>
 
+        {/* 오늘의 가사 · 가사 복습하기 */}
+        <div className="home-word-row">
+          <LyricOfDayCard loggedIn={loggedIn} />
+          <LyricReviewCard loggedIn={loggedIn} />
+        </div>
+
         {/* 인기 급상승 */}
         <section className="home-section">
           <h2 className="home-section-title">인기 급상승</h2>
@@ -378,7 +543,7 @@ export default function Home() {
                     </div>
                     {badge && (
                       <span className="home-song-badge" style={{ background: badge.bg, color: badge.color }}>
-                        {lang}
+                        {LANG_BADGE_LABEL[lang] ?? lang}
                       </span>
                     )}
                   </Link>
@@ -429,7 +594,7 @@ export default function Home() {
                     </div>
                     {badge && (
                       <span className="home-song-badge" style={{ background: badge.bg, color: badge.color }}>
-                        {lang}
+                        {LANG_BADGE_LABEL[lang] ?? lang}
                       </span>
                     )}
                   </Link>

@@ -27,6 +27,11 @@ public class Wordbook {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    /** 이 단어장이 속한 폴더. 폴더 없이(null) 존재할 수도 있다. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    private WordbookFolder folder;
+
     @Column(nullable = false, length = 60)
     private String name;
 
