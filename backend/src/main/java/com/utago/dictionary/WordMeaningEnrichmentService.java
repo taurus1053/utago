@@ -48,8 +48,15 @@ public class WordMeaningEnrichmentService {
 
         for (Word w : batch) {
             jmdictLookupService.lookup(w.getLemma(), w.getReading()).ifPresent(entry -> {
+                // 주의: 센스(sense) 하나를 통째로 flatMap해서 그 안의 영어 gloss를 전부 모으면
+                // 안 된다 — JMdict은 "같은 뜻(센스) 하나"를 여러 영어 동의어로 표기한다
+                // (예: 非公開 한 센스가 "nondisclosure / private / confidential"로 한 번에
+                // 적혀있음). 이걸 다 따로 번역해버리면 "비공개/개인적/비밀"처럼 사실상 같은
+                // 뜻이 중복으로 나열된다. 센스마다 대표 gloss(첫 번째) 하나만 뽑아서 번역해야
+                // 서로 다른 뜻(센스)별로 한 줄씩 나온다.
                 List<String> glosses = entry.senses().stream()
-                        .flatMap(s -> s.glossesEn().stream())
+                        .map(s -> s.glossesEn().isEmpty() ? null : s.glossesEn().get(0))
+                        .filter(g -> g != null && !g.isBlank())
                         .distinct()
                         .limit(5)
                         .toList();

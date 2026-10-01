@@ -316,3 +316,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+.landing-footer-link {
+  margin-left: 12px;
+  color: inherit;
+  text-decoration: underline;
+}

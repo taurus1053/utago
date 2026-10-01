@@ -173,32 +173,21 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
 
         <div className="home-sidebar-spacer" />
 
-        <div className="home-sidebar-divider" />
-
-        <button className="home-sidebar-darkmode">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
-          </svg>
-          <span>다크 모드</span>
-        </button>
-        {loggedIn ? (
-          <a href="#logout" onClick={(e) => { e.preventDefault(); handleLogout() }} className="home-sidebar-link home-sidebar-logout">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>로그아웃</span>
-          </a>
-        ) : (
-          <Link to="/login" className="home-sidebar-link home-sidebar-logout">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-              <polyline points="10 17 15 12 10 7"></polyline>
-              <line x1="15" y1="12" x2="3" y2="12"></line>
-            </svg>
-            <span>로그인</span>
-          </Link>
+        {/* 다크모드 토글/로그아웃은 프로필 드롭다운에 이미 있어 여기서는 뺐다
+            (2026-10-01, 마이페이지 기획 피드백 — 중복 제거). 비로그인 사용자용
+            로그인 링크만 예외적으로 유지한다. */}
+        {!loggedIn && (
+          <>
+            <div className="home-sidebar-divider" />
+            <Link to="/login" className="home-sidebar-link home-sidebar-logout">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              <span>로그인</span>
+            </Link>
+          </>
         )}
       </div>
 

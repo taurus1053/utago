@@ -624,3 +624,13 @@
     padding: 20px 16px 40px;
   }
 }
+
+.home-footer {
+  padding: 24px 20px 40px;
+  text-align: center;
+  font-size: 12px;
+}
+.home-footer a {
+  color: #b6ac9c;
+  text-decoration: underline;
+}

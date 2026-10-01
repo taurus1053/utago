@@ -1,0 +1,290 @@
+.board-detail-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+.board-detail-shell {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.board-detail-status {
+  padding: 60px 0;
+  text-align: center;
+  color: #a89c86;
+  font-size: 14px;
+}
+.board-detail-status--error {
+  color: #b0512f;
+}
+
+.board-detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 16px;
+  color: #a89c86;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.board-detail-back-link:hover {
+  color: #5b5346;
+}
+
+.board-detail-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #201a14;
+  margin: 0 0 12px;
+}
+
+.board-detail-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #a89c86;
+  margin-bottom: 20px;
+}
+.board-detail-author-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  color: #5b5346;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.board-detail-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #7636f6;
+  background: #f4efff;
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+.board-detail-author {
+  font-weight: 600;
+  color: #5b5346;
+}
+.board-detail-delete-link {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #b0512f;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.board-detail-divider {
+  border: none;
+  border-top: 1px solid #efece6;
+  margin: 0 0 20px;
+}
+.board-detail-body {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3a332a;
+  white-space: pre-wrap;
+  margin: 0 0 20px;
+}
+
+.board-detail-wordbook-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: #f8f8f8;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.board-detail-wordbook-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.board-detail-wordbook-emoji {
+  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.board-detail-wordbook-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #201a14;
+}
+.board-detail-wordbook-meta {
+  font-size: 12px;
+  color: #a89c86;
+  margin-top: 2px;
+}
+.board-detail-wordbook-preview {
+  font-size: 12px;
+  color: #6b6358;
+  margin-top: 4px;
+}
+.board-detail-download-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 1px solid #201a14;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #201a14;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.board-detail-download-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.board-detail-download-error {
+  color: #b0512f;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.board-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid #efece6;
+  border-bottom: 1px solid #efece6;
+  margin-bottom: 20px;
+}
+.board-detail-like-btn {
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: #5b5346;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.board-detail-like-btn--active {
+  color: #e0456f;
+}
+.board-detail-comment-count {
+  font-size: 13px;
+  color: #a89c86;
+}
+/* 아이콘만 있는 버튼 — 누르면 채워진 검은색으로(와이어프레임 참고 이미지 스타일). */
+.board-detail-save-btn {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  border: none;
+  background: none;
+  padding: 4px 0;
+  color: #a89c86;
+  cursor: pointer;
+  line-height: 0;
+}
+.board-detail-save-btn--active {
+  color: #201a14;
+}
+
+.board-detail-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.board-detail-comment-empty {
+  color: #a89c86;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+.board-detail-comment {
+  display: flex;
+  gap: 10px;
+}
+.board-detail-comment-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  color: #5b5346;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.board-detail-comment-body {
+  flex: 1;
+}
+.board-detail-comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.board-detail-comment-author {
+  font-size: 13px;
+  font-weight: 700;
+  color: #201a14;
+}
+.board-detail-comment-delete {
+  border: none;
+  background: none;
+  color: #a89c86;
+  font-size: 11px;
+  cursor: pointer;
+}
+.board-detail-comment-content {
+  font-size: 13px;
+  color: #3a332a;
+  margin-top: 2px;
+  white-space: pre-wrap;
+}
+
+.board-detail-comment-form {
+  display: flex;
+  gap: 8px;
+}
+.board-detail-comment-form input {
+  flex: 1;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+}
+.board-detail-comment-form input:focus {
+  border-color: #7c5cff;
+}
+.board-detail-comment-form button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #201a14;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.board-detail-comment-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

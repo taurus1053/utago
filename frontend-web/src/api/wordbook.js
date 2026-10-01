@@ -28,6 +28,24 @@ export async function moveWordbookToFolder(id, folderId) {
   return apiPatch(`/api/wordbooks/${id}/folder`, { folderId: folderId ?? null })
 }
 
+// PATCH /api/wordbooks/{id}/visibility  payload: { visible: boolean }
+// 단어장 "⋮" 메뉴 "공개 설정" — 즐겨찾기 단어장을 공개로 돌리려 하면 400 + { message }.
+export async function setWordbookVisibility(id, visible) {
+  return apiPatch(`/api/wordbooks/${id}/visibility`, { visible })
+}
+
+// PATCH /api/wordbooks/{id}/emoji  payload: { emoji }
+export async function updateWordbookEmoji(id, emoji) {
+  return apiPatch(`/api/wordbooks/${id}/emoji`, { emoji })
+}
+
+// POST /api/wordbooks/{id}/download
+// 공개(또는 공식) 단어장을 내 단어장에 통째로 복사해온다(스냅샷 — 이후 원본이 바뀌어도
+// 반영 안 됨). 비공개 단어장이면 400 + { message }.
+export async function downloadWordbook(id) {
+  return apiPost(`/api/wordbooks/${id}/download`, {})
+}
+
 // GET /api/wordbooks/folders
 // -> [{ id, name }, ...]
 export async function listWordbookFolders() {
@@ -61,6 +79,30 @@ export async function listWordbookItems(wordbookId) {
 // 단어장에 담긴다. 이미 있는 단어면 서버가 중복 생성하지 않고 기존 항목을 그대로 돌려준다.
 export async function addWordbookItem({ lemma, lang, wordbookId }) {
   return apiPost('/api/wordbooks/items', { lemma, lang, wordbookId })
+}
+
+// GET /api/wordbooks/items/lookup?lemma=...&lang=JA
+// 단어장 화면 "단어 추가" 창 — 단어 입력칸에서 디바운스로 호출하는 자동 조회(발음/뜻 미리보기).
+// -> { lemma, reading, meanings: [...], found }  found가 false면 사전에 없는 단어 — 직접 입력 필요.
+// 이미 마스터 사전에 있던 단어거나 지난 조회에서 캐시된 단어면 즉시(AI 호출 없이) 응답한다.
+export async function lookupWordbookWord(lemma, lang = 'JA') {
+  return apiGet(`/api/wordbooks/items/lookup?lemma=${encodeURIComponent(lemma)}&lang=${lang}`)
+}
+
+// POST /api/wordbooks/items/custom  payload: { lemma, lang, wordbookId?, reading?, meanings? }
+// 단어장 화면 "단어 추가" — 가사에 없는 단어를 직접 입력해서 담는다. reading/meanings는 보통
+// 위 lookup으로 자동 채워진 뒤 사용자가 확인/수정한 최종 값 — 채워서 보내면 서버가 그 값을
+// 그대로 저장한다(다시 AI를 부르지 않음). 비워서 보내면 서버가 사전에서 찾아 자동으로 채운다.
+// 사전에도 없고 reading/meanings도 비어있으면 400 + { message } (ApiError.message로 보여주면 됨).
+export async function addCustomWordbookItem({ lemma, lang = 'JA', wordbookId, reading, meanings }) {
+  return apiPost('/api/wordbooks/items/custom', { lemma, lang, wordbookId, reading, meanings })
+}
+
+// PATCH /api/wordbooks/items/{itemId}/word  payload: { reading, meanings }
+// 단어장 목록 화면 "수정" — 오타/잘못 입력한 발음·뜻을 고친다. 실패(발음/뜻이 비어있음 등)는
+// 400 + { message } (ApiError.message로 그대로 보여주면 됨).
+export async function updateWordbookItemWord(itemId, { reading, meanings }) {
+  return apiPatch(`/api/wordbooks/items/${itemId}/word`, { reading, meanings })
 }
 
 // DELETE /api/wordbooks/items/{itemId}

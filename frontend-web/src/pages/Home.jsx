@@ -632,6 +632,9 @@ export default function Home() {
         </section>
 
       </div>
+      <footer className="home-footer">
+        <Link to="/credits">크레딧</Link>
+      </footer>
     </div>
   )
 }

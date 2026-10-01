@@ -166,6 +166,25 @@
   flex-direction: column;
   gap: 2px;
 }
+
+/* 사이드바 맨 아래 고정 — 단어장 디렉토리 밑에 항상 붙어있도록 margin-top:auto로 밀어낸다. */
+.wordbook-sidebar-browse-btn {
+  margin-top: auto;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.wordbook-sidebar-browse-btn:hover {
+  background: #f7f4ec;
+}
 .wordbook-sidebar-item {
   display: flex;
   align-items: center;
@@ -266,9 +285,16 @@
 .wordbook-sidebar-item-menu-wrap {
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wordbook-sidebar-item-lock {
+  display: flex;
+  align-items: center;
 }
 .wordbook-sidebar-item-menu-btn {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 20px;
@@ -278,9 +304,6 @@
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
-}
-.wordbook-sidebar-item:hover .wordbook-sidebar-item-menu-btn {
-  display: flex;
 }
 .wordbook-sidebar-item-menu-btn:hover {
   background: #e8e4da;
@@ -317,7 +340,7 @@
   white-space: nowrap;
 }
 .wordbook-sidebar-item-menu-panel button:hover {
-  background: #f7f4ec;
+  background: #f0f0f0;
 }
 .wordbook-sidebar-item-menu-panel .wordbook-sidebar-item-menu-option--danger {
   color: #b0512f;
@@ -608,6 +631,24 @@
 .wordbook-detail-remove:hover {
   background: #fbe9e4;
   color: #b0512f;
+}
+.wordbook-detail-edit {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  color: #b0967f;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.wordbook-detail-edit:hover {
+  background: #f4efff;
+  color: #5f26f3;
 }
 
 /* ---------- 선택하기 모드 — 여러 단어 한 번에 삭제/이동 ---------- */
@@ -1006,4 +1047,50 @@
   .wordbook-detail-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.wordbook-add-word-btn {
+  border: 1px solid #d8c9ff;
+  background: #ffffff;
+  color: #5f26f3;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.wordbook-add-word-btn:hover {
+  background: #f4efff;
+}
+
+.wordbook-modal--wide {
+  width: 420px;
+}
+.wordbook-add-word-field {
+  display: block;
+  margin-bottom: 14px;
+}
+.wordbook-add-word-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #6f6557;
+}
+.wordbook-add-word-looking {
+  font-weight: 500;
+  color: #9a8fd6;
+}
+.wordbook-add-word-textarea {
+  resize: vertical;
+  min-height: 64px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+.wordbook-add-word-hint {
+  margin: -6px 0 14px;
+  font-size: 12.5px;
+  color: #b0781f;
 }

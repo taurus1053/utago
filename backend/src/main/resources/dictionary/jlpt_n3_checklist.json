@@ -1,0 +1,2188 @@
+[
+ {
+  "lemma": "首都",
+  "meanings": [
+   "수도"
+  ]
+ },
+ {
+  "lemma": "単語",
+  "meanings": [
+   "단어"
+  ]
+ },
+ {
+  "lemma": "岩",
+  "meanings": [
+   "바위"
+  ]
+ },
+ {
+  "lemma": "地球",
+  "meanings": [
+   "지구"
+  ]
+ },
+ {
+  "lemma": "～件",
+  "meanings": [
+   "~건"
+  ]
+ },
+ {
+  "lemma": "発表",
+  "meanings": [
+   "발표"
+  ]
+ },
+ {
+  "lemma": "通勤",
+  "meanings": [
+   "통근"
+  ]
+ },
+ {
+  "lemma": "遅れる",
+  "meanings": [
+   "늦다"
+  ]
+ },
+ {
+  "lemma": "努力",
+  "meanings": [
+   "노력"
+  ]
+ },
+ {
+  "lemma": "協力",
+  "meanings": [
+   "협력"
+  ]
+ },
+ {
+  "lemma": "発見",
+  "meanings": [
+   "발견"
+  ]
+ },
+ {
+  "lemma": "疑問",
+  "meanings": [
+   "의문",
+   "질문"
+  ]
+ },
+ {
+  "lemma": "得意な",
+  "meanings": [
+   "자신 있는",
+   "잘하는"
+  ]
+ },
+ {
+  "lemma": "過去",
+  "meanings": [
+   "과거"
+  ]
+ },
+ {
+  "lemma": "表す",
+  "meanings": [
+   "나타내다"
+  ]
+ },
+ {
+  "lemma": "到着",
+  "meanings": [
+   "도착"
+  ]
+ },
+ {
+  "lemma": "包む",
+  "meanings": [
+   "포장하다"
+  ]
+ },
+ {
+  "lemma": "折る",
+  "meanings": [
+   "접다",
+   "굽히다"
+  ]
+ },
+ {
+  "lemma": "息",
+  "meanings": [
+   "숨"
+  ]
+ },
+ {
+  "lemma": "情報",
+  "meanings": [
+   "정보"
+  ]
+ },
+ {
+  "lemma": "空席",
+  "meanings": [
+   "공석",
+   "빈자리"
+  ]
+ },
+ {
+  "lemma": "値段",
+  "meanings": [
+   "가격"
+  ]
+ },
+ {
+  "lemma": "失業",
+  "meanings": [
+   "실업"
+  ]
+ },
+ {
+  "lemma": "深い",
+  "meanings": [
+   "깊다"
+  ]
+ },
+ {
+  "lemma": "夫婦",
+  "meanings": [
+   "부부"
+  ]
+ },
+ {
+  "lemma": "返す",
+  "meanings": [
+   "돌려주다"
+  ]
+ },
+ {
+  "lemma": "移す",
+  "meanings": [
+   "옮기다"
+  ]
+ },
+ {
+  "lemma": "表面",
+  "meanings": [
+   "표면"
+  ]
+ },
+ {
+  "lemma": "組む",
+  "meanings": [
+   "짜다",
+   "맞추다"
+  ]
+ },
+ {
+  "lemma": "汗",
+  "meanings": [
+   "땀"
+  ]
+ },
+ {
+  "lemma": "順番",
+  "meanings": [
+   "순서",
+   "순번"
+  ]
+ },
+ {
+  "lemma": "配る",
+  "meanings": [
+   "나누어 주다"
+  ]
+ },
+ {
+  "lemma": "苦労",
+  "meanings": [
+   "고생"
+  ]
+ },
+ {
+  "lemma": "完成",
+  "meanings": [
+   "완성"
+  ]
+ },
+ {
+  "lemma": "応募",
+  "meanings": [
+   "응모"
+  ]
+ },
+ {
+  "lemma": "島",
+  "meanings": [
+   "섬"
+  ]
+ },
+ {
+  "lemma": "困る",
+  "meanings": [
+   "곤란하다"
+  ]
+ },
+ {
+  "lemma": "実力",
+  "meanings": [
+   "실력"
+  ]
+ },
+ {
+  "lemma": "平日",
+  "meanings": [
+   "평일"
+  ]
+ },
+ {
+  "lemma": "生える",
+  "meanings": [
+   "나다",
+   "돋아나다"
+  ]
+ },
+ {
+  "lemma": "卒業",
+  "meanings": [
+   "졸업"
+  ]
+ },
+ {
+  "lemma": "各地",
+  "meanings": [
+   "각지"
+  ]
+ },
+ {
+  "lemma": "固い",
+  "meanings": [
+   "딱딱하다"
+  ]
+ },
+ {
+  "lemma": "貯金",
+  "meanings": [
+   "저금"
+  ]
+ },
+ {
+  "lemma": "短い",
+  "meanings": [
+   "짧다"
+  ]
+ },
+ {
+  "lemma": "留守",
+  "meanings": [
+   "부재"
+  ]
+ },
+ {
+  "lemma": "他人",
+  "meanings": [
+   "타인"
+  ]
+ },
+ {
+  "lemma": "浅い",
+  "meanings": [
+   "얕다"
+  ]
+ },
+ {
+  "lemma": "示す",
+  "meanings": [
+   "나타내다"
+  ]
+ },
+ {
+  "lemma": "文章",
+  "meanings": [
+   "문장"
+  ]
+ },
+ {
+  "lemma": "外科",
+  "meanings": [
+   "외과"
+  ]
+ },
+ {
+  "lemma": "改札",
+  "meanings": [
+   "개찰"
+  ]
+ },
+ {
+  "lemma": "笑顔",
+  "meanings": [
+   "웃는 얼굴",
+   "미소"
+  ]
+ },
+ {
+  "lemma": "笑う",
+  "meanings": [
+   "웃다"
+  ]
+ },
+ {
+  "lemma": "以降",
+  "meanings": [
+   "이후"
+  ]
+ },
+ {
+  "lemma": "商業",
+  "meanings": [
+   "상업"
+  ]
+ },
+ {
+  "lemma": "横断",
+  "meanings": [
+   "횡단"
+  ]
+ },
+ {
+  "lemma": "覚える",
+  "meanings": [
+   "외우다",
+   "기억하다"
+  ]
+ },
+ {
+  "lemma": "合図",
+  "meanings": [
+   "신호"
+  ]
+ },
+ {
+  "lemma": "広告",
+  "meanings": [
+   "광고"
+  ]
+ },
+ {
+  "lemma": "苦しい",
+  "meanings": [
+   "괴롭다"
+  ]
+ },
+ {
+  "lemma": "相手",
+  "meanings": [
+   "상대"
+  ]
+ },
+ {
+  "lemma": "出張",
+  "meanings": [
+   "출장"
+  ]
+ },
+ {
+  "lemma": "大会",
+  "meanings": [
+   "대회"
+  ]
+ },
+ {
+  "lemma": "席",
+  "meanings": [
+   "좌석"
+  ]
+ },
+ {
+  "lemma": "割れる",
+  "meanings": [
+   "깨지다",
+   "나누어지다"
+  ]
+ },
+ {
+  "lemma": "根",
+  "meanings": [
+   "뿌리"
+  ]
+ },
+ {
+  "lemma": "集中",
+  "meanings": [
+   "집중"
+  ]
+ },
+ {
+  "lemma": "事情",
+  "meanings": [
+   "사정"
+  ]
+ },
+ {
+  "lemma": "食器",
+  "meanings": [
+   "식기"
+  ]
+ },
+ {
+  "lemma": "通知",
+  "meanings": [
+   "통지"
+  ]
+ },
+ {
+  "lemma": "横",
+  "meanings": [
+   "옆",
+   "가로"
+  ]
+ },
+ {
+  "lemma": "選手",
+  "meanings": [
+   "선수"
+  ]
+ },
+ {
+  "lemma": "自然",
+  "meanings": [
+   "자연"
+  ]
+ },
+ {
+  "lemma": "替える",
+  "meanings": [
+   "교체하다"
+  ]
+ },
+ {
+  "lemma": "平均",
+  "meanings": [
+   "평균"
+  ]
+ },
+ {
+  "lemma": "応用",
+  "meanings": [
+   "응용"
+  ]
+ },
+ {
+  "lemma": "支給する",
+  "meanings": [
+   "지급하다"
+  ]
+ },
+ {
+  "lemma": "一般的な",
+  "meanings": [
+   "일반적인"
+  ]
+ },
+ {
+  "lemma": "丸い",
+  "meanings": [
+   "둥글다"
+  ]
+ },
+ {
+  "lemma": "検査",
+  "meanings": [
+   "검사"
+  ]
+ },
+ {
+  "lemma": "個人",
+  "meanings": [
+   "개인"
+  ]
+ },
+ {
+  "lemma": "厚い",
+  "meanings": [
+   "두껍다"
+  ]
+ },
+ {
+  "lemma": "方向",
+  "meanings": [
+   "방향"
+  ]
+ },
+ {
+  "lemma": "呼吸",
+  "meanings": [
+   "호흡"
+  ]
+ },
+ {
+  "lemma": "申し込み",
+  "meanings": [
+   "신청"
+  ]
+ },
+ {
+  "lemma": "美しい",
+  "meanings": [
+   "아름답다"
+  ]
+ },
+ {
+  "lemma": "はかる",
+  "meanings": [
+   "재다",
+   "측정하다"
+  ]
+ },
+ {
+  "lemma": "創造",
+  "meanings": [
+   "창조"
+  ]
+ },
+ {
+  "lemma": "独立",
+  "meanings": [
+   "독립"
+  ]
+ },
+ {
+  "lemma": "汚れる",
+  "meanings": [
+   "더러워지다"
+  ]
+ },
+ {
+  "lemma": "折れる",
+  "meanings": [
+   "부러지다",
+   "꺾이다"
+  ]
+ },
+ {
+  "lemma": "朝食",
+  "meanings": [
+   "조식",
+   "아침 식사"
+  ]
+ },
+ {
+  "lemma": "観客",
+  "meanings": [
+   "관객"
+  ]
+ },
+ {
+  "lemma": "首",
+  "meanings": [
+   "목"
+  ]
+ },
+ {
+  "lemma": "払う",
+  "meanings": [
+   "지불하다"
+  ]
+ },
+ {
+  "lemma": "経営学",
+  "meanings": [
+   "경영학"
+  ]
+ },
+ {
+  "lemma": "分類",
+  "meanings": [
+   "분류"
+  ]
+ },
+ {
+  "lemma": "加える",
+  "meanings": [
+   "추가하다"
+  ]
+ },
+ {
+  "lemma": "干す (",
+  "meanings": [
+   "널어) 말리다",
+   "(잔) 비우다"
+  ]
+ },
+ {
+  "lemma": "訓練",
+  "meanings": [
+   "훈련"
+  ]
+ },
+ {
+  "lemma": "血液型",
+  "meanings": [
+   "혈액형"
+  ]
+ },
+ {
+  "lemma": "豆",
+  "meanings": [
+   "콩"
+  ]
+ },
+ {
+  "lemma": "湖",
+  "meanings": [
+   "호수"
+  ]
+ },
+ {
+  "lemma": "共通",
+  "meanings": [
+   "공통"
+  ]
+ },
+ {
+  "lemma": "変化",
+  "meanings": [
+   "변화"
+  ]
+ },
+ {
+  "lemma": "税金",
+  "meanings": [
+   "세금"
+  ]
+ },
+ {
+  "lemma": "伝える",
+  "meanings": [
+   "전달하다"
+  ]
+ },
+ {
+  "lemma": "汚い",
+  "meanings": [
+   "더럽다"
+  ]
+ },
+ {
+  "lemma": "荷物",
+  "meanings": [
+   "짐"
+  ]
+ },
+ {
+  "lemma": "商品",
+  "meanings": [
+   "상품"
+  ]
+ },
+ {
+  "lemma": "冷える",
+  "meanings": [
+   "차가워지다",
+   "식다"
+  ]
+ },
+ {
+  "lemma": "降りる",
+  "meanings": [
+   "내리다"
+  ]
+ },
+ {
+  "lemma": "早退",
+  "meanings": [
+   "조퇴"
+  ]
+ },
+ {
+  "lemma": "身長",
+  "meanings": [
+   "신장",
+   "키"
+  ]
+ },
+ {
+  "lemma": "下線",
+  "meanings": [
+   "밑줄"
+  ]
+ },
+ {
+  "lemma": "物語",
+  "meanings": [
+   "이야기"
+  ]
+ },
+ {
+  "lemma": "転ぶ",
+  "meanings": [
+   "구르다"
+  ]
+ },
+ {
+  "lemma": "成績",
+  "meanings": [
+   "성적"
+  ]
+ },
+ {
+  "lemma": "主要",
+  "meanings": [
+   "주요"
+  ]
+ },
+ {
+  "lemma": "楽器",
+  "meanings": [
+   "악기"
+  ]
+ },
+ {
+  "lemma": "直接",
+  "meanings": [
+   "직접"
+  ]
+ },
+ {
+  "lemma": "専門家",
+  "meanings": [
+   "전문가"
+  ]
+ },
+ {
+  "lemma": "燃える",
+  "meanings": [
+   "타다. 불타다"
+  ]
+ },
+ {
+  "lemma": "制服",
+  "meanings": [
+   "제복",
+   "교복"
+  ]
+ },
+ {
+  "lemma": "位置",
+  "meanings": [
+   "위치"
+  ]
+ },
+ {
+  "lemma": "内側",
+  "meanings": [
+   "안쪽"
+  ]
+ },
+ {
+  "lemma": "計算",
+  "meanings": [
+   "계산"
+  ]
+ },
+ {
+  "lemma": "過ごす",
+  "meanings": [
+   "지내다",
+   "보내다"
+  ]
+ },
+ {
+  "lemma": "回す",
+  "meanings": [
+   "돌리다"
+  ]
+ },
+ {
+  "lemma": "案内",
+  "meanings": [
+   "안내"
+  ]
+ },
+ {
+  "lemma": "禁煙",
+  "meanings": [
+   "금연"
+  ]
+ },
+ {
+  "lemma": "解決",
+  "meanings": [
+   "해결"
+  ]
+ },
+ {
+  "lemma": "結ぶ",
+  "meanings": [
+   "잇다",
+   "묶다"
+  ]
+ },
+ {
+  "lemma": "気温",
+  "meanings": [
+   "기온"
+  ]
+ },
+ {
+  "lemma": "手術",
+  "meanings": [
+   "수술"
+  ]
+ },
+ {
+  "lemma": "健康",
+  "meanings": [
+   "건강"
+  ]
+ },
+ {
+  "lemma": "大量",
+  "meanings": [
+   "대량"
+  ]
+ },
+ {
+  "lemma": "痛い",
+  "meanings": [
+   "아프다"
+  ]
+ },
+ {
+  "lemma": "現在",
+  "meanings": [
+   "현재"
+  ]
+ },
+ {
+  "lemma": "正常",
+  "meanings": [
+   "정상"
+  ]
+ },
+ {
+  "lemma": "自由",
+  "meanings": [
+   "자유"
+  ]
+ },
+ {
+  "lemma": "血液",
+  "meanings": [
+   "혈액"
+  ]
+ },
+ {
+  "lemma": "法律",
+  "meanings": [
+   "법률"
+  ]
+ },
+ {
+  "lemma": "追う",
+  "meanings": [
+   "뒤쫓다"
+  ]
+ },
+ {
+  "lemma": "観光",
+  "meanings": [
+   "관광"
+  ]
+ },
+ {
+  "lemma": "～券(入場券) ~",
+  "meanings": [
+   "권(입장권)"
+  ]
+ },
+ {
+  "lemma": "残業",
+  "meanings": [
+   "잔업"
+  ]
+ },
+ {
+  "lemma": "涙",
+  "meanings": [
+   "눈물"
+  ]
+ },
+ {
+  "lemma": "～倍(２倍) ~",
+  "meanings": [
+   "배(2배)"
+  ]
+ },
+ {
+  "lemma": "守る",
+  "meanings": [
+   "지키다"
+  ]
+ },
+ {
+  "lemma": "停電",
+  "meanings": [
+   "정전"
+  ]
+ },
+ {
+  "lemma": "週刊誌",
+  "meanings": [
+   "주간지"
+  ]
+ },
+ {
+  "lemma": "相談",
+  "meanings": [
+   "상담"
+  ]
+ },
+ {
+  "lemma": "独身",
+  "meanings": [
+   "독신"
+  ]
+ },
+ {
+  "lemma": "自信",
+  "meanings": [
+   "자신(자신감)"
+  ]
+ },
+ {
+  "lemma": "貸す",
+  "meanings": [
+   "빌려주다"
+  ]
+ },
+ {
+  "lemma": "温める",
+  "meanings": [
+   "따뜻하게 하다"
+  ]
+ },
+ {
+  "lemma": "逃げる",
+  "meanings": [
+   "달아나다",
+   "도망치다"
+  ]
+ },
+ {
+  "lemma": "原料",
+  "meanings": [
+   "원료"
+  ]
+ },
+ {
+  "lemma": "消す",
+  "meanings": [
+   "끄다",
+   "지우다"
+  ]
+ },
+ {
+  "lemma": "帰宅",
+  "meanings": [
+   "귀가"
+  ]
+ },
+ {
+  "lemma": "欠席",
+  "meanings": [
+   "결석"
+  ]
+ },
+ {
+  "lemma": "育てる",
+  "meanings": [
+   "키우다",
+   "기르다"
+  ]
+ },
+ {
+  "lemma": "細かい",
+  "meanings": [
+   "자세하다",
+   "작다"
+  ]
+ },
+ {
+  "lemma": "記録",
+  "meanings": [
+   "기록"
+  ]
+ },
+ {
+  "lemma": "若い",
+  "meanings": [
+   "젊다"
+  ]
+ },
+ {
+  "lemma": "歯",
+  "meanings": [
+   "이",
+   "치아"
+  ]
+ },
+ {
+  "lemma": "複数",
+  "meanings": [
+   "복수(여러 개)"
+  ]
+ },
+ {
+  "lemma": "減少",
+  "meanings": [
+   "감소"
+  ]
+ },
+ {
+  "lemma": "復習",
+  "meanings": [
+   "복습"
+  ]
+ },
+ {
+  "lemma": "駐車",
+  "meanings": [
+   "주차"
+  ]
+ },
+ {
+  "lemma": "信じる",
+  "meanings": [
+   "믿다"
+  ]
+ },
+ {
+  "lemma": "移る",
+  "meanings": [
+   "옮기다"
+  ]
+ },
+ {
+  "lemma": "遅い",
+  "meanings": [
+   "느리다",
+   "늦다"
+  ]
+ },
+ {
+  "lemma": "温泉",
+  "meanings": [
+   "온천"
+  ]
+ },
+ {
+  "lemma": "容器",
+  "meanings": [
+   "용기(그릇)"
+  ]
+ },
+ {
+  "lemma": "雑誌",
+  "meanings": [
+   "잡지"
+  ]
+ },
+ {
+  "lemma": "疲れる",
+  "meanings": [
+   "피로하다"
+  ]
+ },
+ {
+  "lemma": "恋しい",
+  "meanings": [
+   "그립다"
+  ]
+ },
+ {
+  "lemma": "重ねる",
+  "meanings": [
+   "거듭하다"
+  ]
+ },
+ {
+  "lemma": "仮定する",
+  "meanings": [
+   "가정하다"
+  ]
+ },
+ {
+  "lemma": "正解",
+  "meanings": [
+   "정답"
+  ]
+ },
+ {
+  "lemma": "関心",
+  "meanings": [
+   "관심"
+  ]
+ },
+ {
+  "lemma": "輸出",
+  "meanings": [
+   "수출"
+  ]
+ },
+ {
+  "lemma": "投げる",
+  "meanings": [
+   "던지다"
+  ]
+ },
+ {
+  "lemma": "眠る",
+  "meanings": [
+   "자다",
+   "잠들다"
+  ]
+ },
+ {
+  "lemma": "原因",
+  "meanings": [
+   "원인"
+  ]
+ },
+ {
+  "lemma": "勤める",
+  "meanings": [
+   "근무하다"
+  ]
+ },
+ {
+  "lemma": "規則",
+  "meanings": [
+   "규칙"
+  ]
+ },
+ {
+  "lemma": "頭痛",
+  "meanings": [
+   "두통"
+  ]
+ },
+ {
+  "lemma": "葉",
+  "meanings": [
+   "잎",
+   "이파리"
+  ]
+ },
+ {
+  "lemma": "借りる",
+  "meanings": [
+   "빌리다"
+  ]
+ },
+ {
+  "lemma": "期待",
+  "meanings": [
+   "기대"
+  ]
+ },
+ {
+  "lemma": "欠点",
+  "meanings": [
+   "결점"
+  ]
+ },
+ {
+  "lemma": "預ける",
+  "meanings": [
+   "맡기다",
+   "위임하다"
+  ]
+ },
+ {
+  "lemma": "緑",
+  "meanings": [
+   "초록",
+   "녹색"
+  ]
+ },
+ {
+  "lemma": "経由",
+  "meanings": [
+   "경우"
+  ]
+ },
+ {
+  "lemma": "願う",
+  "meanings": [
+   "바라다",
+   "부탁하다"
+  ]
+ },
+ {
+  "lemma": "秒",
+  "meanings": [
+   "초(시간)"
+  ]
+ },
+ {
+  "lemma": "飛ぶ",
+  "meanings": [
+   "날다"
+  ]
+ },
+ {
+  "lemma": "焼く",
+  "meanings": [
+   "굽다",
+   "태우다"
+  ]
+ },
+ {
+  "lemma": "坂道",
+  "meanings": [
+   "언덕길",
+   "비탈길"
+  ]
+ },
+ {
+  "lemma": "違う",
+  "meanings": [
+   "다르다",
+   "틀리다"
+  ]
+ },
+ {
+  "lemma": "関係",
+  "meanings": [
+   "관계"
+  ]
+ },
+ {
+  "lemma": "乗車",
+  "meanings": [
+   "승차"
+  ]
+ },
+ {
+  "lemma": "教師",
+  "meanings": [
+   "교사"
+  ]
+ },
+ {
+  "lemma": "波",
+  "meanings": [
+   "파도"
+  ]
+ },
+ {
+  "lemma": "速い",
+  "meanings": [
+   "빠르다"
+  ]
+ },
+ {
+  "lemma": "満足",
+  "meanings": [
+   "만족"
+  ]
+ },
+ {
+  "lemma": "希望",
+  "meanings": [
+   "희망"
+  ]
+ },
+ {
+  "lemma": "迷う",
+  "meanings": [
+   "헤매다",
+   "망설이다"
+  ]
+ },
+ {
+  "lemma": "カタログ",
+  "meanings": [
+   "카탈로그"
+  ]
+ },
+ {
+  "lemma": "しばらく",
+  "meanings": [
+   "잠시"
+  ]
+ },
+ {
+  "lemma": "感じる",
+  "meanings": [
+   "느끼다"
+  ]
+ },
+ {
+  "lemma": "体力",
+  "meanings": [
+   "체력"
+  ]
+ },
+ {
+  "lemma": "家賃",
+  "meanings": [
+   "집세"
+  ]
+ },
+ {
+  "lemma": "どきどき",
+  "meanings": [
+   "두근두근"
+  ]
+ },
+ {
+  "lemma": "しまう",
+  "meanings": [
+   "치우다",
+   "안에 넣다"
+  ]
+ },
+ {
+  "lemma": "不満",
+  "meanings": [
+   "불만"
+  ]
+ },
+ {
+  "lemma": "最新",
+  "meanings": [
+   "최신"
+  ]
+ },
+ {
+  "lemma": "ぶらぶら",
+  "meanings": [
+   "어슬렁어슬렁",
+   "천천히"
+  ]
+ },
+ {
+  "lemma": "しばる",
+  "meanings": [
+   "묶다"
+  ]
+ },
+ {
+  "lemma": "申込書",
+  "meanings": [
+   "신청서"
+  ]
+ },
+ {
+  "lemma": "キャンセル",
+  "meanings": [
+   "취소"
+  ]
+ },
+ {
+  "lemma": "複雑な",
+  "meanings": [
+   "복잡한"
+  ]
+ },
+ {
+  "lemma": "～向き(南向き) ~",
+  "meanings": [
+   "향(남향)",
+   "~쪽"
+  ]
+ },
+ {
+  "lemma": "流れる",
+  "meanings": [
+   "흐르다"
+  ]
+ },
+ {
+  "lemma": "感動",
+  "meanings": [
+   "감동"
+  ]
+ },
+ {
+  "lemma": "～産(アメリカ産) ~",
+  "meanings": [
+   "산(미국산)"
+  ]
+ },
+ {
+  "lemma": "うっかり",
+  "meanings": [
+   "깜빡",
+   "무심코(실수하는 모습)"
+  ]
+ },
+ {
+  "lemma": "インタビュー",
+  "meanings": [
+   "인터뷰"
+  ]
+ },
+ {
+  "lemma": "りっぱな",
+  "meanings": [
+   "훌륭한"
+  ]
+ },
+ {
+  "lemma": "主張",
+  "meanings": [
+   "주장"
+  ]
+ },
+ {
+  "lemma": "早めに",
+  "meanings": [
+   "일찌감치"
+  ]
+ },
+ {
+  "lemma": "整理",
+  "meanings": [
+   "정리"
+  ]
+ },
+ {
+  "lemma": "あわ",
+  "meanings": [
+   "거품"
+  ]
+ },
+ {
+  "lemma": "からから",
+  "meanings": [
+   "바싹바싹(몹시 건조한 모습)"
+  ]
+ },
+ {
+  "lemma": "ノック",
+  "meanings": [
+   "노크"
+  ]
+ },
+ {
+  "lemma": "ためる",
+  "meanings": [
+   "모으다",
+   "담다"
+  ]
+ },
+ {
+  "lemma": "は 半 んに 日 ち",
+  "meanings": [
+   "반나절"
+  ]
+ },
+ {
+  "lemma": "かかる",
+  "meanings": [
+   "걸리다"
+  ]
+ },
+ {
+  "lemma": "あ 扱 つか う",
+  "meanings": [
+   "다루다",
+   "취급하다"
+  ]
+ },
+ {
+  "lemma": "せ 清 いけ 潔 つ な",
+  "meanings": [
+   "청결한"
+  ]
+ },
+ {
+  "lemma": "ぜ 全 ん ～(全 ぜん 人 じんこ 口 う )",
+  "meanings": [
+   "전~(전 인구)"
+  ]
+ },
+ {
+  "lemma": "あわせる",
+  "meanings": [
+   "합치다"
+  ]
+ },
+ {
+  "lemma": "想像",
+  "meanings": [
+   "상상"
+  ]
+ },
+ {
+  "lemma": "冗談",
+  "meanings": [
+   "농담"
+  ]
+ },
+ {
+  "lemma": "むく (",
+  "meanings": [
+   "껍질을) 벗기다"
+  ]
+ },
+ {
+  "lemma": "さっそく",
+  "meanings": [
+   "즉시"
+  ]
+ },
+ {
+  "lemma": "かれる",
+  "meanings": [
+   "시들다"
+  ]
+ },
+ {
+  "lemma": "カーブ",
+  "meanings": [
+   "곡선",
+   "커브"
+  ]
+ },
+ {
+  "lemma": "両替",
+  "meanings": [
+   "환전"
+  ]
+ },
+ {
+  "lemma": "がっかりする",
+  "meanings": [
+   "낙심하다"
+  ]
+ },
+ {
+  "lemma": "前後",
+  "meanings": [
+   "전후",
+   "앞뒤"
+  ]
+ },
+ {
+  "lemma": "ヒント",
+  "meanings": [
+   "힌트"
+  ]
+ },
+ {
+  "lemma": "影響",
+  "meanings": [
+   "영향"
+  ]
+ },
+ {
+  "lemma": "なつかしい",
+  "meanings": [
+   "그립다"
+  ]
+ },
+ {
+  "lemma": "しっかり",
+  "meanings": [
+   "단단히",
+   "꽉",
+   "제대로"
+  ]
+ },
+ {
+  "lemma": "代金",
+  "meanings": [
+   "대금(비용)"
+  ]
+ },
+ {
+  "lemma": "ながれ",
+  "meanings": [
+   "흐름"
+  ]
+ },
+ {
+  "lemma": "しつこい",
+  "meanings": [
+   "끈질기다"
+  ]
+ },
+ {
+  "lemma": "外食",
+  "meanings": [
+   "외식"
+  ]
+ },
+ {
+  "lemma": "自動的な",
+  "meanings": [
+   "자동적인"
+  ]
+ },
+ {
+  "lemma": "差",
+  "meanings": [
+   "차이",
+   "차"
+  ]
+ },
+ {
+  "lemma": "片方",
+  "meanings": [
+   "한쪽"
+  ]
+ },
+ {
+  "lemma": "セット",
+  "meanings": [
+   "세트"
+  ]
+ },
+ {
+  "lemma": "かわく",
+  "meanings": [
+   "마르다"
+  ]
+ },
+ {
+  "lemma": "意志",
+  "meanings": [
+   "의지"
+  ]
+ },
+ {
+  "lemma": "渋滞",
+  "meanings": [
+   "정체(밀리는 상태)"
+  ]
+ },
+ {
+  "lemma": "別れる",
+  "meanings": [
+   "헤어지다",
+   "작별하다"
+  ]
+ },
+ {
+  "lemma": "おかしい",
+  "meanings": [
+   "이상하다"
+  ]
+ },
+ {
+  "lemma": "起きる",
+  "meanings": [
+   "일어나다"
+  ]
+ },
+ {
+  "lemma": "交換",
+  "meanings": [
+   "교환"
+  ]
+ },
+ {
+  "lemma": "応援",
+  "meanings": [
+   "응원"
+  ]
+ },
+ {
+  "lemma": "リサイクル",
+  "meanings": [
+   "리사이클",
+   "재활용"
+  ]
+ },
+ {
+  "lemma": "のばす",
+  "meanings": [
+   "연장하다",
+   "연기하다"
+  ]
+ },
+ {
+  "lemma": "うわさ",
+  "meanings": [
+   "소문"
+  ]
+ },
+ {
+  "lemma": "ふる",
+  "meanings": [
+   "흔들다"
+  ]
+ },
+ {
+  "lemma": "主に",
+  "meanings": [
+   "주로"
+  ]
+ },
+ {
+  "lemma": "カバー",
+  "meanings": [
+   "커버",
+   "덮개"
+  ]
+ },
+ {
+  "lemma": "不安",
+  "meanings": [
+   "불안"
+  ]
+ },
+ {
+  "lemma": "なるべく",
+  "meanings": [
+   "가급적"
+  ]
+ },
+ {
+  "lemma": "印象",
+  "meanings": [
+   "인상"
+  ]
+ },
+ {
+  "lemma": "とじる",
+  "meanings": [
+   "닫다",
+   "(눈을)감다"
+  ]
+ },
+ {
+  "lemma": "我慢する",
+  "meanings": [
+   "참다"
+  ]
+ },
+ {
+  "lemma": "たたむ",
+  "meanings": [
+   "접다",
+   "개다"
+  ]
+ },
+ {
+  "lemma": "記念",
+  "meanings": [
+   "기념"
+  ]
+ },
+ {
+  "lemma": "調子",
+  "meanings": [
+   "상태"
+  ]
+ },
+ {
+  "lemma": "使用(料)",
+  "meanings": [
+   "사용(료)"
+  ]
+ },
+ {
+  "lemma": "緩い",
+  "meanings": [
+   "느슨하다",
+   "완만하다"
+  ]
+ },
+ {
+  "lemma": "あきる",
+  "meanings": [
+   "질리다",
+   "식상하다"
+  ]
+ },
+ {
+  "lemma": "経つ",
+  "meanings": [
+   "지나다",
+   "경과하다"
+  ]
+ },
+ {
+  "lemma": "パンフレット",
+  "meanings": [
+   "팸플릿",
+   "소책자"
+  ]
+ },
+ {
+  "lemma": "突然",
+  "meanings": [
+   "돌연",
+   "갑자기"
+  ]
+ },
+ {
+  "lemma": "目標",
+  "meanings": [
+   "목표"
+  ]
+ },
+ {
+  "lemma": "物価",
+  "meanings": [
+   "물가"
+  ]
+ },
+ {
+  "lemma": "覚める (",
+  "meanings": [
+   "잠) 깨다",
+   "정신 들다"
+  ]
+ },
+ {
+  "lemma": "追いつく",
+  "meanings": [
+   "따라잡다"
+  ]
+ },
+ {
+  "lemma": "テーマ",
+  "meanings": [
+   "주제",
+   "테마"
+  ]
+ },
+ {
+  "lemma": "おぼれる",
+  "meanings": [
+   "물에 빠지다"
+  ]
+ },
+ {
+  "lemma": "穴",
+  "meanings": [
+   "구멍",
+   "구덩이"
+  ]
+ },
+ {
+  "lemma": "材料",
+  "meanings": [
+   "재료"
+  ]
+ },
+ {
+  "lemma": "合計",
+  "meanings": [
+   "합계"
+  ]
+ },
+ {
+  "lemma": "別々に",
+  "meanings": [
+   "따로따로"
+  ]
+ },
+ {
+  "lemma": "悔しい",
+  "meanings": [
+   "분하다",
+   "억울하다"
+  ]
+ },
+ {
+  "lemma": "引き受ける",
+  "meanings": [
+   "받아들이다"
+  ]
+ },
+ {
+  "lemma": "ぶつける",
+  "meanings": [
+   "부딪다",
+   "들이받다"
+  ]
+ },
+ {
+  "lemma": "自慢する",
+  "meanings": [
+   "자랑하다"
+  ]
+ },
+ {
+  "lemma": "感覚",
+  "meanings": [
+   "감각"
+  ]
+ },
+ {
+  "lemma": "分ける",
+  "meanings": [
+   "나누다",
+   "구분하다"
+  ]
+ },
+ {
+  "lemma": "くせ",
+  "meanings": [
+   "버릇"
+  ]
+ },
+ {
+  "lemma": "お祝い",
+  "meanings": [
+   "축하"
+  ]
+ },
+ {
+  "lemma": "ふらふら",
+  "meanings": [
+   "비틀비틀",
+   "휘청휘청"
+  ]
+ },
+ {
+  "lemma": "方法",
+  "meanings": [
+   "방법"
+  ]
+ },
+ {
+  "lemma": "当日",
+  "meanings": [
+   "당일"
+  ]
+ },
+ {
+  "lemma": "積極的な",
+  "meanings": [
+   "적극적인"
+  ]
+ },
+ {
+  "lemma": "資源",
+  "meanings": [
+   "자원"
+  ]
+ },
+ {
+  "lemma": "うまい",
+  "meanings": [
+   "능숙하다"
+  ]
+ },
+ {
+  "lemma": "文句",
+  "meanings": [
+   "불평",
+   "잔소리"
+  ]
+ },
+ {
+  "lemma": "代表的な",
+  "meanings": [
+   "대표적인"
+  ]
+ },
+ {
+  "lemma": "栄養",
+  "meanings": [
+   "영양"
+  ]
+ },
+ {
+  "lemma": "チャレンジ",
+  "meanings": [
+   "챌린지",
+   "도전"
+  ]
+ },
+ {
+  "lemma": "隠す",
+  "meanings": [
+   "숨기다"
+  ]
+ },
+ {
+  "lemma": "流行",
+  "meanings": [
+   "유행"
+  ]
+ },
+ {
+  "lemma": "割合",
+  "meanings": [
+   "비율"
+  ]
+ },
+ {
+  "lemma": "断る",
+  "meanings": [
+   "거절하다"
+  ]
+ },
+ {
+  "lemma": "そっくり",
+  "meanings": [
+   "똑같이 생김"
+  ]
+ },
+ {
+  "lemma": "惜しい",
+  "meanings": [
+   "아깝다",
+   "아쉽다"
+  ]
+ },
+ {
+  "lemma": "観察",
+  "meanings": [
+   "관찰"
+  ]
+ },
+ {
+  "lemma": "傷",
+  "meanings": [
+   "상처"
+  ]
+ },
+ {
+  "lemma": "破れる",
+  "meanings": [
+   "찢어지다",
+   "파손되다"
+  ]
+ },
+ {
+  "lemma": "頼る",
+  "meanings": [
+   "의지하다"
+  ]
+ },
+ {
+  "lemma": "料金",
+  "meanings": [
+   "요금"
+  ]
+ },
+ {
+  "lemma": "特長",
+  "meanings": [
+   "특징"
+  ]
+ },
+ {
+  "lemma": "編む",
+  "meanings": [
+   "짜다",
+   "뜨개질하다"
+  ]
+ },
+ {
+  "lemma": "イメージ",
+  "meanings": [
+   "이미지"
+  ]
+ },
+ {
+  "lemma": "戦う",
+  "meanings": [
+   "싸우다"
+  ]
+ },
+ {
+  "lemma": "囲む",
+  "meanings": [
+   "포위하다"
+  ]
+ },
+ {
+  "lemma": "興味",
+  "meanings": [
+   "흥미"
+  ]
+ },
+ {
+  "lemma": "がらがら",
+  "meanings": [
+   "텅텅(텅 빈 모습)"
+  ]
+ },
+ {
+  "lemma": "香り",
+  "meanings": [
+   "향기"
+  ]
+ },
+ {
+  "lemma": "演奏",
+  "meanings": [
+   "연주"
+  ]
+ },
+ {
+  "lemma": "許す",
+  "meanings": [
+   "용서하다",
+   "허락하다"
+  ]
+ },
+ {
+  "lemma": "防ぐ",
+  "meanings": [
+   "막다",
+   "방지하다"
+  ]
+ },
+ {
+  "lemma": "姿勢",
+  "meanings": [
+   "자세"
+  ]
+ },
+ {
+  "lemma": "ぴったり",
+  "meanings": [
+   "딱(밀착함",
+   "어울림)"
+  ]
+ },
+ {
+  "lemma": "確かめる",
+  "meanings": [
+   "확인하다"
+  ]
+ },
+ {
+  "lemma": "盛んな",
+  "meanings": [
+   "왕성한",
+   "활발한"
+  ]
+ },
+ {
+  "lemma": "農業",
+  "meanings": [
+   "농업"
+  ]
+ },
+ {
+  "lemma": "アドバイス",
+  "meanings": [
+   "어드바이스",
+   "충고"
+  ]
+ },
+ {
+  "lemma": "沈む",
+  "meanings": [
+   "가라앉다"
+  ]
+ }
+]

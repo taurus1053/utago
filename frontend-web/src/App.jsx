@@ -7,10 +7,14 @@ import SongLearn from './pages/SongLearn'
 import SongSync from './pages/SongSync'
 import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
+import BoardList from './pages/BoardList'
+import BoardWrite from './pages/BoardWrite'
+import BoardDetail from './pages/BoardDetail'
 import AddSong from './pages/AddSong'
 import AdminTranslations from './pages/AdminTranslations'
 import AdminSongs from './pages/AdminSongs'
 import AdminFeaturedSongs from './pages/AdminFeaturedSongs'
+import Credits from './pages/Credits'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import RequireAuth from './RequireAuth'
 import { isLoggedIn } from './api/auth'
@@ -29,6 +33,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/" element={<RootRoute />} />
+        {/* 오픈 데이터/라이브러리 출처 표기 — JMdict(CC BY-SA 3.0) 등. 로그인 불필요 */}
+        <Route path="/credits" element={<Credits />} />
         <Route path="/songs/new" element={<AddSong />} />
         <Route path="/songs/:id" element={<SongLearn />} />
         {/* 가사 싱크(탭싱크) 편집 — 곡을 등록한 본인만 저장 가능(서버가 확인), 로그인은 필수 */}
@@ -65,6 +71,32 @@ function App() {
           element={(
             <RequireAuth>
               <Wordbook />
+            </RequireAuth>
+          )}
+        />
+        {/* "단어장 둘러보기" 게시판 — /board(목록), /board/new(글쓰기), /board/:id(상세).
+            전부 로그인 필수(백엔드 SecurityConfig가 전역으로 로그인을 요구함). */}
+        <Route
+          path="/board"
+          element={(
+            <RequireAuth>
+              <BoardList />
+            </RequireAuth>
+          )}
+        />
+        <Route
+          path="/board/new"
+          element={(
+            <RequireAuth>
+              <BoardWrite />
+            </RequireAuth>
+          )}
+        />
+        <Route
+          path="/board/:id"
+          element={(
+            <RequireAuth>
+              <BoardDetail />
             </RequireAuth>
           )}
         />

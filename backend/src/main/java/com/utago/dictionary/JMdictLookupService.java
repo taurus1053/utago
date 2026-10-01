@@ -39,6 +39,7 @@ public class JMdictLookupService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private Map<String, List<Entry>> byKey = Map.of();
+    private List<Entry> allEntries = List.of();
 
     @PostConstruct
     void load() {
@@ -51,6 +52,7 @@ public class JMdictLookupService {
                     objectMapper.getTypeFactory().constructCollectionType(List.class, RawEntry.class));
 
             Map<String, List<Entry>> map = new HashMap<>();
+            List<Entry> entries = new ArrayList<>(raw.size());
             for (RawEntry r : raw) {
                 List<String> kanjiForms = r.k == null ? List.of() : r.k;
                 List<String> kanaForms = r.r == null ? List.of() : r.r;
@@ -60,6 +62,7 @@ public class JMdictLookupService {
                                 .map(s -> new Sense(s.pos, s.gl == null ? List.of() : s.gl))
                                 .toList();
                 Entry entry = new Entry(kanjiForms, kanaForms, senses);
+                entries.add(entry);
 
                 for (String key : kanjiForms) {
                     map.computeIfAbsent(key, k -> new ArrayList<>()).add(entry);
@@ -69,10 +72,19 @@ public class JMdictLookupService {
                 }
             }
             this.byKey = map;
+            this.allEntries = entries;
             log.info("[JMdictLookupService] JMdict 상용어 {}건 로드 완료 ({}개 표제 키)", raw.size(), map.size());
         } catch (Exception e) {
             log.error("[JMdictLookupService] JMdict 리소스 로드 실패 — 단어 뜻 자동 채우기 비활성화", e);
         }
+    }
+
+    /**
+     * 사전 단어 미리 채우기(DictionarySeedService)에서 쓰는 전체 표제어 목록(약 3만 건,
+     * JSON 등장 순서). byKey처럼 표기별로 중복되지 않은, 표제어 1건당 1개의 원본 목록이다.
+     */
+    public List<Entry> allEntries() {
+        return allEntries;
     }
 
     /**

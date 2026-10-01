@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.utago.ai.TranslationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -35,8 +36,14 @@ public class WordExampleService {
      * 그 자리에서 만들어 저장한 뒤 돌려준다. AI 키가 없거나 생성에 실패한 단어는 결과 맵에서
      * 빠진다(호출부가 그 단어는 예문 없이 처리). 노래 등록 시 신규 단어 예문을 즉시 채울 때도
      * 이 메서드를 그대로 쓴다 — 이미 예문이 있는 단어는 다시 만들지 않는다.
+     *
+     * REQUIRES_NEW인 이유: 이 메서드를 부르는 쪽(WordbookService.listItems 등)이 읽기 전용
+     * 트랜잭션(@Transactional(readOnly = true)) 안에 있을 수 있다 — 그 안에서 그냥 참여
+     * (REQUIRED)하면 이 메서드의 INSERT(예문 저장)도 읽기 전용 커넥션을 타게 되어
+     * "Connection is read-only" 오류로 단어장 조회 전체가 실패한다. 항상 별도의 쓰기 가능한
+     * 트랜잭션에서 실행되도록 강제한다.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Map<Long, WordExample> getOrGenerateExamples(List<Word> words) {
         if (words == null || words.isEmpty()) return Map.of();
         List<Word> distinctWords = words.stream().distinct().toList();

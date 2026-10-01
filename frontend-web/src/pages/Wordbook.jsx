@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  addCustomWordbookItem,
   addWordbookItem,
   createWordbook,
   createWordbookFolder,
@@ -9,12 +10,15 @@ import {
   listWordbookFolders,
   listWordbookItems,
   listWordbooks,
+  lookupWordbookWord,
   moveWordbookToFolder,
   removeWordbookItem,
   renameWordbook,
   renameWordbookFolder,
   reviewWordbookItem,
+  setWordbookVisibility,
   toggleWordbookItemStar,
+  updateWordbookItemWord,
 } from '../api/wordbook'
 import TopBar from '../components/TopBar'
 import StudySession from './StudySession'
@@ -175,6 +179,187 @@ function WordbookCreateModal({ type, name, onNameChange, folders, folderId, onFo
   )
 }
 
+// 단어장 화면 "단어 추가" 창 — 가사에 없는 단어를 직접 입력해서 현재 단어장에 담는다.
+//
+// 단어 칸에 입력하면(디바운스 500ms) 서버에 자동 조회해서 발음/뜻 칸을 채워준다. 이미 한
+// 번 채워진 뒤에 사용자가 발음/뜻을 직접 고치면 그 칸은 "손댄 것"으로 표시해서, 그 뒤에
+// 단어 칸을 또 고쳐도 자동 채우기가 그 칸을 덮어쓰지 않는다(애써 고친 걸 날리지 않기 위해).
+// 처음 조회하는 단어는 서버가 JMdict+AI 번역을 돌리느라 몇 초 걸릴 수 있지만, 한 번
+// 조회되면 마스터 사전에 캐시돼서 다음부터는(이 사용자든 다른 사용자든) 즉시 채워진다.
+function AddWordModal({ bookName, busy, error, onSubmit, onClose }) {
+  const [lemma, setLemma] = useState('')
+  const [reading, setReading] = useState('')
+  const [meaningsText, setMeaningsText] = useState('')
+  const [readingTouched, setReadingTouched] = useState(false)
+  const [meaningsTouched, setMeaningsTouched] = useState(false)
+  const [looking, setLooking] = useState(false)
+  const [notFound, setNotFound] = useState(false)
+  const lookupTimer = useRef(null)
+  const lookupSeq = useRef(0)
+
+  useEffect(() => {
+    clearTimeout(lookupTimer.current)
+    const trimmed = lemma.trim()
+    if (!trimmed) {
+      setLooking(false)
+      setNotFound(false)
+      return
+    }
+    // 사용자가 발음/뜻 둘 다 이미 직접 입력해뒀으면 자동 조회로 덮어쓸 칸이 없으니 건너뛴다.
+    if (readingTouched && meaningsTouched) {
+      return
+    }
+    lookupTimer.current = setTimeout(async () => {
+      const seq = ++lookupSeq.current
+      setLooking(true)
+      try {
+        const result = await lookupWordbookWord(trimmed, 'JA')
+        if (seq !== lookupSeq.current) return // 그 사이 단어 칸이 또 바뀌었으면 이 결과는 버린다
+        if (!readingTouched) setReading(result?.reading ?? '')
+        if (!meaningsTouched) setMeaningsText((result?.meanings ?? []).join('\n'))
+        setNotFound(!result?.found)
+      } catch {
+        if (seq === lookupSeq.current) setNotFound(false)
+      } finally {
+        if (seq === lookupSeq.current) setLooking(false)
+      }
+    }, 500)
+    return () => clearTimeout(lookupTimer.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lemma])
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    const meanings = meaningsText.split('\n').map((s) => s.trim()).filter(Boolean)
+    onSubmit({ lemma: lemma.trim(), reading: reading.trim(), meanings })
+  }
+
+  return (
+    <div className="wordbook-modal-backdrop" onClick={onClose}>
+      <div className="wordbook-modal wordbook-modal--wide" onClick={(e) => e.stopPropagation()}>
+        <h3 className="wordbook-modal-title">단어 추가</h3>
+        <p className="wordbook-modal-sub">"{bookName}"에 담을 일본어 단어를 입력해주세요. 발음·뜻은 자동으로 채워지고, 틀린 부분은 직접 고칠 수 있어요.</p>
+        <form onSubmit={handleSubmit}>
+          <label className="wordbook-add-word-field">
+            <span className="wordbook-add-word-label">단어</span>
+            <input
+              type="text"
+              className="wordbook-create-modal-input"
+              placeholder="예: 食べる, たべる"
+              value={lemma}
+              onChange={(e) => setLemma(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') onClose()
+              }}
+              maxLength={60}
+              autoFocus
+            />
+          </label>
+          <label className="wordbook-add-word-field">
+            <span className="wordbook-add-word-label">
+              발음{looking && <span className="wordbook-add-word-looking"> · 찾는 중...</span>}
+            </span>
+            <input
+              type="text"
+              className="wordbook-create-modal-input"
+              placeholder="예: たべる"
+              value={reading}
+              onChange={(e) => { setReading(e.target.value); setReadingTouched(true) }}
+              maxLength={120}
+            />
+          </label>
+          <label className="wordbook-add-word-field">
+            <span className="wordbook-add-word-label">의미 (한 줄에 하나씩)</span>
+            <textarea
+              className="wordbook-create-modal-input wordbook-add-word-textarea"
+              placeholder={'예: 먹다'}
+              value={meaningsText}
+              onChange={(e) => { setMeaningsText(e.target.value); setMeaningsTouched(true) }}
+              rows={3}
+              maxLength={300}
+            />
+          </label>
+          {notFound && !looking && (
+            <p className="wordbook-add-word-hint">사전에 없는 단어예요. 발음과 뜻을 직접 입력해주세요.</p>
+          )}
+          {error && <p className="wordbook-create-modal-error">{error}</p>}
+          <div className="wordbook-create-modal-actions">
+            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+            <button type="submit" className="wordbook-create-modal-submit" disabled={busy || !lemma.trim()}>
+              {busy ? '추가하는 중...' : '추가'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// 단어장 목록 행의 연필 아이콘 — "수정" 버튼.
+function PencilIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+  )
+}
+
+// 단어장 목록 행 "수정" 창 — 오타/잘못 입력한 발음·뜻을 고친다. 단어(lemma)는 모든 단어장이
+// 같이 쓰는 마스터 데이터라 여기서는 고치지 못한다(표기 자체가 틀렸으면 삭제 후 다시 추가).
+function EditWordModal({ item, busy, error, onSubmit, onClose }) {
+  const [reading, setReading] = useState(item.reading ?? '')
+  const [meaningsText, setMeaningsText] = useState((item.meanings ?? []).join('\n'))
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    const meanings = meaningsText.split('\n').map((s) => s.trim()).filter(Boolean)
+    onSubmit({ reading: reading.trim(), meanings })
+  }
+
+  return (
+    <div className="wordbook-modal-backdrop" onClick={onClose}>
+      <div className="wordbook-modal wordbook-modal--wide" onClick={(e) => e.stopPropagation()}>
+        <h3 className="wordbook-modal-title">단어 수정</h3>
+        <p className="wordbook-modal-sub">"{item.lemma}"의 발음·뜻을 고쳐요. 단어 표기 자체가 틀렸다면 삭제 후 다시 추가해주세요.</p>
+        <form onSubmit={handleSubmit}>
+          <label className="wordbook-add-word-field">
+            <span className="wordbook-add-word-label">발음</span>
+            <input
+              type="text"
+              className="wordbook-create-modal-input"
+              value={reading}
+              onChange={(e) => setReading(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') onClose()
+              }}
+              maxLength={120}
+              autoFocus
+            />
+          </label>
+          <label className="wordbook-add-word-field">
+            <span className="wordbook-add-word-label">의미 (한 줄에 하나씩)</span>
+            <textarea
+              className="wordbook-create-modal-input wordbook-add-word-textarea"
+              value={meaningsText}
+              onChange={(e) => setMeaningsText(e.target.value)}
+              rows={3}
+              maxLength={300}
+            />
+          </label>
+          {error && <p className="wordbook-create-modal-error">{error}</p>}
+          <div className="wordbook-create-modal-actions">
+            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+            <button type="submit" className="wordbook-create-modal-submit" disabled={busy || !reading.trim()}>
+              {busy ? '저장하는 중...' : '저장'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // 단어장을 다른 폴더로 옮기는 창 — 사이드바 각 줄의 ⋮ 메뉴 "이동"에서 뜬다.
 function WordbookMoveFolderModal({ book, folders, folderId, onFolderChange, busy, error, onSubmit, onClose }) {
   return (
@@ -199,7 +384,7 @@ function WordbookMoveFolderModal({ book, folders, folderId, onFolderChange, busy
 // 이름 오른쪽에 바로 개수가 붙도록(이름에 flex:1을 주지 않고) 해서, 개수가 화면 맨
 // 오른쪽까지 밀려나지 않게 한다. 마우스를 올리면 맨 오른쪽에 점 세개(⋮) 메뉴 버튼이
 // 나타나고, 거기서 수정/이동/삭제를 고를 수 있다(즐겨찾기 단어장은 뺄 수 없어서 메뉴 없음).
-function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, onRenameChange, onRenameCommit, onRenameCancel, menuOpen, onToggleMenu, onCloseMenu, onStartRename, onStartMove, onDelete }) {
+function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, onRenameChange, onRenameCommit, onRenameCancel, menuOpen, onToggleMenu, onCloseMenu, onStartRename, onStartMove, onDelete, onToggleVisibility }) {
   return (
     <div
       className={`wordbook-sidebar-item${active ? ' wordbook-sidebar-item--active' : ''}`}
@@ -212,7 +397,7 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
         <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
       <span className={`wordbook-sidebar-item-icon${book.favoriteDefault ? ' wordbook-sidebar-item-icon--star' : ''}`}>
-        {book.favoriteDefault ? '★' : '📖'}
+        {book.favoriteDefault ? '★' : (book.emoji || '📖')}
       </span>
       {renaming ? (
         <input
@@ -236,6 +421,13 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
       <span className="wordbook-sidebar-item-spacer" />
       {!book.favoriteDefault && (
         <span className="wordbook-sidebar-item-menu-wrap" onClick={(e) => e.stopPropagation()}>
+          {!book.isPublic && (
+            <span className="wordbook-sidebar-item-lock" aria-label="비공개 단어장">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="#FFC53D">
+                <path d="M10 1.5a4 4 0 0 0-4 4v2.25H5a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 5 17.75h10a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 15 7.75h-1V5.5a4 4 0 0 0-4-4Zm0 2a2 2 0 0 1 2 2v2.25H8V5.5a2 2 0 0 1 2-2Z" />
+              </svg>
+            </span>
+          )}
           <span
             role="button"
             tabIndex={0}
@@ -251,6 +443,7 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
               <div className="wordbook-sidebar-item-menu-panel">
                 <button type="button" onClick={onStartRename}>수정</button>
                 <button type="button" onClick={onStartMove}>이동</button>
+                <button type="button" onClick={onToggleVisibility}>{book.isPublic ? '비공개로 전환' : '공개 전환'}</button>
                 <button type="button" className="wordbook-sidebar-item-menu-option--danger" onClick={(e) => onDelete(e, book)}>삭제</button>
               </div>
             </>
@@ -320,6 +513,17 @@ export default function Wordbook() {
   const [selectedIds, setSelectedIds] = useState(() => new Set())
   const [moveModalOpen, setMoveModalOpen] = useState(false)
   const [bulkBusy, setBulkBusy] = useState(false)
+
+  // 단어 직접 추가 창 — 단어/발음/의미 입력값 자체는 AddWordModal 내부 상태로 관리한다
+  // (창을 열 때마다 새로 마운트되므로 닫았다 다시 열면 자연히 비워짐).
+  const [addWordOpen, setAddWordOpen] = useState(false)
+  const [addWordBusy, setAddWordBusy] = useState(false)
+  const [addWordError, setAddWordError] = useState(null)
+
+  // 단어 수정 창 — 고치는 대상 항목(editingItem)이 있으면 열려있는 것으로 간주한다.
+  const [editingItem, setEditingItem] = useState(null)
+  const [editWordBusy, setEditWordBusy] = useState(false)
+  const [editWordError, setEditWordError] = useState(null)
 
   function refreshBooks(preferId) {
     setBooksLoading(true)
@@ -427,6 +631,57 @@ export default function Wordbook() {
     setCreateError(null)
     refreshFolders()
     setTimeout(() => newNameInputRef.current?.focus(), 0)
+  }
+  function openAddWord() {
+    setAddWordError(null)
+    setAddWordOpen(true)
+  }
+  function closeAddWord() {
+    if (addWordBusy) return
+    setAddWordOpen(false)
+  }
+  async function handleAddWordSubmit({ lemma, reading, meanings }) {
+    if (!lemma || addWordBusy || !selectedId) return
+    setAddWordBusy(true)
+    setAddWordError(null)
+    try {
+      await addCustomWordbookItem({
+        lemma, lang: 'JA', wordbookId: Number(selectedId),
+        reading: reading || undefined,
+        meanings: meanings && meanings.length > 0 ? meanings : undefined,
+      })
+      setAddWordOpen(false)
+      await refreshItems(selectedId)
+      refreshBooks(selectedId)
+    } catch (err) {
+      console.error('단어 직접 추가 실패:', err)
+      setAddWordError(err?.message || '추가하지 못했어요. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setAddWordBusy(false)
+    }
+  }
+  function openEditWord(item) {
+    setEditWordError(null)
+    setEditingItem(item)
+  }
+  function closeEditWord() {
+    if (editWordBusy) return
+    setEditingItem(null)
+  }
+  async function handleEditWordSubmit({ reading, meanings }) {
+    if (!editingItem || editWordBusy) return
+    setEditWordBusy(true)
+    setEditWordError(null)
+    try {
+      await updateWordbookItemWord(editingItem.id, { reading, meanings })
+      setEditingItem(null)
+      await refreshItems(selectedId)
+    } catch (err) {
+      console.error('단어 수정 실패:', err)
+      setEditWordError(err?.message || '수정하지 못했어요. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setEditWordBusy(false)
+    }
   }
   function cancelCreate() {
     setCreateType(null)
@@ -541,6 +796,20 @@ export default function Wordbook() {
     setMoveBook(null)
     setMoveError(null)
   }
+
+  // 사이드바 ⋮ 메뉴 "공개 설정" — 비공개↔공개 토글. 즐겨찾기 단어장을 공개로 돌리려 하면
+  // 서버가 400 + { message }를 내려주므로(즐겨찾기 단어장은 메뉴 자체가 없어서 실제로는
+  // 호출될 일이 없지만) 혹시 모를 경우를 대비해 에러 메시지를 그대로 alert로 보여준다.
+  async function toggleVisibilityRow(book) {
+    setOpenRowMenuId(null)
+    const nextPublic = !book.isPublic
+    try {
+      await setWordbookVisibility(book.id, nextPublic)
+      setBooks((prev) => prev.map((b) => (String(b.id) === String(book.id) ? { ...b, isPublic: nextPublic } : b)))
+    } catch (err) {
+      alert(err?.message || '공개 설정을 바꾸지 못했어요. 잠시 후 다시 시도해주세요.')
+    }
+  }
   async function handleMoveSubmit() {
     if (!moveBook || moveBusy) return
     setMoveBusy(true)
@@ -558,11 +827,19 @@ export default function Wordbook() {
   }
 
   async function handleRemoveItem(itemId) {
-    if (!window.confirm('이 단어를 단어장에서 지울까요?')) return
+    // 별표(즐겨찾기)는 같은 단어를 가리키는 별도의 항목 행이라, 어느 쪽에서 지우든 서버가
+    // 이 단어의 모든 항목(원래 단어장 + 즐겨찾기)을 함께 지운다 — 즐겨찾기에서 지울 땐 그
+    // 사실을 미리 알려준다.
+    const confirmMessage = selectedBook?.favoriteDefault
+      ? '이 단어를 단어장에서 지울까요?\n확인을 누르면 원래 단어장에서도 삭제됩니다.'
+      : '이 단어를 단어장에서 지울까요?'
+    if (!window.confirm(confirmMessage)) return
     try {
       await removeWordbookItem(itemId)
       setItems((prev) => prev.filter((it) => it.id !== itemId))
-      setBooks((prev) => prev.map((b) => (String(b.id) === String(selectedId) ? { ...b, itemCount: Math.max(0, b.itemCount - 1) } : b)))
+      // 이 단어가 다른 단어장(즐겨찾기 포함)에도 있었다면 거기서도 같이 지워졌으므로,
+      // 사이드바 개수도 전체를 다시 불러와서 정확히 맞춘다.
+      refreshBooks(selectedId)
     } catch {
       // 실패하면 목록이 그대로 남는다.
     }
@@ -679,6 +956,7 @@ export default function Wordbook() {
       onStartRename: () => startRenameRow(book),
       onStartMove: () => startMoveRow(book),
       onDelete: handleDeleteBook,
+      onToggleVisibility: () => toggleVisibilityRow(book),
     }
   }
 
@@ -762,7 +1040,10 @@ export default function Wordbook() {
                           {folder.name}
                         </span>
                       )}
-                      <span className="wordbook-sidebar-item-count">{folderBooks.length}개</span>
+                      {/* 폴더 옆 숫자는 폴더 안 단어장 개수가 아니라, 그 안의 모든 단어장에 든 단어 수를 합한 값이어야 한다. */}
+                      <span className="wordbook-sidebar-item-count">
+                        {folderBooks.reduce((sum, b) => sum + (b.itemCount || 0), 0)}개
+                      </span>
                       <span className="wordbook-sidebar-item-spacer" />
                       <span
                         role="button"
@@ -792,6 +1073,15 @@ export default function Wordbook() {
               ))}
             </nav>
           )}
+
+          {/* 다른 사람이 공개한 단어장을 구경하는 게시판(Phase 2, 구현 완료). */}
+          <button
+            type="button"
+            className="wordbook-sidebar-browse-btn"
+            onClick={() => navigate('/board')}
+          >
+            단어장 둘러보기
+          </button>
         </aside>
 
         {/* 오른쪽 본문 — 화면을 가로로 넓게 쓴다(PC web 우선) */}
@@ -837,18 +1127,28 @@ export default function Wordbook() {
                     )}
                   </h1>
                 )}
-                {mode === 'list' && items.length > 0 && (
+                {mode === 'list' && (
                   <div className="wordbook-main-header-actions">
-                    <button
-                      type="button"
-                      className={`wordbook-select-toggle-btn${selectMode ? ' wordbook-select-toggle-btn--active' : ''}`}
-                      onClick={toggleSelectMode}
-                    >
-                      {selectMode ? '선택 취소' : '선택하기'}
-                    </button>
-                    <button type="button" className="wordbook-detail-study-btn" onClick={startStudy}>
-                      단어 학습하기
-                    </button>
+                    {/* 즐겨찾기는 단어장에 담긴 단어 중 별표 누른 것만 모이는 뷰라 선택/직접 추가가 의미 없다 */}
+                    {items.length > 0 && !selectedBook.favoriteDefault && (
+                      <button
+                        type="button"
+                        className={`wordbook-select-toggle-btn${selectMode ? ' wordbook-select-toggle-btn--active' : ''}`}
+                        onClick={toggleSelectMode}
+                      >
+                        {selectMode ? '선택 취소' : '선택하기'}
+                      </button>
+                    )}
+                    {!selectedBook.favoriteDefault && (
+                      <button type="button" className="wordbook-add-word-btn" onClick={openAddWord}>
+                        + 단어 추가
+                      </button>
+                    )}
+                    {items.length > 0 && (
+                      <button type="button" className="wordbook-detail-study-btn" onClick={startStudy}>
+                        학습하기
+                      </button>
+                    )}
                   </div>
                 )}
                 {mode === 'study' && (
@@ -865,7 +1165,7 @@ export default function Wordbook() {
               ) : mode === 'list' ? (
                 items.length === 0 ? (
                   <div className="wordbook-main-status">
-                    아직 담긴 단어가 없어요. 곡 학습 화면에서 단어장 아이콘 버튼으로 단어를 추가해보세요.
+                    아직 담긴 단어가 없어요. 위의 "+ 단어 추가"로 직접 넣거나, 곡 학습 화면에서 단어장 아이콘 버튼으로 추가해보세요.
                   </div>
                 ) : (
                   <>
@@ -907,6 +1207,17 @@ export default function Wordbook() {
                           <span className={`wordbook-detail-badge ${repetitionTierClass(item.repetitionCount)}`}>
                             {`학습 ${item.repetitionCount}회`}
                           </span>
+                          {!selectMode && (
+                            <button
+                              type="button"
+                              className="wordbook-detail-edit"
+                              onClick={() => openEditWord(item)}
+                              aria-label="발음·뜻 수정"
+                              title="발음·뜻 수정"
+                            >
+                              <PencilIcon />
+                            </button>
+                          )}
                           {!selectMode && (
                             <button
                               type="button"
@@ -971,6 +1282,27 @@ export default function Wordbook() {
           busy={bulkBusy}
           onMove={handleMoveSelected}
           onClose={() => setMoveModalOpen(false)}
+        />
+      )}
+
+      {addWordOpen && (
+        <AddWordModal
+          key={selectedId}
+          bookName={books.find((b) => String(b.id) === String(selectedId))?.name ?? ''}
+          busy={addWordBusy}
+          error={addWordError}
+          onSubmit={handleAddWordSubmit}
+          onClose={closeAddWord}
+        />
+      )}
+
+      {editingItem && (
+        <EditWordModal
+          item={editingItem}
+          busy={editWordBusy}
+          error={editWordError}
+          onSubmit={handleEditWordSubmit}
+          onClose={closeEditWord}
         />
       )}
 

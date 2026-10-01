@@ -77,6 +77,7 @@ const TRANSLATIONS = {
     bottomTitle: '지금 바로 시작해보세요',
     bottomSubtitle: '가입은 1분이면 충분해요.',
     footer: '© 2026 Utago (우타고)',
+    credits: '크레딧',
   },
   ja: {
     login: 'ログイン',
@@ -95,6 +96,7 @@ const TRANSLATIONS = {
     bottomTitle: '今すぐ始めましょう',
     bottomSubtitle: '登録は1分もかかりません。',
     footer: '© 2026 Utago (歌語)',
+    credits: 'クレジット',
   },
   en: {
     login: 'Log in',
@@ -113,6 +115,7 @@ const TRANSLATIONS = {
     bottomTitle: 'Start learning today',
     bottomSubtitle: 'Signing up takes less than a minute.',
     footer: '© 2026 Utago',
+    credits: 'Credits',
   },
 }
 
@@ -315,6 +318,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <span>{t.footer}</span>
+        <Link to="/credits" className="landing-footer-link">{t.credits}</Link>
       </footer>
     </div>
   )

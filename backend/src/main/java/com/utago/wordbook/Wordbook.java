@@ -1,5 +1,6 @@
 package com.utago.wordbook;
 
+import com.utago.content.Visibility;
 import com.utago.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,4 +44,25 @@ public class Wordbook {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** 공개 범위 — 기본 비공개. 게시판에 공유하려면 PUBLIC으로 바꿔야 한다(V20). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private Visibility visibility = Visibility.PRIVATE;
+
+    /** 운영진이 올린 공식 단어장(JLPT 프리셋 등) 배지. */
+    @Column(name = "is_official", nullable = false)
+    @Builder.Default
+    private boolean official = false;
+
+    /** 몇 번 "내 단어장에 추가"(스냅샷 복사)됐는지. */
+    @Column(name = "download_count", nullable = false)
+    @Builder.Default
+    private int downloadCount = 0;
+
+    /** 단어장 카드 아이콘 — 생성 시 선택, 이후에도 수정 가능. 기본값 책 이모티콘. */
+    @Column(nullable = false, length = 8)
+    @Builder.Default
+    private String emoji = "📘";
 }
