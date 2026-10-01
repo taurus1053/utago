@@ -28,6 +28,14 @@ function splitLines(text) {
   return text.split('\n').map((l) => l.trim())
 }
 
+// translationText는 사용자가 소절별 입력칸에 한 글자씩 타이핑해서 채워가는 상태라, splitLines처럼
+// 줄마다 trim()을 하면 지금 막 입력한 줄 끝의 띄어쓰기가 리렌더마다 즉시 지워져버린다(커서가
+// 줄 끝에 있는 한 스페이스바가 전혀 안 먹히는 것처럼 보임). trim은 "통째로 붙여넣는" 원문
+// 텍스트영역(originalLines)에만 필요하므로, 번역 줄은 trim 없이 그대로 쪼갠다.
+function splitLinesRaw(text) {
+  return text.split('\n')
+}
+
 export default function AddSong() {
   const navigate = useNavigate()
   const loggedIn = isLoggedIn()
@@ -42,7 +50,7 @@ export default function AddSong() {
   const [error, setError] = useState(null)
 
   const originalLines = splitLines(originalText)
-  const translationLines = splitLines(translationText)
+  const translationLines = splitLinesRaw(translationText)
   const nonEmptyCount = originalLines.filter(Boolean).length
   const missingTranslationLine = originalLines.findIndex((o, i) => o && !translationLines[i])
   const lineCountMismatch = missingTranslationLine !== -1
@@ -84,6 +92,45 @@ export default function AddSong() {
     } finally {
       setTranslating(false)
     }
+  }
+
+  // 이미 번역을 다 준비해 온 경우(직접 작업했거나 다른 곳에서 번역했거나) — 번역 전체를
+  // 한 번에 붙여넣으면, 원문과 줄 개수가 똑같을 때만 순서대로 자동으로 매칭해서 각 소절
+  // 입력칸에 채워준다. 줄 개수가 다르면(붙여넣은 쪽에 줄이 더 많거나 적으면) 잘못 밀려서
+  // 엉뚱한 소절에 들어갈 수 있으므로 아예 채우지 않고 안내만 한다.
+  const [bulkPasteOpen, setBulkPasteOpen] = useState(false)
+  const [bulkPasteText, setBulkPasteText] = useState('')
+  const [bulkPasteNotice, setBulkPasteNotice] = useState(null)
+
+  function handleBulkPasteApply() {
+    const targets = originalLines
+      .map((text, i) => ({ i, text }))
+      .filter((t) => t.text)
+    const pastedLines = bulkPasteText.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (targets.length === 0) {
+      setBulkPasteNotice({ type: 'error', text: '먼저 위에 가사 원문을 입력해주세요.' })
+      return
+    }
+    if (pastedLines.length === 0) {
+      setBulkPasteNotice({ type: 'error', text: '번역을 붙여넣어주세요.' })
+      return
+    }
+    if (pastedLines.length !== targets.length) {
+      setBulkPasteNotice({
+        type: 'error',
+        text: `줄 개수가 달라요 — 원문은 ${targets.length}줄인데 붙여넣은 번역은 ${pastedLines.length}줄이에요. 빈 줄 없이 원문과 똑같은 줄 수로 맞춰서 다시 붙여넣어주세요.`,
+      })
+      return
+    }
+    const nextTranslationLines = originalLines.map((_, i) => translationLines[i] ?? '')
+    targets.forEach((t, idx) => {
+      nextTranslationLines[t.i] = pastedLines[idx]
+    })
+    setTranslationText(nextTranslationLines.join('\n'))
+    setBulkPasteText('')
+    setBulkPasteOpen(false)
+    setBulkPasteNotice(null)
+    setTranslateNotice({ type: 'success', text: `${pastedLines.length}줄을 자동으로 매칭해서 채웠어요. 혹시 밀린 줄이 없는지 한 번 확인해주세요.` })
   }
 
   // 번역 칸은 소절(원문 줄)마다 하나씩 — 원문 줄 바로 밑에서 그 줄의 번역만 고칠 수 있게
@@ -148,7 +195,7 @@ export default function AddSong() {
     setError(null)
     try {
       const linesPayload = originalLines
-        .map((o, i) => ({ originalText: o, translationNatural: translationLines[i] || '' }))
+        .map((o, i) => ({ originalText: o, translationNatural: (translationLines[i] || '').trim() }))
         .filter((l) => l.originalText)
       const created = await createSong({
         title: title.trim(),
@@ -255,19 +302,53 @@ export default function AddSong() {
         <section className="add-song-section">
           <div className="add-song-section-header">
             <span className="add-song-label">번역 (소절별로)</span>
-            <button
-              type="button"
-              className="add-song-translate-btn"
-              onClick={handleTranslate}
-              disabled={translating || nonEmptyCount === 0}
-            >
-              {translating ? 'AI 번역 중...' : 'AI 번역 초안 받기'}
-            </button>
+            <div className="add-song-section-header-actions">
+              <button
+                type="button"
+                className="add-song-translate-btn"
+                onClick={() => {
+                  setBulkPasteOpen((v) => !v)
+                  setBulkPasteNotice(null)
+                }}
+                disabled={nonEmptyCount === 0}
+              >
+                번역 붙여넣고 자동매칭
+              </button>
+              <button
+                type="button"
+                className="add-song-translate-btn"
+                onClick={handleTranslate}
+                disabled={translating || nonEmptyCount === 0}
+              >
+                {translating ? 'AI 번역 중...' : 'AI 번역 초안 받기'}
+              </button>
+            </div>
           </div>
           <p className="add-song-lookup-desc">
             원문 소절 바로 밑에 그 줄의 번역을 입력하세요 — 어디가 맞고 틀렸는지 한눈에 확인할 수 있어요.
-            AI 번역 초안은 비어있는 칸만 채워요(이미 적어둔 번역은 덮어쓰지 않아요).
+            AI 번역 초안은 비어있는 칸만 채워요(이미 적어둔 번역은 덮어쓰지 않아요). 이미 번역을 다
+            준비해왔다면 "번역 붙여넣고 자동매칭"으로 통째로 붙여넣어도 돼요 — 원문과 줄 개수가
+            똑같을 때만 순서대로 채워줘요.
           </p>
+          {bulkPasteOpen && (
+            <div className="add-song-bulk-paste">
+              <textarea
+                className="add-song-lyrics-textarea"
+                value={bulkPasteText}
+                onChange={(e) => setBulkPasteText(e.target.value)}
+                placeholder={'준비해온 번역을 한 줄에 한 소절씩, 원문과 같은 줄 수로 붙여넣으세요'}
+                rows={8}
+              />
+              {bulkPasteNotice && (
+                <div className={`add-song-translate-notice add-song-translate-notice--${bulkPasteNotice.type}`}>
+                  {bulkPasteNotice.text}
+                </div>
+              )}
+              <button type="button" className="add-song-lookup-btn" onClick={handleBulkPasteApply}>
+                자동으로 채우기
+              </button>
+            </div>
+          )}
           {translateNotice && (
             <div className={`add-song-translate-notice add-song-translate-notice--${translateNotice.type}`}>
               {translateNotice.text}

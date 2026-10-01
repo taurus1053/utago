@@ -17,6 +17,10 @@ public interface SongLineWordRepository extends JpaRepository<SongLineWord, Long
     /** 곡 하나를 삭제/재분석할 때 기존 단어 매핑을 정리하기 위함(현재는 등록 시 1회만 생성) */
     List<SongLineWord> findBySongLineIdInOrderByCharOffsetStartAsc(List<Long> songLineIds);
 
+    /** 특정 단어(Word)가 실제로 쓰인 모든 위치 — MistokenizedWordRepairRunner가 잘못
+     *  분석된 단어의 기존 사용 건을 전부 찾아서 소급 복구하는 데 쓴다. */
+    List<SongLineWord> findByWord_Id(Long wordId);
+
     /**
      * "오늘의 단어"/단어장 학습(빈칸 채우기·문장 재배열)에 쓸 예문(실제 가사 소절) 조회용.
      * Word는 모든 곡에서 공유되는 마스터 사전이라, 아무 소절이나 골라버리면 다른 사용자의

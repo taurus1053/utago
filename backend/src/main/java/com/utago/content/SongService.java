@@ -11,6 +11,7 @@ import com.utago.dictionary.SongLineWord;
 import com.utago.dictionary.SongLineWordRepository;
 import com.utago.dictionary.Word;
 import com.utago.dictionary.WordMeaning;
+import com.utago.dictionary.WordExampleService;
 import com.utago.dictionary.WordMeaningEnrichmentService;
 import com.utago.dictionary.WordMeaningRepository;
 import com.utago.dictionary.WordRepository;
@@ -51,25 +52,32 @@ public class SongService {
     private final WordMeaningRepository wordMeaningRepository;
     private final SongLineWordRepository songLineWordRepository;
     private final WordMeaningEnrichmentService wordMeaningEnrichmentService;
+    private final WordExampleService wordExampleService;
     private final SongSyncCacheService songSyncCacheService;
     private final SongLineReadingService songLineReadingService;
 
     /**
-     * 공개 카탈로그 검색/목록. PUBLIC + 게시된 곡만 노출한다 — 사용자가 직접 등록한 PRIVATE 곡은
-     * 여기 절대 섞이지 않는다(마이페이지 전용 목록은 listMySongs 참고).
+     * 공개 카탈로그 검색/목록 — "전체 곡" 섹션. PUBLIC + 게시 + AI_GENERATED(관리자가 만든
+     * AI 학습곡)만 노출한다 — 사용자가 직접 등록한 PRIVATE 곡은 여기 절대 섞이지 않는다
+     * (마이페이지 전용 목록은 listMySongs 참고).
+     *
+     * 원래는 "PUBLIC + 게시"만 보면 됐는데(저작권 해결된 곡을 운영진이 승격), 당분간 그 승격
+     * 기능은 쓰지 않기로 하고 대신 관리자가 직접 만든 AI 학습곡(createAiLearningSong)으로
+     * "전체 곡" 섹션을 대체한다 — provenance=AI_GENERATED 조건을 추가한 이유.
+     *
      * query가 있으면 제목 검색 우선, 없고 lang만 있으면 언어 필터, 둘 다 없으면 전체 목록.
      */
     public Page<SongSummaryResponse> listSongs(String query, Lang lang, Pageable pageable) {
         Page<Song> page;
         if (query != null && !query.isBlank()) {
-            page = songRepository.findByVisibilityAndContentStatusAndTitleContainingIgnoreCase(
-                    Visibility.PUBLIC, ContentStatus.PUBLISHED, query, pageable);
+            page = songRepository.findByVisibilityAndContentStatusAndProvenanceAndTitleContainingIgnoreCase(
+                    Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, query, pageable);
         } else if (lang != null) {
-            page = songRepository.findByVisibilityAndContentStatusAndSourceLang(
-                    Visibility.PUBLIC, ContentStatus.PUBLISHED, lang, pageable);
+            page = songRepository.findByVisibilityAndContentStatusAndProvenanceAndSourceLang(
+                    Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, lang, pageable);
         } else {
-            page = songRepository.findByVisibilityAndContentStatus(
-                    Visibility.PUBLIC, ContentStatus.PUBLISHED, pageable);
+            page = songRepository.findByVisibilityAndContentStatusAndProvenance(
+                    Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, pageable);
         }
         return page.map(SongSummaryResponse::from);
     }
@@ -146,6 +154,24 @@ public class SongService {
         if (ownerUserId == null) {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
+        return buildAndSaveSong(request, ownerUserId, Visibility.PRIVATE, Provenance.SELF_TYPED);
+    }
+
+    /**
+     * 관리자 전용 — AI로 만든 "학습곡"(멜로디·보컬·가사를 AI로 제작한 뒤 관리자가 유튜브에
+     * 올려 가져온 곡)을 공개 카탈로그에 바로 등록한다. 일반 등록(createSong)과 달리 PRIVATE가
+     * 아니라 처음부터 PUBLIC으로 저장되어 "전체 곡" 섹션(listSongs)에 즉시 노출된다.
+     * 호출 권한(ADMIN 여부)은 컨트롤러(AdminSongController)가 매 요청마다 확인한다.
+     * 소유자는 특정 사용자 개인이 아니라 카탈로그 자체이므로 ownerUserId는 null로 둔다.
+     */
+    @Transactional
+    public SongDetailResponse createAiLearningSong(CreateSongRequest request) {
+        return buildAndSaveSong(request, null, Visibility.PUBLIC, Provenance.AI_GENERATED);
+    }
+
+    private SongDetailResponse buildAndSaveSong(
+            CreateSongRequest request, Long ownerUserId, Visibility visibility, Provenance provenance
+    ) {
         Song song = Song.builder()
                 .title(request.title())
                 .artist(request.artist())
@@ -153,9 +179,9 @@ public class SongService {
                 .youtubeVideoId(request.youtubeVideoId())
                 .audioSourceType(AudioSourceType.YOUTUBE)
                 .contentStatus(ContentStatus.PUBLISHED)
-                .provenance(Provenance.SELF_TYPED)
+                .provenance(provenance)
                 .ownerUserId(ownerUserId)
-                .visibility(Visibility.PRIVATE)
+                .visibility(visibility)
                 .build();
         song = songRepository.save(song);
 
@@ -292,6 +318,11 @@ public class SongService {
      * 뜻(WordMeaning)은 이번에 등장한 단어 중 아직 뜻이 없는 것만 JMdict+AI 번역으로 채운다
      * (WordMeaningEnrichmentService). JMdict에 없거나 Claude API가 설정 안 돼있으면 그냥
      * 건너뛰고, 프론트에서는 계속 "뜻 준비 중"으로 표시된다 — 정상적인 폴백.
+     *
+     * 예문(WordExample)도 마찬가지로, 이번에 등장한 단어 중 예문이 하나도 없는 것만 AI로
+     * 만들어 저장한다(WordExampleService.getOrGenerateExamples) — 이미 예문이 있는 단어는
+     * 다시 만들지 않는다. 실패/미설정이면 그냥 건너뛰고 나중에(단어장 조회 시 또는 서버
+     * 재시작 백필로) 채워질 수 있다.
      */
     private void analyzeJapaneseLines(List<SongLine> lines) {
         Map<String, Word> wordCache = new HashMap<>();
@@ -332,6 +363,8 @@ public class SongService {
                     .filter(w -> !haveMeaning.contains(w.getId()))
                     .toList();
             wordMeaningEnrichmentService.enrich(needMeaning);
+
+            wordExampleService.getOrGenerateExamples(distinctWords);
         }
     }
 
@@ -421,5 +454,38 @@ public class SongService {
             }
         }
         return sourceLang == Lang.KO ? Lang.EN : Lang.KO;
+    }
+
+    /**
+     * 관리자 "추천곡 관리" 화면 — 제목/아티스트로 곡 검색(공개 범위 무관, 추천곡으로 지정할
+     * 곡을 찾기 위한 용도라 전체 곡 대상). 검색어가 비어있으면 빈 목록을 돌려준다(전체 곡을
+     * 다 펼쳐 보여주면 관리 화면이 감당하기 어려워서 — 검색어로 좁혀서 찾게 한다).
+     */
+    public List<AdminSongSummaryResponse> searchSongsForAdmin(String query) {
+        if (query == null || query.isBlank()) return List.of();
+        return songRepository.findTop20ByTitleContainingIgnoreCaseOrArtistContainingIgnoreCase(query, query)
+                .stream().map(AdminSongSummaryResponse::from).toList();
+    }
+
+    /** 관리자 "추천곡 관리" 화면 — 현재 추천곡으로 지정된 곡 전체 목록(제목순). */
+    public List<AdminSongSummaryResponse> listFeaturedSongs() {
+        return songRepository.findByFeaturedTrueOrderByTitleAsc()
+                .stream().map(AdminSongSummaryResponse::from).toList();
+    }
+
+    /**
+     * 관리자 "추천곡 관리" 화면 — 곡 하나를 오늘의 추천곡 후보로 켜거나 끈다. 유튜브 영상이
+     * 없는 곡을 켜려고 하면 막는다(오늘의 추천곡 카드는 썸네일이 필수라 어차피 후보에서
+     * 제외되므로, 관리자가 "켰는데 왜 안 나오지" 헷갈리지 않도록 미리 막아준다).
+     */
+    @Transactional
+    public AdminSongSummaryResponse setFeatured(Long songId, boolean featured) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+        if (featured && (song.getYoutubeVideoId() == null || song.getYoutubeVideoId().isBlank())) {
+            throw new IllegalStateException("유튜브 영상이 연결된 곡만 추천곡으로 지정할 수 있습니다.");
+        }
+        song.setFeatured(featured);
+        return AdminSongSummaryResponse.from(song);
     }
 }

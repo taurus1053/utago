@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { getCurrentUser, isLoggedIn, logout } from '../api/auth'
 import LangSwitcher from './LangSwitcher'
 import './TopBar.css'
@@ -11,7 +11,6 @@ import './TopBar.css'
 // 로그인 안 한 사용자도 곡 학습 화면(공개 곡)에는 들어올 수 있어서, 그 경우 알림/프로필
 // 대신 "로그인" 링크만 보여준다.
 export default function TopBar({ showSearch = true, searchValue = '', onSearchChange }) {
-  const navigate = useNavigate()
   const loggedIn = isLoggedIn()
   const user = getCurrentUser()
   const displayName = user?.nickname ?? user?.email ?? ''
@@ -77,7 +76,12 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
     logout()
     // "/" 는 로그인 여부에 따라 자동으로 갈라진다(App.jsx의 RootRoute) — 로그아웃 직후엔
     // 비로그인 상태라 랜딩 페이지가 보인다. 로그인 화면으로 곧장 보내지 않는다.
-    navigate('/', { replace: true })
+    //
+    // navigate()만 쓰면 이미 "/"에 떠 있던 RootRoute/Home 컴포넌트가 다시 마운트되지
+    // 않고 그대로 남아있는 경우가 있어서(같은 경로로의 클라이언트 사이드 전환이라
+    // 리렌더가 보장되지 않음), 로그아웃 후에는 페이지를 통째로 새로고침해서 RootRoute가
+    // isLoggedIn()을 처음부터 다시 평가하도록 강제한다.
+    window.location.assign('/')
   }
 
   return (

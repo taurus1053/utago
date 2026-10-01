@@ -18,7 +18,7 @@
 }
 
 .song-sync-content {
-  max-width: 640px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 20px 20px 60px;
   display: flex;
@@ -26,10 +26,58 @@
   gap: 18px;
 }
 
+/* 영상+탭 영역(왼쪽)과 전체 가사 타임라인(오른쪽)을 가로로 넓게 나눠 쓴다 — 좁은 화면(세로로
+   쌓인 레이아웃)에서는 전후 가사가 화면 밖으로 밀려나서 타이밍을 가늠하기 어려웠다. */
+.song-sync-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 600px) minmax(300px, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.song-sync-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.song-sync-sidebar {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+}
+/* 790px는 왼쪽 영역(영상 338px 고정 높이 + 컨트롤 줄 + 컨텍스트 박스 + 탭 버튼, 간격 포함)의
+   실측 높이 — 영상 높이도 반응형이 아니라 고정값으로 바꿔서, 이 숫자가 화면 크기와 무관하게
+   항상 정확히 왼쪽 영역 높이와 같다. */
+.song-sync-sidebar .song-sync-list {
+  max-height: 790px;
+  overflow-y: auto;
+}
+
+@media (max-width: 960px) {
+  .song-sync-layout {
+    grid-template-columns: 1fr;
+  }
+  .song-sync-sidebar {
+    position: static;
+  }
+  .song-sync-sidebar .song-sync-list {
+    /* 좁은 화면(세로 1단 레이아웃)에서는 고정 높이 제한 없이 항상 전체를 펼쳐 보여준다. */
+    max-height: none;
+    overflow-y: visible;
+  }
+  .song-sync-video {
+    height: auto;
+    padding-top: 56.25%;
+  }
+}
+
+/* 화면 폭에 따라 높이가 달라지는 반응형(16:9 비율) 대신 고정 높이로 둔다 — 왼쪽 전체
+   영역의 높이가 항상 같아야 오른쪽 타임라인의 높이(.song-sync-list의 790px)를 고정값으로
+   맞출 수 있다. */
 .song-sync-video {
   position: relative;
   width: 100%;
-  padding-top: 56.25%;
+  height: 338px;
   border-radius: 20px;
   overflow: hidden;
   background: #0b0b0c;
@@ -80,6 +128,34 @@
   cursor: default;
 }
 
+/* 재생/일시정지 — 글자 수가 달라 버튼 폭이 들쭉날쭉하던 문제를 없애려고 텍스트 대신
+   항상 같은 크기의 원형 아이콘 버튼을 쓴다. */
+.song-sync-icon-btn {
+  border: 1px solid #ececec;
+  background: #ffffff;
+  color: #5b5346;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.song-sync-icon-btn svg {
+  display: block;
+}
+.song-sync-icon-btn:hover:not(:disabled) {
+  border-color: #8d47fa;
+  color: #5f26f3;
+}
+.song-sync-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .song-sync-current {
   background: #ffffff;
   border: 1px solid #ececec;
@@ -116,6 +192,87 @@
   font-size: 14px;
   color: #5b5346;
   line-height: 1.6;
+}
+
+/* 지금 탭할 소절 + 그 전후 몇 줄을 같이 보여주는 영역 — 전후 줄은 흐리게, 지금 탭할 줄만
+   또렷하게 강조해서 "다음에 나올 타이밍"을 눈으로 미리 가늠할 수 있게 한다. */
+.song-sync-context {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-left: 3px solid #8d47fa;
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+}
+.song-sync-context-line {
+  padding: 9px 4px;
+  border-radius: 10px;
+  transition: opacity 0.15s ease;
+}
+.song-sync-context-line--past,
+.song-sync-context-line--future {
+  opacity: 0.4;
+}
+/* 맨 첫 줄(이전 가사 없음)/맨 마지막 줄(다음 가사 없음)처럼 그 자리에 보여줄 가사가 없을 때 —
+   자리를 아예 없애면 2줄짜리로 줄어들어서 지금 탭할 줄(가운데)의 위치가 줄마다 들쭉날쭉해
+   보이니, 내용 없는 빈 자리로 남겨 높이와 가운데 정렬을 그대로 유지한다. */
+.song-sync-context-line--empty {
+  visibility: hidden;
+}
+.song-sync-context-line--current {
+  background: #f3e9ff;
+  padding: 14px 14px;
+  margin: 4px 0;
+}
+.song-sync-context-reading {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #a89c86;
+}
+.song-sync-context-original {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #5b5346;
+  line-height: 1.5;
+}
+.song-sync-context-line--current .song-sync-context-original {
+  font-size: 20px;
+  font-weight: 700;
+  color: #201a14;
+}
+.song-sync-context-line--current .song-sync-context-reading {
+  font-size: 13.5px;
+}
+.song-sync-context-translation {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: #8a7f6e;
+}
+
+/* 후리가나(ruby) — SongLearn.jsx와 같은 패턴. 후리가나 없는 단어도 빈 rt로 자리를 채워서
+   줄마다 높이가 들쭉날쭉해지지 않게 한다. */
+.song-sync-context-original ruby,
+.song-sync-row-text ruby {
+  ruby-position: over;
+}
+.song-sync-context-original rt {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b0512f;
+  user-select: none;
+}
+.song-sync-row-text rt {
+  font-size: 9px;
+  font-weight: 500;
+  color: #b0512f;
+  user-select: none;
+}
+.song-sync-rt-empty {
+  visibility: hidden;
 }
 
 .song-sync-tap-btn {
@@ -156,14 +313,20 @@
 }
 .song-sync-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 9px 14px;
   border-bottom: 1px solid #f2f2f3;
   font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 .song-sync-row:last-child {
   border-bottom: none;
+}
+/* 소절을 클릭하면 처음부터 다시 하지 않고 그 소절부터 바로 싱크를 다시 맞출 수 있다. */
+.song-sync-row:hover:not(.song-sync-row--next) {
+  background: #f7f7f8;
 }
 .song-sync-row--next {
   background: #f3e9ff;
@@ -185,19 +348,27 @@
   font-weight: 500;
   color: #b3b3b3;
 }
+.song-sync-row-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
 .song-sync-row-text {
   color: #201a14;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+}
+.song-sync-row-reading {
+  font-size: 11px;
+  color: #a89c86;
 }
 
-.song-sync-save-row {
+/* 저장 버튼은 예전엔 전체 레이아웃(영상+타임라인) 아래, 맨 밑에 있어서 눈에 잘 안 띄었다 —
+   그래서 재생/이전 줄/처음부터 다시 버튼과 같은 줄(영상 바로 아래)로 옮겨서 항상 바로
+   보이게 한다. */
+.song-sync-save-msg-row {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 .song-sync-save-error {
   font-size: 12.5px;
@@ -212,11 +383,13 @@
   border: none;
   background: #201a14;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
-  padding: 12px 22px;
+  padding: 7px 16px;
   border-radius: 999px;
   cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 .song-sync-save-btn:hover:not(:disabled) {
   background: #37291c;

@@ -22,6 +22,7 @@ public class KanaToHangulConverter {
     private static final int JONG_NIEUN = 4; // ㄴ
     private static final int JONG_BIEUP = 17; // ㅂ
     private static final int JONG_SIOT = 19; // ㅅ
+    private static final int CHO_IEUNG = 11; // ㅇ(초성 자리, 소리 없음) — 장음부호(ー) 처리용
 
     private static final Map<String, String> YOUON_MAP = new HashMap<>();
     private static final Map<String, String> SEION_MAP = new HashMap<>();
@@ -109,8 +110,11 @@ public class KanaToHangulConverter {
             }
 
             if (c == 'ー') {
+                // 직전 모음을 "완성된 한글 음절"로 한 번 더 붙인다(초성 자리는 소리 없는 ㅇ) —
+                // 예전엔 JUNG.charAt(...)로 중성 자모 하나만 떼어 붙였는데, 그건 완성형이 아닌
+                // 조합되지 않은 낱자(ㅗ, ㅣ 등)라 "스토ㅗ리ㅣ"처럼 글자가 깨져 보였다.
                 if (lastJungIndex >= 0) {
-                    sb.append(JUNG.charAt(lastJungIndex));
+                    sb.append(compose(CHO_IEUNG, lastJungIndex, 0));
                 }
                 i += 1;
                 continue;

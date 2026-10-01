@@ -69,6 +69,60 @@ public class JapaneseTokenizerService {
         return reading;
     }
 
+    /**
+     * 위 HOMOGRAPH_OVERRIDES("같은 단어, 다른 읽기")와 다른 종류의 오류 — Kuromoji가 구어체
+     * 축약형을 아예 "다른 한자 단어"의 활용형으로 통째로 잘못 분석하는 경우를 바로잡는다.
+     *
+     * 대표 사례: "(장소)にいたって"(~에 있었다고 해도) — い(존재하다, 기본형 いる)의 과거형
+     * "いた" + 구어체 조사 "って"(~해도, ~라도)가 합쳐진 것인데, 둘 다 가나로만 적으면
+     * 至る(いたる, 도달하다)의 て형 "至って"와 글자/발음이 완전히 같다(둘 다 "いたって").
+     * 발음만으로는 원천적으로 구분이 안 되는 진짜 동음이형태라서, 직전 문맥(장소를 나타내는
+     * 조사 "に")을 같이 봐야만 안전하게 구분할 수 있다 — "~に いる"(~에 있다) 구문은 가사에
+     * 매우 흔하지만, 至る를 가사에서 가나로만(한자 없이) 적는 경우는 극히 드물기 때문에 이
+     * 휴리스틱으로 충분히 실용적이다.
+     *
+     * 이 테이블에 걸리면 baseForm 자체가 바뀐다(단어장에 잘못된 단어/뜻이 올라가는 걸 막는
+     * 핵심 조치) — 후리가나는 어차피 가나로만 적힌 표면형에는 붙지 않으므로(SongDetailResponse
+     * 참고) 별도로 더 손볼 필요가 없다.
+     *
+     * 앞으로 비슷한 "표면형 전체가 가나뿐인데 엉뚱한 한자 단어로 분석되는" 사례가 또 발견되면,
+     * 여기에 규칙을 하나 추가하는 것으로 전 곡에 걸쳐(새로 등록되는 곡부터) 바로 고쳐진다 —
+     * MistokenizedWordRepairRunner가 이미 등록된 곡들도 같은 규칙으로 소급 복구한다.
+     */
+    public record MistokenizedOverride(
+            String wrongBaseForm,
+            Pattern surfacePattern,
+            Set<String> requiredPrevSurface,
+            String correctBaseForm
+    ) {}
+
+    public static final List<MistokenizedOverride> MISTOKENIZED_OVERRIDES = List.of(
+            new MistokenizedOverride(
+                    "至る",
+                    Pattern.compile("^いた(って|ったら|ったり|っても)"),
+                    Set.of("に"),
+                    "いる"
+            )
+    );
+
+    /**
+     * 위 규칙표를 실제 baseForm에 적용한다. 규칙에 안 걸리면(한자로 정식 표기됐거나, 직전
+     * 문맥이 안 맞거나) 원래 baseForm을 그대로 돌려준다. tokenize()/analyzeForReading()
+     * 내부뿐 아니라 MistokenizedWordRepairRunner(이미 등록된 곡 소급 복구)에서도 그대로
+     * 다시 적용할 수 있도록 public.
+     */
+    public String applyMistokenizedOverride(String baseForm, String surface, String prevSurface) {
+        if (baseForm == null || surface == null) return baseForm;
+        if (containsKanji(surface)) return baseForm; // 한자로 정식 표기됐으면 진짜 그 단어라고 믿는다.
+        for (MistokenizedOverride rule : MISTOKENIZED_OVERRIDES) {
+            if (!rule.wrongBaseForm().equals(baseForm)) continue;
+            if (!rule.surfacePattern().matcher(surface).find()) continue;
+            if (rule.requiredPrevSurface() != null && !rule.requiredPrevSurface().contains(prevSurface)) continue;
+            return rule.correctBaseForm();
+        }
+        return baseForm;
+    }
+
     private final Tokenizer tokenizer = new Tokenizer();
 
     public record TokenSpan(
@@ -95,6 +149,7 @@ public class JapaneseTokenizerService {
         List<TokenSpan> result = new ArrayList<>();
         int cursor = 0;
         String prevPos1 = null;
+        String prevSurface = null;
         for (Token token : tokenizer.tokenize(text)) {
             String surface = token.getSurface();
             int start = text.indexOf(surface, cursor);
@@ -116,6 +171,9 @@ public class JapaneseTokenizerService {
             if (baseForm == null || baseForm.equals("*")) {
                 baseForm = surface;
             }
+            // 구어체 축약형이 완전히 다른 한자 단어의 활용형으로 오분석된 경우 바로잡는다
+            // (예: "…にいたって" -> 至る가 아니라 いる의 과거형+って). 위 MISTOKENIZED_OVERRIDES 참고.
+            baseForm = applyMistokenizedOverride(baseForm, surface, prevSurface);
 
             // 가사에 섞인 영어 단어(예: "Age")를 Kuromoji가 명사로 오인식해서 단어장 후보로
             // 잡아내는 경우가 있다 — 일본어 학습용 곡에서 로마자로만 된 토큰은 "배울 일본어
@@ -135,6 +193,7 @@ public class JapaneseTokenizerService {
 
             result.add(new TokenSpan(surface, start, end, furigana, baseForm, lemmaReading, pos, vocabWorthy));
             prevPos1 = pos;
+            prevSurface = surface;
         }
         return result;
     }
@@ -205,6 +264,7 @@ public class JapaneseTokenizerService {
     public List<ReadingToken> analyzeForReading(String text) {
         List<ReadingToken> result = new ArrayList<>();
         int cursor = 0;
+        String prevSurface = null;
         for (Token token : tokenizer.tokenize(text)) {
             String surface = token.getSurface();
             int start = text.indexOf(surface, cursor);
@@ -223,12 +283,14 @@ public class JapaneseTokenizerService {
             if (baseForm == null || baseForm.equals("*")) {
                 baseForm = surface;
             }
+            baseForm = applyMistokenizedOverride(baseForm, surface, prevSurface);
 
             reading = applyHomographOverride(baseForm, reading, text.substring(end));
 
             result.add(new ReadingToken(
                     surface, start, end, reading, baseForm,
                     token.getPartOfSpeechLevel1(), token.getPartOfSpeechLevel2()));
+            prevSurface = surface;
         }
         return result;
     }

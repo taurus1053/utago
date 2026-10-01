@@ -9,6 +9,8 @@ import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
 import AddSong from './pages/AddSong'
 import AdminTranslations from './pages/AdminTranslations'
+import AdminSongs from './pages/AdminSongs'
+import AdminFeaturedSongs from './pages/AdminFeaturedSongs'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import RequireAuth from './RequireAuth'
 import { isLoggedIn } from './api/auth'
@@ -72,6 +74,26 @@ function App() {
           element={(
             <RequireAuth>
               <AdminTranslations />
+            </RequireAuth>
+          )}
+        />
+        {/* AI 학습곡(멜로디·보컬·가사까지 AI로 제작한 곡) 등록 — 로그인은 필수,
+            ADMIN 여부는 페이지 자체가 /api/users/me/role로 다시 확인함 */}
+        <Route
+          path="/admin/songs"
+          element={(
+            <RequireAuth>
+              <AdminSongs />
+            </RequireAuth>
+          )}
+        />
+        {/* 홈 화면 "오늘의 추천곡" 후보 곡 지정/해제 — 로그인은 필수, ADMIN 여부는
+            페이지 자체가 /api/users/me/role로 다시 확인함 */}
+        <Route
+          path="/admin/featured-songs"
+          element={(
+            <RequireAuth>
+              <AdminFeaturedSongs />
             </RequireAuth>
           )}
         />

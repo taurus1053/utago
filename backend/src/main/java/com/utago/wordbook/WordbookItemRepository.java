@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,8 +15,9 @@ public interface WordbookItemRepository extends JpaRepository<WordbookItem, Long
     /** 중복 추가 방지 (uk_items_wordbook_word) */
     Optional<WordbookItem> findByWordbookIdAndWordId(Long wordbookId, Long wordId);
 
-    /** 홈 화면 "오늘 복습할 단어" — next_review_at이 지난 항목만 (SM-2 단순화 복습 큐) */
-    List<WordbookItem> findByWordbookIdAndNextReviewAtLessThanEqual(Long wordbookId, LocalDateTime now);
+    // 홈 화면 "오늘 복습할 단어"(next_review_at이 지난 것만) 큐는, SRS 진행 상태가
+    // UserWordProgress로 옮겨가면서 이제 UserWordProgressRepository에서 조회해야 한다 —
+    // 아직 구현 전(홈 화면이 이 기능 자체를 목업으로 유지 중)이라 여기 있던 메서드는 제거.
 
     /** 곡 학습 화면에서 "이 단어, 내 단어장 중 어디어디에 이미 있지?" 배치 조회용. */
     List<WordbookItem> findByWordbook_User_IdAndWordIdIn(Long userId, List<Long> wordIds);

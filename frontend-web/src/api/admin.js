@@ -40,3 +40,35 @@ export async function updateLineTranslation(id, translationText) {
 export async function deleteLineTranslation(id) {
   return apiDelete(`/api/admin/line-translations/${id}`)
 }
+
+// POST /api/admin/songs (ADMIN 전용)
+// payload: { title, artist, sourceLang, youtubeVideoId, lines: [{ originalText, translationNatural }] }
+// AI로 만든 학습곡(멜로디·보컬·가사까지 AI 제작, 관리자가 유튜브에 올려 가져온 곡)을
+// 공개 카탈로그에 바로 등록한다 — 일반 곡 등록(createSong)과 달리 PRIVATE가 아니라
+// 처음부터 PUBLIC으로 저장되어 홈 화면 "전체 곡" 섹션에 즉시 노출된다.
+// -> 생성된 SongDetailResponse
+export async function createAiLearningSong(payload) {
+  return apiPost('/api/admin/songs', payload)
+}
+
+// GET /api/admin/songs/search?q=... (ADMIN 전용)
+// 홈 화면 "오늘의 추천곡" 후보로 지정할 곡을 찾기 위한 검색 — 공개 범위 상관없이 제목/
+// 아티스트로 전체 곡에서 검색한다. -> [{ id, title, artist, sourceLang, youtubeVideoId,
+// visibility, featured }, ...] (최대 20개)
+export async function searchSongsForAdmin(query) {
+  const params = new URLSearchParams()
+  if (query && query.trim()) params.set('q', query.trim())
+  return apiGet(`/api/admin/songs/search?${params.toString()}`)
+}
+
+// GET /api/admin/songs/featured (ADMIN 전용)
+// 현재 "오늘의 추천곡" 후보로 지정된 곡 전체 목록(제목순).
+export async function listFeaturedSongs() {
+  return apiGet('/api/admin/songs/featured')
+}
+
+// PUT /api/admin/songs/{songId}/featured { featured: boolean } (ADMIN 전용)
+// 곡 하나를 오늘의 추천곡 후보로 켜거나 끈다. 유튜브 영상이 없는 곡을 켜려고 하면 400.
+export async function setSongFeatured(songId, featured) {
+  return apiPut(`/api/admin/songs/${songId}/featured`, { featured })
+}

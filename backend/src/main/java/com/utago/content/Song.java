@@ -69,4 +69,13 @@ public class Song {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    /**
+     * 홈 화면 "오늘의 추천곡"에 등장할 수 있는지 여부. 관리자가 직접 켜고 끈다(일반 사용자는
+     * 접근 불가 — AdminSongController 참고). 유튜브 영상이 있고(썸네일 필요) visibility가
+     * 공개인 곡만 실제로 추천 후보에 들어간다(HomeLyricService 참고).
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean featured = false;
 }

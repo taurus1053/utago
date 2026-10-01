@@ -14,15 +14,15 @@ public class HomeLyricController {
     private final HomeLyricService homeLyricService;
 
     /**
-     * 홈 화면 "오늘의 가사" — 단어장에 있고 없고 상관없이, 공개 가사 전체에서 무작위 소절
-     * 하나 + 그 소절의 단어/뜻 목록. 로그인 필요 — 본인 소유의 PRIVATE 곡 가사도 후보에
-     * 포함시키려면 요청한 사용자를 알아야 해서다.
+     * 홈 화면 "오늘의 추천곡" — 단어장에 있고 없고 상관없이, 공개 곡 전체에서 무작위로 곡
+     * 하나(제목/아티스트/유튜브 영상 ID만, 가사 원문은 포함하지 않음)를 추천한다. 로그인
+     * 필요 — 본인 소유의 PRIVATE 곡도 후보에 포함시키려면 요청한 사용자를 알아야 해서다.
      */
-    @GetMapping("/api/home/lyric-of-day")
-    public ResponseEntity<LyricLineResponse> lyricOfDay(Authentication authentication) {
+    @GetMapping("/api/home/song-of-day")
+    public ResponseEntity<SongOfDayResponse> songOfDay(Authentication authentication) {
         Long userId = extractUserId(authentication);
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return homeLyricService.getRandomLyricOfDay(userId)
+        return homeLyricService.getRandomSongOfDay(userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }

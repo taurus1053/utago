@@ -382,6 +382,64 @@
   color: #c3b8a3;
 }
 
+/* 오늘의 추천곡 — 가사 텍스트 없이 유튜브 썸네일 + 곡 정보만 보여준다. .home-word-card가
+   고정 높이(250px)이므로 그 안에서 남는 공간을 썸네일이 꽉 채우도록 flex:1로 둔다. */
+.home-song-of-day {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.home-song-of-day-cover {
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  background-color: #e7e0d4;
+  background-size: cover;
+  background-position: center;
+}
+.home-song-of-day-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.home-song-of-day-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.home-song-of-day-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #201a14;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-song-of-day-artist {
+  font-size: 12px;
+  color: #a89c86;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-song-of-day-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.home-song-of-day-cta {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5f26f3;
+}
+
 @media (max-width: 720px) {
   .home-word-row {
     grid-template-columns: 1fr;

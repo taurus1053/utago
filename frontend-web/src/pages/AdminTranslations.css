@@ -39,6 +39,27 @@
   font-weight: 700;
 }
 
+/* 관리자 페이지끼리(번역 캐시 관리 <-> AI 학습곡 등록) 서로 넘어갈 수 있는 링크.
+   topbar 맨 오른쪽에 붙도록 margin-left: auto. */
+.admin-song-nav-link {
+  margin-left: auto;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+.admin-song-nav-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+/* 관리자 페이지 topbar에 링크가 두 개 이상일 때 — margin-left:auto는 첫 번째 링크에만
+   줘서 그룹 전체를 오른쪽으로 밀고, 나머지는 바로 옆에 붙인다. */
+.admin-song-nav-link--plain {
+  margin-left: 0;
+}
+
 .admin-tr-content {
   max-width: 720px;
   margin: 0 auto;

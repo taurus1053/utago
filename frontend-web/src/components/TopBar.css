@@ -1,6 +1,17 @@
 /* Home.jsx에 있던 상단바/사이드바/프로필 드롭다운 스타일을 그대로 옮겨온 것 —
    여러 페이지(홈/곡 추가/곡 학습)에서 공통으로 쓰는 TopBar 컴포넌트 전용. */
 
+/* 사이드바/프로필 메뉴의 <a>, <Link> 밑줄 제거 — 원래는 Home.css의 ".home-page a"
+   규칙에 얹혀서 지워지고 있었는데, 단어장처럼 .home-page 래퍼가 없는 페이지에서는
+   그 규칙이 적용 안 돼서 브라우저 기본 밑줄이 그대로 보였다. TopBar는 여러 페이지에서
+   공용으로 쓰이므로, 어느 페이지에서 쓰이든 항상 적용되도록 여기 자체에 둔다. */
+.home-sidebar-link,
+.home-topbar-login,
+.home-profile-item {
+  color: inherit;
+  text-decoration: none;
+}
+
 /* 상단바 */
 .home-topbar {
   height: 64px;

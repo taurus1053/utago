@@ -8,12 +8,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 /**
- * 단어장에 담긴 단어 1개 + SRS(간격 반복) 상태.
- * "안다" -> interval 증가(1→3→7→14…), "모른다" -> interval 초기화 (SM-2 단순화 버전).
+ * 단어장에 "이 단어가 담겨 있다"는 멤버십 + 별표 여부.
+ *
+ * SRS(간격 반복) 학습 진행 상태(복습 횟수/다음 복습일/간격/난이도)는 더 이상 여기 없다 —
+ * UserWordProgress로 옮겨졌다. 같은 단어가 여러 단어장(즐겨찾기 + 커스텀 단어장 등)에
+ * 동시에 담겨 있을 수 있는데, 그 진행 상태는 어느 단어장에서 보든 항상 같아야 하기 때문
+ * (단어장 항목마다 따로 가지고 있으면 한쪽에서 복습해도 다른 쪽엔 반영 안 되는 문제가 있었다).
  */
 @Entity
 @Table(name = "wordbook_items")
@@ -39,24 +40,4 @@ public class WordbookItem {
     @Column(nullable = false)
     @Builder.Default
     private boolean starred = false;
-
-    @Column(name = "next_review_at")
-    private LocalDateTime nextReviewAt;
-
-    @Column(name = "interval_days", nullable = false)
-    @Builder.Default
-    private int intervalDays = 1;
-
-    @Column(name = "repetition_count", nullable = false)
-    @Builder.Default
-    private int repetitionCount = 0;
-
-    @Column(name = "ease_factor", nullable = false, precision = 4, scale = 2)
-    @Builder.Default
-    private BigDecimal easeFactor = new BigDecimal("2.50");
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private WordbookItemStatus status = WordbookItemStatus.LEARNING;
 }

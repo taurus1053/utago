@@ -36,8 +36,14 @@ public record WordbookItemResponse(
         List<ExampleWord> exampleWords,
         List<String> similarLemmas
 ) {
+    /**
+     * @param progress 이 단어의 학습 진행 상태(UserWordProgress) — 사용자+단어 단위로 하나뿐이라
+     *                 어느 단어장에서 보든 동일하다. 한 번도 복습한 적 없는 단어는 아직 행 자체가
+     *                 없을 수 있으므로 null 가능 — 그 경우 기본값(LEARNING/1일/0회/null)으로 채운다.
+     */
     public static WordbookItemResponse of(
             WordbookItem item,
+            UserWordProgress progress,
             List<WordMeaning> meanings,
             String exampleText,
             Integer exampleStart,
@@ -56,10 +62,10 @@ public record WordbookItemResponse(
                 word.getReading(),
                 meanings.stream().map(WordMeaning::getMeaningText).toList(),
                 item.isStarred(),
-                item.getStatus(),
-                item.getIntervalDays(),
-                item.getRepetitionCount(),
-                item.getNextReviewAt(),
+                progress != null ? progress.getStatus() : WordbookItemStatus.LEARNING,
+                progress != null ? progress.getIntervalDays() : 1,
+                progress != null ? progress.getRepetitionCount() : 0,
+                progress != null ? progress.getNextReviewAt() : null,
                 exampleText,
                 exampleStart,
                 exampleEnd,

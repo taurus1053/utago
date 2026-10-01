@@ -21,7 +21,10 @@ function rubyOrPlain(surface, furigana) {
   return (
     <ruby>
       {surface}
-      <rt className={furigana ? undefined : 'song-learn-rt-empty'}>{furigana || ' '}</rt>
+      {/* 빈 rt의 자리표시 문자는 반드시 nbsp( )여야 한다 — 보통 스페이스(' ')는 CSS
+          공백 접기 규칙 때문에 rt 안에서 사실상 빈 내용으로 취급돼 높이가 0이 되어버려서,
+          후리가나 유무로 줄 높이가 달라지는 바로 그 버그가 재발한다(실측 확인됨). */}
+      <rt className={furigana ? undefined : 'song-learn-rt-empty'}>{furigana || ' '}</rt>
     </ruby>
   )
 }

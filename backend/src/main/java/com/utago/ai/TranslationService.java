@@ -197,20 +197,33 @@ public class TranslationService {
 
     /**
      * @return lines 와 같은 개수/순서의 번역. 실패하거나 키 미설정이면 빈 리스트.
+     *
+     * MAX_LINES_PER_REQUEST(60)줄보다 긴 곡은 한 번의 Claude 호출로 처리하지 않고 그만큼씩
+     * 나눠서 여러 번 호출한다(WordExampleService.getOrGenerateExamples와 같은 패턴) — 전에는
+     * 60줄 넘는 요청을 그냥 앞 60줄만 잘라서 보내고 나머지는 버렸는데, 그러면 호출부
+     * (SongController)가 "입력 줄 수와 결과 개수가 다르다"고 판단해 번역 전체를 실패
+     * 처리해버렸다. 한 묶음이라도 실패하면 그 뒤는 더 불러도 의미가 없으므로 중단하고
+     * 그 시점까지 모은 결과도 버린다(부분 번역은 사용자에게 혼란을 줄 수 있어 전체 실패로
+     * 통일 — 기존 동작과 동일).
      */
     public List<String> translateLines(List<String> lines, Lang sourceLang) {
         if (!anthropicClient.isConfigured() || lines == null || lines.isEmpty()) {
             return List.of();
         }
-        List<String> trimmed = lines.size() > MAX_LINES_PER_REQUEST
-                ? lines.subList(0, MAX_LINES_PER_REQUEST)
-                : lines;
-
-        String prompt = buildPrompt(trimmed, sourceLang);
-        return anthropicClient.complete(prompt, 2000)
-                .flatMap(this::parseJsonArray)
-                .filter(result -> result.size() == trimmed.size())
-                .orElse(List.of());
+        List<String> result = new ArrayList<>(lines.size());
+        for (int start = 0; start < lines.size(); start += MAX_LINES_PER_REQUEST) {
+            List<String> batch = lines.subList(start, Math.min(start + MAX_LINES_PER_REQUEST, lines.size()));
+            String prompt = buildPrompt(batch, sourceLang);
+            boolean ok = anthropicClient.complete(prompt, 2000)
+                    .flatMap(this::parseJsonArray)
+                    .filter(batchResult -> batchResult.size() == batch.size())
+                    .map(result::addAll)
+                    .orElse(false);
+            if (!ok) {
+                return List.of();
+            }
+        }
+        return result;
     }
 
     private String buildPrompt(List<String> lines, Lang sourceLang) {

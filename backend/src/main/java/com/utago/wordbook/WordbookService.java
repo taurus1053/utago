@@ -41,6 +41,7 @@ public class WordbookService {
     private final SongLineWordRepository songLineWordRepository;
     private final UserRepository userRepository;
     private final WordExampleService wordExampleService;
+    private final UserWordProgressRepository userWordProgressRepository;
 
     /** 계정마다 기본으로 하나씩 있어야 하는 "즐겨찾기" 단어장. 없으면 그 자리에서 만든다
      * (회원가입 시점에 미리 만들어두지 않고, 처음 필요할 때 지연 생성). */
@@ -258,27 +259,46 @@ public class WordbookService {
     /**
      * 플래시카드 복습 결과 반영. "안다": 복습 간격을 다음 단계로 늘리고(1→3→7→14→30→60일),
      * 마지막 단계를 넘기면 MASTERED로 전환. "모른다": 처음(1일 뒤 재복습)으로 되돌린다.
+     *
+     * 진행 상태는 이 단어장 항목(itemId)이 아니라 "사용자+단어" 단위(UserWordProgress)에
+     * 반영된다 — 같은 단어가 다른 단어장(즐겨찾기 포함)에도 담겨 있다면 거기서도 똑같이
+     * 학습 횟수가 올라간 것으로 보인다.
      */
     @Transactional
     public WordbookItemResponse review(Long userId, Long itemId, boolean know) {
         WordbookItem item = requireOwnedItem(userId, itemId);
+        UserWordProgress progress = getOrCreateProgress(userId, item.getWord());
         if (know) {
-            int nextCount = item.getRepetitionCount() + 1;
-            item.setRepetitionCount(nextCount);
+            int nextCount = progress.getRepetitionCount() + 1;
+            progress.setRepetitionCount(nextCount);
             int idx = Math.min(nextCount - 1, REVIEW_INTERVALS_DAYS.length - 1);
             int intervalDays = REVIEW_INTERVALS_DAYS[idx];
-            item.setIntervalDays(intervalDays);
-            item.setNextReviewAt(LocalDateTime.now().plusDays(intervalDays));
-            item.setStatus(nextCount >= REVIEW_INTERVALS_DAYS.length
+            progress.setIntervalDays(intervalDays);
+            progress.setNextReviewAt(LocalDateTime.now().plusDays(intervalDays));
+            progress.setStatus(nextCount >= REVIEW_INTERVALS_DAYS.length
                     ? WordbookItemStatus.MASTERED
                     : WordbookItemStatus.LEARNING);
         } else {
-            item.setRepetitionCount(0);
-            item.setIntervalDays(1);
-            item.setNextReviewAt(LocalDateTime.now());
-            item.setStatus(WordbookItemStatus.LEARNING);
+            progress.setRepetitionCount(0);
+            progress.setIntervalDays(1);
+            progress.setNextReviewAt(LocalDateTime.now());
+            progress.setStatus(WordbookItemStatus.LEARNING);
         }
+        userWordProgressRepository.save(progress);
         return toResponses(userId, List.of(item)).get(0);
+    }
+
+    /** 단어 하나의 학습 진행 상태를 찾아오거나(없으면) 기본값으로 새로 만든다. */
+    private UserWordProgress getOrCreateProgress(Long userId, Word word) {
+        return userWordProgressRepository.findByUser_IdAndWord_Id(userId, word.getId())
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                    return UserWordProgress.builder()
+                            .user(user)
+                            .word(word)
+                            .build();
+                });
     }
 
     private Wordbook requireOwnedWordbook(Long userId, Long wordbookId) {
@@ -302,6 +322,11 @@ public class WordbookService {
     private List<WordbookItemResponse> toResponses(Long userId, List<WordbookItem> items) {
         if (items.isEmpty()) return List.of();
         List<Long> wordIds = items.stream().map(i -> i.getWord().getId()).distinct().toList();
+        // 학습 진행 상태(SRS) — 사용자+단어 단위로 하나뿐이라, 같은 단어가 여러 단어장에
+        // 담겨 있어도(즐겨찾기 포함) 항상 같은 학습 횟수/복습 주기를 보여준다.
+        Map<Long, UserWordProgress> progressByWordId = userWordProgressRepository
+                .findByUser_IdAndWord_IdIn(userId, wordIds).stream()
+                .collect(Collectors.toMap(p -> p.getWord().getId(), p -> p));
         Map<Long, List<WordMeaning>> meaningsByWordId = wordMeaningRepository
                 .findByWordIdInOrderByDisplayOrderAsc(wordIds).stream()
                 .collect(Collectors.groupingBy(m -> m.getWord().getId()));
@@ -345,6 +370,7 @@ public class WordbookService {
                                 .toList();
                         return WordbookItemResponse.of(
                                 item,
+                                progressByWordId.get(wordId),
                                 meanings,
                                 example.getSongLine().getOriginalText(),
                                 example.getCharOffsetStart(),
@@ -364,6 +390,7 @@ public class WordbookService {
                                 : locateInTokens(tokens, item.getWord().getLemma());
                         return WordbookItemResponse.of(
                                 item,
+                                progressByWordId.get(wordId),
                                 meanings,
                                 aiExample.getExampleText(),
                                 ownSpan == null ? null : ownSpan[0],
@@ -374,7 +401,9 @@ public class WordbookService {
                                 similarLemmas);
                     }
 
-                    return WordbookItemResponse.of(item, meanings, null, null, null, null, List.of(), List.of(), similarLemmas);
+                    return WordbookItemResponse.of(
+                            item, progressByWordId.get(wordId), meanings,
+                            null, null, null, null, List.of(), List.of(), similarLemmas);
                 })
                 .toList();
     }

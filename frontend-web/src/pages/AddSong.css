@@ -168,6 +168,12 @@
   cursor: default;
 }
 
+.add-song-bulk-paste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .add-song-translate-notice {
   padding: 10px 14px;
   border-radius: 10px;

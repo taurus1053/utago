@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isLoggedIn } from '../api/auth'
 import { getMySongs, listSongs } from '../api/songs'
-import { getLyricOfDay, getLyricReview } from '../api/home'
+import { getSongOfDay, getLyricReview } from '../api/home'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import './Home.css'
@@ -180,48 +180,75 @@ function RefreshButton({ onClick, disabled }) {
   )
 }
 
-// 홈 화면 "오늘의 가사" 카드 — 단어장에 있고 없고 상관없이, 공개 가사 전체에서 무작위 소절 +
-// 의역 + 그 소절의 단어/뜻 목록을 보여준다. 새로고침 버튼으로 다른 소절을 다시 뽑을 수 있다.
-function LyricOfDayCard({ loggedIn }) {
-  const [line, setLine] = useState(null)
+// 홈 화면 "오늘의 추천곡" 카드 — 단어장에 있고 없고 상관없이, 공개 곡 전체에서 무작위로 곡
+// 하나를 추천한다. 예전엔 가사 원문 한 소절을 그대로 보여줬는데, 사용자가 직접 고르지 않은
+// 임의의 가사 텍스트를 노출하는 건 저작권 리스크가 있어서 — 가사 텍스트는 전혀 내려받지
+// 않고, 유튜브 자체 썸네일 + 곡 정보 + 학습 페이지 링크만 보여주는 "곡 추천"으로 바꿨다.
+function SongOfDayCard({ loggedIn }) {
+  const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(loggedIn)
   const [error, setError] = useState(null)
 
-  const fetchLine = useCallback(() => {
+  const fetchSong = useCallback(() => {
     if (!loggedIn) {
       setLoading(false)
       return
     }
     setLoading(true)
     setError(null)
-    getLyricOfDay()
-      .then((data) => setLine(data))
+    getSongOfDay()
+      .then((data) => setSong(data))
       .catch((err) => setError(err))
       .finally(() => setLoading(false))
   }, [loggedIn])
 
   useEffect(() => {
-    fetchLine()
-  }, [fetchLine])
+    fetchSong()
+  }, [fetchSong])
+
+  const badge = LANG_BADGE[song?.sourceLang]
 
   return (
     <div className="home-word-card">
       <div className="home-word-card-header">
-        <span className="home-word-card-label">오늘의 가사</span>
-        {loggedIn && <RefreshButton onClick={fetchLine} disabled={loading} />}
+        <span className="home-word-card-label">오늘의 추천곡</span>
+        {loggedIn && <RefreshButton onClick={fetchSong} disabled={loading} />}
       </div>
       {!loggedIn ? (
         <div className="home-word-status">
-          로그인하면 오늘의 가사를 볼 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
+          로그인하면 오늘의 추천곡을 볼 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
         </div>
       ) : loading ? (
         <div className="home-word-status">불러오는 중...</div>
       ) : error ? (
-        <div className="home-word-status home-word-status--error">가사를 불러오지 못했어요.</div>
-      ) : !line ? (
-        <div className="home-word-status">아직 등록된 가사가 없어요.</div>
+        <div className="home-word-status home-word-status--error">추천곡을 불러오지 못했어요.</div>
+      ) : !song ? (
+        <div className="home-word-status">아직 등록된 곡이 없어요.</div>
       ) : (
-        <LyricLineBody line={line} />
+        <Link to={`/songs/${song.songId}`} className="home-song-of-day">
+          <div
+            className="home-song-of-day-cover"
+            style={{
+              backgroundImage: song.youtubeVideoId
+                ? `url(https://i.ytimg.com/vi/${song.youtubeVideoId}/mqdefault.jpg)`
+                : undefined,
+            }}
+          />
+          <div className="home-song-of-day-meta">
+            <div className="home-song-of-day-info">
+              <span className="home-song-of-day-title">{song.title}</span>
+              <span className="home-song-of-day-artist">{song.artist}</span>
+            </div>
+            <div className="home-song-of-day-foot">
+              {badge && (
+                <span className="home-song-badge" style={{ background: badge.bg, color: badge.color }}>
+                  {LANG_BADGE_LABEL[song.sourceLang] ?? song.sourceLang}
+                </span>
+              )}
+              <span className="home-song-of-day-cta">학습하러 가기 →</span>
+            </div>
+          </div>
+        </Link>
       )}
     </div>
   )
@@ -463,9 +490,9 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 오늘의 가사 · 가사 복습하기 */}
+        {/* 오늘의 추천곡 · 가사 복습하기 */}
         <div className="home-word-row">
-          <LyricOfDayCard loggedIn={loggedIn} />
+          <SongOfDayCard loggedIn={loggedIn} />
           <LyricReviewCard loggedIn={loggedIn} />
         </div>
 

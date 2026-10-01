@@ -243,6 +243,8 @@ export default function AdminTranslations() {
           </svg>
         </button>
         <span className="admin-tr-topbar-title">번역 캐시 관리</span>
+        <Link to="/admin/songs" className="admin-song-nav-link">AI 학습곡 등록 →</Link>
+        <Link to="/admin/featured-songs" className="admin-song-nav-link admin-song-nav-link--plain">추천곡 관리 →</Link>
       </header>
 
       <div className="admin-tr-content">

@@ -27,10 +27,14 @@ public class WordExampleService {
     private final TranslationService translationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /** TranslationService.generateWordExamples 한 번 호출당 최대 단어 수와 맞춤. */
+    private static final int BATCH_SIZE = 40;
+
     /**
      * 주어진 단어들의 MASTER 예문을 돌려준다 — 이미 있으면 그대로, 없고 AI가 설정돼 있으면
      * 그 자리에서 만들어 저장한 뒤 돌려준다. AI 키가 없거나 생성에 실패한 단어는 결과 맵에서
-     * 빠진다(호출부가 그 단어는 예문 없이 처리).
+     * 빠진다(호출부가 그 단어는 예문 없이 처리). 노래 등록 시 신규 단어 예문을 즉시 채울 때도
+     * 이 메서드를 그대로 쓴다 — 이미 예문이 있는 단어는 다시 만들지 않는다.
      */
     @Transactional
     public Map<Long, WordExample> getOrGenerateExamples(List<Word> words) {
@@ -57,30 +61,35 @@ public class WordExampleService {
                 .findByWordIdInOrderByDisplayOrderAsc(missing.stream().map(Word::getId).toList()).stream()
                 .collect(Collectors.groupingBy(m -> m.getWord().getId()));
 
-        List<TranslationService.WordExampleQuery> queries = missing.stream()
-                .map(w -> new TranslationService.WordExampleQuery(
-                        w.getId(),
-                        w.getLemma(),
-                        w.getLang(),
-                        meaningsByWordId.getOrDefault(w.getId(), List.of()).stream()
-                                .findFirst()
-                                .map(WordMeaning::getMeaningText)
-                                .orElse(null)))
-                .toList();
-        List<TranslationService.GeneratedExample> generated = translationService.generateWordExamples(queries);
-
         Map<Long, WordExample> result = new HashMap<>(existing);
-        for (int i = 0; i < missing.size(); i++) {
-            TranslationService.GeneratedExample g = i < generated.size() ? generated.get(i) : null;
-            if (g == null) continue;
-            WordExample saved = wordExampleRepository.save(WordExample.builder()
-                    .word(missing.get(i))
-                    .exampleText(g.exampleText())
-                    .exampleTranslation(g.exampleTranslation())
-                    .sourceType(ExampleSourceType.MASTER)
-                    .tokensJson(toTokensJson(g.tokens()))
-                    .build());
-            result.put(missing.get(i).getId(), saved);
+        // 한 곡에 고유 단어가 BATCH_SIZE(40)개를 넘을 수도 있으므로 나눠서 호출한다
+        // (TranslationService.generateWordExamples는 한 번에 40개까지만 처리하고 나머지는 버림).
+        for (int from = 0; from < missing.size(); from += BATCH_SIZE) {
+            List<Word> batch = missing.subList(from, Math.min(from + BATCH_SIZE, missing.size()));
+            List<TranslationService.WordExampleQuery> queries = batch.stream()
+                    .map(w -> new TranslationService.WordExampleQuery(
+                            w.getId(),
+                            w.getLemma(),
+                            w.getLang(),
+                            meaningsByWordId.getOrDefault(w.getId(), List.of()).stream()
+                                    .findFirst()
+                                    .map(WordMeaning::getMeaningText)
+                                    .orElse(null)))
+                    .toList();
+            List<TranslationService.GeneratedExample> generated = translationService.generateWordExamples(queries);
+
+            for (int i = 0; i < batch.size(); i++) {
+                TranslationService.GeneratedExample g = i < generated.size() ? generated.get(i) : null;
+                if (g == null) continue;
+                WordExample saved = wordExampleRepository.save(WordExample.builder()
+                        .word(batch.get(i))
+                        .exampleText(g.exampleText())
+                        .exampleTranslation(g.exampleTranslation())
+                        .sourceType(ExampleSourceType.MASTER)
+                        .tokensJson(toTokensJson(g.tokens()))
+                        .build());
+                result.put(batch.get(i).getId(), saved);
+            }
         }
         return result;
     }
