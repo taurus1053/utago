@@ -34,6 +34,15 @@ public class User {
     @Column(nullable = false, length = 60)
     private String nickname;
 
+    /** 프로필 아바타 기본 배경색(랜덤 파스텔, hex) — 회원가입 시 배정(AuthService 참고),
+     * 추후 실제 사진으로 교체 가능(V24, 소셜_마이페이지_기획.md 9-3). */
+    @Column(name = "avatar_color", length = 10)
+    private String avatarColor;
+
+    /** 마이페이지 프로필의 한 줄 소개(V24, 9-2). */
+    @Column(name = "status_message", length = 80)
+    private String statusMessage;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "native_lang", nullable = false, length = 10)
     private Lang nativeLang;

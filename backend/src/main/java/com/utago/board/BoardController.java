@@ -7,12 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * "단어장 둘러보기" 게시판 — claude/소셜_마이페이지_기획.md 2-2 API 설계 참고. 저장(북마크)
- * 토글(POST .../save)만 먼저 들어와 있고, 폴더별 분류는 마이페이지의 "저장한 게시글" 화면과
- * 함께 나중에 추가한다(V22 마이그레이션 주석 참고).
+ * 토글(POST .../save)과 "내가 올린 글"/"저장한 글" 목록(마이페이지용)은 있지만, 저장글의
+ * 폴더별 분류는 아직 없다(V22 마이그레이션 주석 참고).
  */
 @RestController
 @RequestMapping("/api/board")
@@ -33,6 +34,22 @@ public class BoardController {
         Long userId = extractUserId(authentication);
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(wordbookPostService.listPosts(sort, page, size, userId));
+    }
+
+    /** 마이페이지 "내가 올린 게시글". */
+    @GetMapping("/posts/mine")
+    public ResponseEntity<List<PostSummaryResponse>> listMine(Authentication authentication) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(wordbookPostService.listMyPosts(userId));
+    }
+
+    /** 마이페이지 "저장한 게시글". */
+    @GetMapping("/saved")
+    public ResponseEntity<List<PostSummaryResponse>> listSaved(Authentication authentication) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(wordbookPostService.listSavedPosts(userId));
     }
 
     @GetMapping("/posts/{id}")

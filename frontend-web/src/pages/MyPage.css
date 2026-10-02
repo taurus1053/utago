@@ -1,0 +1,509 @@
+.mypage-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+.mypage-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.mypage-status {
+  padding: 24px 0;
+  text-align: center;
+  color: #a89c86;
+  font-size: 14px;
+}
+.mypage-status--error {
+  color: #b0512f;
+}
+
+/* 프로필 카드 */
+.mypage-profile-card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.mypage-profile-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.mypage-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #201a14;
+  flex-shrink: 0;
+}
+.mypage-profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mypage-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mypage-profile-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #201a14;
+}
+.mypage-profile-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7636f6;
+  background: #f4efff;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.mypage-profile-flag-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.mypage-flag-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mypage-flag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.mypage-profile-flag-label {
+  font-size: 12.5px;
+  color: #8a7f6e;
+  font-weight: 600;
+}
+.mypage-profile-status {
+  font-size: 13.5px;
+  color: #5b5346;
+  line-height: 1.4;
+}
+.mypage-profile-edit-btn {
+  border: 1px solid #e3e3e3;
+  background: #ffffff;
+  color: #5b5346;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.mypage-profile-edit-btn:hover {
+  background: #f0f0f0;
+}
+.mypage-status-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mypage-status-edit input {
+  flex: 1;
+  min-width: 160px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+}
+.mypage-status-edit input:focus {
+  border-color: #7636f6;
+}
+.mypage-status-edit button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #201a14;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mypage-status-edit button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.mypage-status-edit-cancel {
+  background: #ffffff !important;
+  color: #5b5346 !important;
+  border: 1px solid #dcdcdc !important;
+}
+
+/* 학습 통계 */
+.mypage-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.mypage-stat-tile {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  padding: 20px;
+}
+.mypage-stat-label {
+  font-size: 13px;
+  color: #8a7f6e;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.mypage-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #201a14;
+}
+
+/* 2단 레이아웃 */
+.mypage-columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.mypage-main-col,
+.mypage-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 카드 공통 */
+.mypage-card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 20px;
+  padding: 28px;
+}
+.mypage-card--side {
+  padding: 22px;
+}
+.mypage-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.mypage-card-head h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #201a14;
+  margin: 0;
+}
+.mypage-card-link {
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7636f6;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* 내 단어장 그리드 */
+.mypage-wordbook-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.mypage-wordbook-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  padding: 16px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+.mypage-wordbook-card:hover {
+  border-color: #cfcabf;
+}
+.mypage-wordbook-card-top {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+}
+.mypage-wordbook-lock {
+  display: flex;
+}
+.mypage-wordbook-emoji {
+  font-size: 22px;
+}
+.mypage-wordbook-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #201a14;
+  line-height: 1.3;
+  padding-right: 20px;
+}
+.mypage-wordbook-count {
+  font-size: 12px;
+  color: #8a7f6e;
+  font-weight: 600;
+}
+.mypage-wordbook-card--new {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #8a7f6e;
+  border-style: dashed;
+  min-height: 110px;
+}
+.mypage-wordbook-card--new:hover {
+  background: #f0f0f0;
+  border-color: #cfcabf;
+}
+.mypage-wordbook-new-icon {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* 단어장 둘러보기 배너 */
+.mypage-board-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 20px;
+  padding: 22px 26px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mypage-board-banner:hover {
+  border-color: #cfcabf;
+}
+.mypage-board-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mypage-board-banner-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #f4efff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  flex-shrink: 0;
+}
+.mypage-board-banner-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #201a14;
+  margin-bottom: 2px;
+}
+.mypage-board-banner-sub {
+  font-size: 13px;
+  color: #8a7f6e;
+  font-weight: 500;
+}
+.mypage-board-banner-arrow {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f4efff;
+  color: #7636f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* 게시글 미리보기 목록 */
+.mypage-list {
+  display: flex;
+  flex-direction: column;
+}
+.mypage-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid #ececec;
+  color: #201a14;
+  text-decoration: none;
+}
+.mypage-list-row:first-child {
+  border-top: none;
+}
+.mypage-list-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mypage-list-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mypage-list-row-sub {
+  font-size: 12px;
+  color: #8a7f6e;
+}
+.mypage-list-row-stats {
+  font-size: 12px;
+  color: #8a7f6e;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 사이드바 공통 */
+.mypage-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #201a14;
+  margin-bottom: 4px;
+}
+.mypage-side-sub {
+  font-size: 12px;
+  color: #8a7f6e;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.mypage-side-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #201a14;
+  margin-bottom: 14px;
+}
+.mypage-side-add {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7636f6;
+}
+
+/* 학습 스트릭 */
+.mypage-streak-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.mypage-streak-cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+}
+
+/* 칭호 컬렉션 */
+.mypage-title-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.mypage-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+.mypage-title-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.mypage-title-current {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  color: #7636f6;
+  background: #f4efff;
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.mypage-title-progress-label {
+  font-size: 11.5px;
+  color: #8a7f6e;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.mypage-title-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #f2f2f2;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.mypage-title-progress-fill {
+  height: 100%;
+  background: #7636f6;
+}
+
+/* 친구 */
+.mypage-friends-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mypage-friend-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b5346;
+}
+
+/* 좁은 화면 대응 */
+@media (max-width: 860px) {
+  .mypage-columns {
+    grid-template-columns: 1fr;
+  }
+  .mypage-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mypage-wordbook-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

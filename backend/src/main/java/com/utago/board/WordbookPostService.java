@@ -59,6 +59,30 @@ public class WordbookPostService {
         return posts.map(post -> toSummary(post, likedPostIds.contains(post.getId())));
     }
 
+    /** 마이페이지 "내가 올린 게시글" — 최신순. */
+    public List<PostSummaryResponse> listMyPosts(Long userId) {
+        List<WordbookPost> posts = postRepository.findByAuthorIdOrderByCreatedAtDesc(userId);
+        return toSummaryList(posts, userId);
+    }
+
+    /** 마이페이지 "저장한 게시글" — 저장한 순(최근 저장이 위). 폴더 분류는 아직 없음(V22 주석 참고). */
+    public List<PostSummaryResponse> listSavedPosts(Long userId) {
+        List<WordbookPost> posts = saveRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(WordbookPostSave::getPost)
+                .toList();
+        return toSummaryList(posts, userId);
+    }
+
+    private List<PostSummaryResponse> toSummaryList(List<WordbookPost> posts, Long viewerUserId) {
+        List<Long> postIds = posts.stream().map(WordbookPost::getId).toList();
+        Set<Long> likedPostIds = viewerUserId == null
+                ? Set.of()
+                : likeRepository.findByUserIdAndPostIdIn(viewerUserId, postIds).stream()
+                        .map(like -> like.getPost().getId())
+                        .collect(Collectors.toSet());
+        return posts.stream().map(post -> toSummary(post, likedPostIds.contains(post.getId()))).toList();
+    }
+
     public PostDetailResponse getPost(Long postId, Long viewerUserId) {
         WordbookPost post = requirePost(postId);
         boolean liked = viewerUserId != null && likeRepository.existsByPostIdAndUserId(postId, viewerUserId);

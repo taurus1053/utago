@@ -47,3 +47,13 @@ export async function toggleLike(postId) {
 export async function toggleSave(postId) {
   return apiPost(`/api/board/posts/${postId}/save`, {})
 }
+
+// GET /api/board/posts/mine — 마이페이지 "내가 올린 게시글". listPosts와 달리 Page가 아니라 배열.
+export async function listMyPosts() {
+  return apiGet('/api/board/posts/mine')
+}
+
+// GET /api/board/saved — 마이페이지 "저장한 게시글". 폴더 분류는 아직 없음.
+export async function listSavedPosts() {
+  return apiGet('/api/board/saved')
+}

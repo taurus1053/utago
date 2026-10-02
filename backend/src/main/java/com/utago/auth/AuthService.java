@@ -26,6 +26,12 @@ public class AuthService {
     private static final int VERIFICATION_CODE_LENGTH = 6;
     private static final long VERIFICATION_CODE_VALID_MINUTES = 10;
 
+    /** 프로필 아바타 기본 배경색 후보(파스텔 톤) — 소셜_마이페이지_기획.md 9-3. */
+    private static final String[] AVATAR_PASTEL_COLORS = {
+            "#C9E4DE", "#FAE1DD", "#DBCDF0", "#FDE2E4", "#CDE7F0", "#F0EFEB", "#FFF1D0"
+    };
+    private static final SecureRandom AVATAR_COLOR_RANDOM = new SecureRandom();
+
     private final UserRepository userRepository;
     private final SignupVerificationRepository signupVerificationRepository;
     private final PasswordEncoder passwordEncoder;
@@ -93,6 +99,7 @@ public class AuthService {
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .nickname(request.nickname())
+                .avatarColor(randomAvatarColor())
                 .nativeLang(request.nativeLang())
                 .birthDate(request.birthDate())
                 .authProvider("email")
@@ -175,5 +182,9 @@ public class AuthService {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    private String randomAvatarColor() {
+        return AVATAR_PASTEL_COLORS[AVATAR_COLOR_RANDOM.nextInt(AVATAR_PASTEL_COLORS.length)];
     }
 }

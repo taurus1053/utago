@@ -13,4 +13,7 @@ public interface WordbookPostSaveRepository extends JpaRepository<WordbookPostSa
 
     /** 상세/목록 화면에서 "지금 로그인한 사용자가 저장한 게시글" 목록을 한 번에 조회할 때. */
     List<WordbookPostSave> findByUserIdAndPostIdIn(Long userId, List<Long> postIds);
+
+    /** 마이페이지 "저장한 게시글" — 최근 저장한 순. */
+    List<WordbookPostSave> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

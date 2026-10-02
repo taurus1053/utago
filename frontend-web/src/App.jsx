@@ -7,6 +7,7 @@ import SongLearn from './pages/SongLearn'
 import SongSync from './pages/SongSync'
 import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
+import MyPage from './pages/MyPage'
 import BoardList from './pages/BoardList'
 import BoardWrite from './pages/BoardWrite'
 import BoardDetail from './pages/BoardDetail'
@@ -71,6 +72,15 @@ function App() {
           element={(
             <RequireAuth>
               <Wordbook />
+            </RequireAuth>
+          )}
+        />
+        {/* 마이페이지 — 프로필/내 단어장/내가 올린 글/저장한 글(claude/소셜_마이페이지_기획.md 5번). 로그인 필수 */}
+        <Route
+          path="/mypage"
+          element={(
+            <RequireAuth>
+              <MyPage />
             </RequireAuth>
           )}
         />

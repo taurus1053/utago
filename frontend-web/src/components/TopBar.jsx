@@ -162,13 +162,13 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </svg>
             <span>문법</span>
           </a>
-          <a href="#mypage" className="home-sidebar-link">
+          <Link to="/mypage" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4"></circle>
               <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
             </svg>
             <span>마이페이지</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="home-sidebar-spacer" />
