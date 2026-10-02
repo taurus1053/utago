@@ -1,5 +1,5 @@
 // 곡 목록/검색/상세/등록 API 호출.
-import { apiGet, apiPost, apiPut } from './client'
+import { apiGet, apiPatch, apiPost, apiPut } from './client'
 
 // GET /api/songs?query=&lang=&page=&size=
 // -> Spring Page<SongSummaryResponse>: { content: [...], totalElements, totalPages, number, size, ... }
@@ -74,6 +74,13 @@ export async function updateSongSync(id, lines) {
 // -> 갱신된 SongDetailResponse (원문이 바뀐 줄은 서버가 후리가나/단어/발음 표기를 다시 만든다)
 export async function updateSongLines(id, lines) {
   return apiPut(`/api/songs/${id}/lines`, { lines })
+}
+
+// PATCH /api/songs/{id}/progress (로그인 상태에서만 의미 있음 — 비로그인이면 서버가 조용히 무시)
+// payload: { lineOrder } — "한 줄씩 보기"에서 지금 보고 있는 소절 순서(0-base).
+// 마이페이지 학습 통계(완료한 가사/곡)·연속 학습일의 원천 데이터가 된다(claude/소셜_마이페이지_기획.md 10번).
+export async function updateSongProgress(id, lineOrder) {
+  return apiPatch(`/api/songs/${id}/progress`, { lineOrder })
 }
 
 // 유튜브 URL(다양한 형식)에서 영상 ID만 뽑아낸다. 못 찾으면 null.

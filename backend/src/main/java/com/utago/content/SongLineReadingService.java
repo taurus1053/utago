@@ -89,6 +89,48 @@ public class SongLineReadingService {
     }
 
     /**
+     * generateKoReadings와 달리, 이미 발음 표기가 있는 소절도 전부 다시 계산해서 달라진
+     * 것만 덮어쓴다. 변환 규칙 자체가 바뀌었을 때(예: 조사 は/を/へ 발음 특례 추가) 이미
+     * 저장된 캐시를 바로잡는 용도 — SongLineReadingRepairRunner에서 서버 기동마다 호출.
+     * @return 실제로 값이 바뀌어서 덮어쓴 표기 수
+     */
+    public int repairKoReadings(List<SongLine> lines) {
+        if (lines == null || lines.isEmpty()) {
+            return 0;
+        }
+        List<Long> lineIds = lines.stream().map(SongLine::getId).toList();
+        Map<Long, SongLineReading> existingByLineId = songLineReadingRepository
+                .findBySongLineIdInAndTargetLang(lineIds, Lang.KO).stream()
+                .collect(Collectors.toMap(r -> r.getSongLine().getId(), r -> r));
+        if (existingByLineId.isEmpty()) {
+            return 0;
+        }
+
+        Map<Long, List<SongLineWord>> wordsByLineId = songLineWordRepository.findBySongLineIdIn(lineIds).stream()
+                .collect(Collectors.groupingBy(w -> w.getSongLine().getId()));
+
+        List<SongLineReading> toSave = new ArrayList<>();
+        for (SongLine line : lines) {
+            SongLineReading existing = existingByLineId.get(line.getId());
+            if (existing == null) {
+                continue;
+            }
+            List<SongLineWord> words = wordsByLineId.getOrDefault(line.getId(), List.of());
+            String hiraganaReading = buildLineHiraganaReading(line.getOriginalText(), words);
+            String hangul = kanaToHangulConverter.convert(hiraganaReading);
+            if (hangul == null || hangul.isBlank() || hangul.equals(existing.getReadingText())) {
+                continue;
+            }
+            existing.setReadingText(hangul);
+            toSave.add(existing);
+        }
+        if (!toSave.isEmpty()) {
+            songLineReadingRepository.saveAll(toSave);
+        }
+        return toSave.size();
+    }
+
+    /**
      * 소절 원문을 문절 단위로 띄어 쓴 히라가나 읽기로 재구성한다. 이미 단어(SongLineWord)로
      * 등록된 구간은 그 단어에 연결된 Word.reading(있으면)을 그대로 쓰고, 없으면 형태소
      * 분석기가 이번에 계산한 읽기를 쓴다.

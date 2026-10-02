@@ -13,3 +13,10 @@ export async function getMyPage() {
 export async function updateStatusMessage(statusMessage) {
   return apiPatch('/api/users/me', { statusMessage })
 }
+
+// GET /api/users/me/stats — 마이페이지 학습 통계 4타일 + 스트릭 캘린더.
+// -> { wordsLearned, linesCompleted, songsCompleted, currentStreakDays, longestStreakDays,
+//      calendar: [{ date: "yyyy-MM-dd", active: boolean }, ...] (최근 35일) }
+export async function getMyStats() {
+  return apiGet('/api/users/me/stats')
+}

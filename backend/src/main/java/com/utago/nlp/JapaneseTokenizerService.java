@@ -123,6 +123,27 @@ public class JapaneseTokenizerService {
         return baseForm;
     }
 
+    /**
+     * 조사(助詞) 발음 특례 — 표기와 실제 발음이 다른 세 글자: は(주제 조사)는 わ[wa],
+     * を(목적격 조사)는 お[o], へ(방향 조사)는 え[e]로 발음된다. Kuromoji(IPADIC)의
+     * getReading()은 글자 그대로의 읽기(표기)만 돌려주므로(は -> ハ), 이 보정을 거치지
+     * 않으면 "君の運命のヒトは" 같은 줄의 발음 표기(KanaToHangulConverter 입력)가
+     * "…히토하"처럼 틀리게 나온다 — 조사일 때만 적용하고, 한자 단어(歯/葉 등)에는
+     * 영향 없다(그 단어들은 가나뿐인 표면형이라도 품사가 名詞라서 걸리지 않는다).
+     */
+    private static final Map<String, String> PARTICLE_PRONUNCIATION = Map.of(
+            "は", "わ",
+            "を", "お",
+            "へ", "え"
+    );
+
+    /** 조사 발음 특례표를 실제 읽기에 적용한다. 조사(助詞)가 아니면 원래 읽기를 그대로 돌려준다. */
+    private String applyParticlePronunciation(String surface, String partOfSpeechLevel1, String reading) {
+        if (!"助詞".equals(partOfSpeechLevel1)) return reading;
+        String corrected = PARTICLE_PRONUNCIATION.get(surface);
+        return corrected != null ? corrected : reading;
+    }
+
     private final Tokenizer tokenizer = new Tokenizer();
 
     public record TokenSpan(
@@ -286,6 +307,7 @@ public class JapaneseTokenizerService {
             baseForm = applyMistokenizedOverride(baseForm, surface, prevSurface);
 
             reading = applyHomographOverride(baseForm, reading, text.substring(end));
+            reading = applyParticlePronunciation(surface, token.getPartOfSpeechLevel1(), reading);
 
             result.add(new ReadingToken(
                     surface, start, end, reading, baseForm,

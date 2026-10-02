@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getSong } from '../api/songs'
+import { getSong, updateSongProgress } from '../api/songs'
 import { addWordbookItem, createWordbook, getWordbookMembership, listWordbooks } from '../api/wordbook'
 import { isLoggedIn } from '../api/auth'
 import TopBar from '../components/TopBar'
@@ -304,6 +304,20 @@ export default function SongLearn() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLineIndex, song?.id])
+
+  // 소절이 바뀔 때마다(디바운스 1초) 이어 학습 지점을 서버에 저장 — 마이페이지 학습 통계
+  // (완료한 가사/곡)·연속 학습일의 원천 데이터가 된다(claude/소셜_마이페이지_기획.md 10번).
+  // 로그인 안 했으면 호출 자체를 생략(서버도 비로그인이면 조용히 무시하긴 하지만, 불필요한
+  // 요청을 아예 안 보내는 게 낫다).
+  useEffect(() => {
+    if (!isLoggedIn() || !song?.id) return
+    const timer = setTimeout(() => {
+      updateSongProgress(song.id, clampedIndex).catch(() => {
+        // 실패해도 무시 — 통계 집계가 이번 한 번 빠질 뿐, 다음 소절 이동 때 다시 시도된다.
+      })
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [clampedIndex, song?.id])
 
   const displayMs = isSeeking ? seekPreviewMs : currentMs
   const seekPercent = durationMs > 0 ? Math.min(100, Math.max(0, (displayMs / durationMs) * 100)) : 0

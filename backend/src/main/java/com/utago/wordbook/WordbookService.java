@@ -12,6 +12,7 @@ import com.utago.dictionary.WordMeaning;
 import com.utago.dictionary.WordMeaningEnrichmentService;
 import com.utago.dictionary.WordMeaningRepository;
 import com.utago.dictionary.WordRepository;
+import com.utago.user.LearningStatsService;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ public class WordbookService {
     private final UserWordProgressRepository userWordProgressRepository;
     private final JMdictLookupService jmdictLookupService;
     private final WordMeaningEnrichmentService wordMeaningEnrichmentService;
+    private final LearningStatsService learningStatsService;
 
     /** 계정마다 기본으로 하나씩 있어야 하는 "즐겨찾기" 단어장. 없으면 그 자리에서 만든다
      * (회원가입 시점에 미리 만들어두지 않고, 처음 필요할 때 지연 생성). */
@@ -559,6 +561,7 @@ public class WordbookService {
             progress.setStatus(WordbookItemStatus.LEARNING);
         }
         userWordProgressRepository.save(progress);
+        learningStatsService.recordActivity(userId);
         return toResponses(userId, List.of(item)).get(0);
     }
 

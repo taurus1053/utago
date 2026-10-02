@@ -16,15 +16,19 @@ import com.utago.dictionary.WordMeaningEnrichmentService;
 import com.utago.dictionary.WordMeaningRepository;
 import com.utago.dictionary.WordRepository;
 import com.utago.nlp.JapaneseTokenizerService;
+import com.utago.user.LearningStatsService;
 import com.utago.user.Role;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
+import com.utago.wordbook.UserSongProgress;
+import com.utago.wordbook.UserSongProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +59,8 @@ public class SongService {
     private final WordExampleService wordExampleService;
     private final SongSyncCacheService songSyncCacheService;
     private final SongLineReadingService songLineReadingService;
+    private final UserSongProgressRepository userSongProgressRepository;
+    private final LearningStatsService learningStatsService;
 
     /**
      * 공개 카탈로그 검색/목록 — "전체 곡" 섹션. PUBLIC + 게시 + AI_GENERATED(관리자가 만든
@@ -487,5 +493,29 @@ public class SongService {
         }
         song.setFeatured(featured);
         return AdminSongSummaryResponse.from(song);
+    }
+
+    /**
+     * "한 줄씩 보기"에서 소절을 넘길 때마다 호출 — 이어 학습 지점(lastLineOrder)을 갱신하고,
+     * 마이페이지 학습 통계(완료한 가사/곡)·스트릭의 원천 데이터가 된다(claude/소셜_마이페이지_기획.md
+     * 10번). 뒤로 가는 탐색도 있을 수 있어 항상 "가장 멀리 간 지점"만 저장한다(최댓값).
+     */
+    @Transactional
+    public void updateSongProgress(Long userId, Long songId, int lineOrder) {
+        if (lineOrder < 0) return;
+        UserSongProgress progress = userSongProgressRepository.findByUserIdAndSongId(userId, songId)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                    Song song = songRepository.findById(songId)
+                            .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                    return UserSongProgress.builder().user(user).song(song).lastLineOrder(0).build();
+                });
+        if (lineOrder > progress.getLastLineOrder()) {
+            progress.setLastLineOrder(lineOrder);
+        }
+        progress.setLastStudiedAt(LocalDateTime.now());
+        userSongProgressRepository.save(progress);
+        learningStatsService.recordActivity(userId);
     }
 }

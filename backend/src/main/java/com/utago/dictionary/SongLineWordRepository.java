@@ -32,4 +32,8 @@ public interface SongLineWordRepository extends JpaRepository<SongLineWord, Long
             "AND ((s.visibility = com.utago.content.Visibility.PUBLIC AND s.contentStatus = com.utago.content.ContentStatus.PUBLISHED) " +
             "OR s.ownerUserId = :userId)")
     List<SongLineWord> findVisibleExamplesByWordIdIn(@Param("wordIds") List<Long> wordIds, @Param("userId") Long userId);
+
+    /** 마이페이지 학습 통계 — 이 곡에 등장하는 단어(중복 제거) 전부. "완료한 곡" 판정에 쓴다. */
+    @Query("SELECT DISTINCT slw.word.id FROM SongLineWord slw WHERE slw.songLine.song.id = :songId")
+    List<Long> findDistinctWordIdsBySongId(@Param("songId") Long songId);
 }

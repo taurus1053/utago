@@ -9,6 +9,7 @@ import com.utago.content.dto.SongSummaryResponse;
 import com.utago.content.dto.TranslateLinesRequest;
 import com.utago.content.dto.TranslateLinesResponse;
 import com.utago.content.dto.UpdateLinesRequest;
+import com.utago.content.dto.UpdateSongProgressRequest;
 import com.utago.content.dto.UpdateSyncRequest;
 import com.utago.translation.LineTranslationCacheService;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -181,6 +183,23 @@ public class SongController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+    }
+
+    /**
+     * "한 줄씩 보기"에서 소절을 넘길 때마다 호출(로그인 상태에서만) — 마이페이지 학습 통계
+     * (완료한 가사/곡)·스트릭의 원천 데이터가 된다. 비로그인 사용자는 그냥 무시(가사는
+     * 로그인 없이도 볼 수 있으므로 에러로 막지 않는다).
+     */
+    @PatchMapping("/api/songs/{id}/progress")
+    public ResponseEntity<Void> updateProgress(
+            @PathVariable Long id,
+            @RequestBody UpdateSongProgressRequest request,
+            Authentication authentication
+    ) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.noContent().build();
+        songService.updateSongProgress(userId, id, request.lineOrder());
+        return ResponseEntity.noContent().build();
     }
 
     private Long extractUserId(Authentication authentication) {

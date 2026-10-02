@@ -15,6 +15,9 @@ public interface SongLineRepository extends JpaRepository<SongLine, Long> {
     /** 발음 표기 백필 등 배치 작업용 — 여러 곡의 소절을 한 번에 조회 */
     List<SongLine> findBySongIdIn(List<Long> songIds);
 
+    /** 마이페이지 학습 통계 — "완료한 가사/곡" 판정에 곡의 전체 줄 수가 필요하다. */
+    int countBySongId(Long songId);
+
     /**
      * 홈 화면 "오늘의 가사" — 공개(PUBLIC+PUBLISHED) 곡이거나 본인이 등록한 곡의 소절 중
      * 무작위로 하나. 다른 사용자의 PRIVATE 곡 가사가 섞이지 않도록 예문 조회와 같은

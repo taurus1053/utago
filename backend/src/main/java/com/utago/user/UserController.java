@@ -15,12 +15,21 @@ import java.util.Map;
 public class UserController {
 
     private final UserProfileService userProfileService;
+    private final LearningStatsService learningStatsService;
 
     @GetMapping("/me")
     public ResponseEntity<MyPageResponse> getMyPage(Authentication authentication) {
         Long userId = extractUserId(authentication);
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(userProfileService.getMyPage(userId));
+    }
+
+    /** 마이페이지 학습 통계 4타일 + 스트릭 캘린더 — claude/소셜_마이페이지_기획.md 10번. */
+    @GetMapping("/me/stats")
+    public ResponseEntity<LearningStatsResponse> getMyStats(Authentication authentication) {
+        Long userId = extractUserId(authentication);
+        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(learningStatsService.getStats(userId));
     }
 
     /** AdminTranslations/AdminSongs 등이 호출하는 role 확인 — 지금까지 대응 컨트롤러가 없었음. */

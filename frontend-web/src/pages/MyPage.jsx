@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
-import { getMyPage, updateStatusMessage } from '../api/users'
+import { getMyPage, getMyStats, updateStatusMessage } from '../api/users'
 import { listWordbooks } from '../api/wordbook'
 import { listMyPosts, listSavedPosts } from '../api/board'
 import './MyPage.css'
 
-// 학습 통계/스트릭/칭호/친구는 아직 백엔드 계측이 없어서(claude/소셜_마이페이지_기획.md 10번
-// 참고) 와이어프레임과 레이아웃을 맞추기 위한 용도로만 더미 데이터를 쓴다. 실제 수치가
-// 생기면 이 네 블록만 API 연동으로 교체하면 된다.
-const PLACEHOLDER_STATS = [
-  { label: '학습한 단어', value: '0개', showFlame: false },
-  { label: '완료한 가사', value: '0줄', showFlame: false },
-  { label: '완료한 곡', value: '0곡', showFlame: false },
-  { label: '연속 학습일', value: '0일', showFlame: false },
-]
-
-const PLACEHOLDER_STREAK_DAYS = Array.from({ length: 35 }, () => ({ color: '#ececec' }))
+// 칭호/친구는 아직 설계·계측이 없어서(claude/소셜_마이페이지_기획.md 10번 참고) 와이어프레임과
+// 레이아웃을 맞추기 위한 용도로만 더미 데이터를 쓴다. 학습 통계 4타일/스트릭은 실제
+// GET /api/users/me/stats로 받아온다(2026-10-02).
+const EMPTY_STATS = {
+  wordsLearned: 0,
+  linesCompleted: 0,
+  songsCompleted: 0,
+  currentStreakDays: 0,
+  longestStreakDays: 0,
+  calendar: [],
+}
 
 const PLACEHOLDER_TITLES = [
   { icon: '🌱', label: '새싹 학습자', bg: '#f2f2f2', textColor: '#5b5346', iconOpacity: 1, current: false },
@@ -81,6 +81,9 @@ export default function MyPage() {
   const [statusDraft, setStatusDraft] = useState('')
   const [statusSaving, setStatusSaving] = useState(false)
 
+  const [stats, setStats] = useState(EMPTY_STATS)
+  const [statsLoading, setStatsLoading] = useState(true)
+
   const [books, setBooks] = useState([])
   const [booksLoading, setBooksLoading] = useState(true)
 
@@ -98,6 +101,11 @@ export default function MyPage() {
       })
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false))
+
+    getMyStats()
+      .then((data) => setStats(data || EMPTY_STATS))
+      .catch(() => setStats(EMPTY_STATS))
+      .finally(() => setStatsLoading(false))
 
     listWordbooks()
       .then((data) => setBooks((data || []).filter((b) => !b.favoriteDefault)))
@@ -194,17 +202,27 @@ export default function MyPage() {
           </section>
         )}
 
-        {/* 학습 통계 (더미 — 계측 미구현, 10번 참고) */}
+        {/* 학습 통계 — GET /api/users/me/stats (10번 참고) */}
         <div className="mypage-stats-grid">
-          {PLACEHOLDER_STATS.map((stat) => (
-            <div key={stat.label} className="mypage-stat-tile">
-              <div className="mypage-stat-label">
-                {stat.label}
-                {stat.showFlame && ' 🔥'}
-              </div>
-              <div className="mypage-stat-value">{stat.value}</div>
+          <div className="mypage-stat-tile">
+            <div className="mypage-stat-label">학습한 단어</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.wordsLearned}개`}</div>
+          </div>
+          <div className="mypage-stat-tile">
+            <div className="mypage-stat-label">학습한 가사</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.linesCompleted}줄`}</div>
+          </div>
+          <div className="mypage-stat-tile">
+            <div className="mypage-stat-label">학습한 곡</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.songsCompleted}곡`}</div>
+          </div>
+          <div className="mypage-stat-tile">
+            <div className="mypage-stat-label">
+              연속 학습일
+              {stats.currentStreakDays >= 3 && ' 🔥'}
             </div>
-          ))}
+            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.currentStreakDays}일`}</div>
+          </div>
         </div>
 
         {/* 메인 2단 레이아웃 */}
@@ -316,17 +334,28 @@ export default function MyPage() {
           {/* 사이드바 */}
           <div className="mypage-side-col">
 
-            {/* 학습 스트릭 캘린더 (더미) */}
+            {/* 학습 스트릭 캘린더 — GET /api/users/me/stats (10번 참고) */}
             <section className="mypage-card mypage-card--side">
               <div className="mypage-side-head">
                 <span>학습 스트릭</span>
                 <span>🔥</span>
               </div>
-              <div className="mypage-side-sub">아직 학습 기록이 없어요</div>
+              <div className="mypage-side-sub">
+                {statsLoading
+                  ? '불러오는 중...'
+                  : stats.currentStreakDays > 0
+                    ? `${stats.currentStreakDays}일 연속 학습 중이에요`
+                    : '아직 학습 기록이 없어요'}
+              </div>
               <div className="mypage-streak-grid">
-                {PLACEHOLDER_STREAK_DAYS.map((d, i) => (
-                  <div key={i} className="mypage-streak-cell" style={{ background: d.color }} />
-                ))}
+                {(stats.calendar.length > 0 ? stats.calendar : Array.from({ length: 35 }, () => ({ active: false })))
+                  .map((d, i) => (
+                    <div
+                      key={d.date || i}
+                      className="mypage-streak-cell"
+                      style={{ background: d.active ? '#7636f6' : '#ececec' }}
+                    />
+                  ))}
               </div>
             </section>
 
