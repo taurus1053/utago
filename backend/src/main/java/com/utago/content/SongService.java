@@ -499,6 +499,11 @@ public class SongService {
      * "한 줄씩 보기"에서 소절을 넘길 때마다 호출 — 이어 학습 지점(lastLineOrder)을 갱신하고,
      * 마이페이지 학습 통계(완료한 가사/곡)·스트릭의 원천 데이터가 된다(claude/소셜_마이페이지_기획.md
      * 10번). 뒤로 가는 탐색도 있을 수 있어 항상 "가장 멀리 간 지점"만 저장한다(최댓값).
+     *
+     * 2026-10-08 추가 — 칭호 "같은 곡 복습"(completedCount)도 여기서 같이 집계한다. "복습 1회"는
+     * 사용자가 확정한 기준대로 "가사를 끝까지 다시 완주할 때마다"다: 마지막 줄에 도달하면
+     * +1(completedThisPass로 중복 집계 방지), 처음(0번 줄)으로 돌아가면 다음 완주를 다시 셀 수
+     * 있도록 풀어준다.
      */
     @Transactional
     public void updateSongProgress(Long userId, Long songId, int lineOrder) {
@@ -515,6 +520,16 @@ public class SongService {
             progress.setLastLineOrder(lineOrder);
         }
         progress.setLastStudiedAt(LocalDateTime.now());
+
+        int totalLines = songLineRepository.countBySongId(songId);
+        if (lineOrder == 0 && progress.isCompletedThisPass()) {
+            // 처음으로 돌아가서 다시 듣기 시작 — 다음 완주를 새로 셀 수 있게 플래그를 푼다.
+            progress.setCompletedThisPass(false);
+        } else if (totalLines > 0 && lineOrder >= totalLines - 1 && !progress.isCompletedThisPass()) {
+            progress.setCompletedCount(progress.getCompletedCount() + 1);
+            progress.setCompletedThisPass(true);
+        }
+
         userSongProgressRepository.save(progress);
         learningStatsService.recordActivity(userId);
     }

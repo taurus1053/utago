@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LearningStatsService {
 
-    /** 스트릭 캘린더에 보여줄 일수(마이페이지 와이어프레임 — 5주치 히트맵) */
-    private static final int CALENDAR_DAYS = 35;
+    /** 스트릭 캘린더에 보여줄 주 수(마이페이지 와이어프레임 — 5주치 달력) */
+    private static final int CALENDAR_WEEKS = 5;
+    private static final int CALENDAR_DAYS = CALENDAR_WEEKS * 7;
 
     private final UserActivityLogRepository activityLogRepository;
     private final UserRepository userRepository;
@@ -39,16 +41,58 @@ public class LearningStatsService {
     private final WordbookItemRepository wordbookItemRepository;
 
     /** 오늘 날짜로 활동 기록을 남긴다(이미 있으면 아무것도 안 함) — 매번 INSERT 시도 대신
-     *  먼저 존재 여부를 확인해서 중복 호출(한 세션에서 여러 번 복습 등)에도 저렴하게 동작. */
+     *  먼저 존재 여부를 확인해서 중복 호출(한 세션에서 여러 번 복습 등)에도 저렴하게 동작.
+     *  가사 진행(SongService.updateSongProgress())에서 호출 — "오늘 학습했다"는 표시만
+     *  남기면 되고, word_review_count는 건드리지 않는다. */
     @Transactional
     public void recordActivity(Long userId) {
-        LocalDate today = LocalDate.now();
-        if (activityLogRepository.findByUserIdAndActivityDate(userId, today).isPresent()) {
-            return;
-        }
+        findOrCreateTodayLog(userId);
+        bumpTimeOfDayBucket(userId);
+    }
+
+    /** 단어 복습(WordbookService.review())에서 호출 — 오늘 행을 만들거나 재사용하면서
+     *  word_review_count를 1 늘린다. recordActivity()와 같은 "하루 1행" 멱등성 위에서
+     *  동작하므로, 같은 날 여러 번 호출돼도 행은 하나만 유지되고 카운트만 쌓인다.
+     *  마이페이지 스트릭 캘린더 칸의 색 농도가 이 값에 비례한다(ActivityDayResponse 참고). */
+    @Transactional
+    public void recordWordReview(Long userId) {
+        UserActivityLog log = findOrCreateTodayLog(userId);
+        if (log == null) return;
+        log.setWordReviewCount(log.getWordReviewCount() + 1);
+        activityLogRepository.save(log);
+        bumpTimeOfDayBucket(userId);
+    }
+
+    /** 칭호 "학습 시간대"(TIME_OF_DAY, V29) 원천 데이터 — 지금 이 순간(LocalTime.now())이
+     * 어느 버킷에 속하는지 보고 그 카운트를 1 늘린다. 단어 복습/가사 진행 양쪽에서 호출되므로
+     * "학습 행위가 있었던 시각"을 전부 반영한다. 자정~06시=새벽, 06~12시=아침, 12~18시=오후,
+     * 18~24시=야간(TitleCatalog.TIME_OF_DAY 참고) — 서버 시각(UTC) 기준이라 사용자의 로컬
+     * 시각(예: Asia/Seoul)과 최대 9시간 어긋날 수 있다(11-2번과 같은 한계, 당장은 허용). */
+    private void bumpTimeOfDayBucket(Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return;
-        activityLogRepository.save(UserActivityLog.builder().user(user).activityDate(today).build());
+        int hour = java.time.LocalTime.now().getHour();
+        if (hour < 6) {
+            user.setStudyDawnCount(user.getStudyDawnCount() + 1);
+        } else if (hour < 12) {
+            user.setStudyMorningCount(user.getStudyMorningCount() + 1);
+        } else if (hour < 18) {
+            user.setStudyAfternoonCount(user.getStudyAfternoonCount() + 1);
+        } else {
+            user.setStudyNightCount(user.getStudyNightCount() + 1);
+        }
+        userRepository.save(user);
+    }
+
+    private UserActivityLog findOrCreateTodayLog(Long userId) {
+        LocalDate today = LocalDate.now();
+        return activityLogRepository.findByUserIdAndActivityDate(userId, today)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId).orElse(null);
+                    if (user == null) return null;
+                    return activityLogRepository.save(
+                            UserActivityLog.builder().user(user).activityDate(today).build());
+                });
     }
 
     @Transactional(readOnly = true)
@@ -68,14 +112,14 @@ public class LearningStatsService {
             }
         }
 
-        List<LocalDate> activeDates = activityLogRepository.findByUserIdOrderByActivityDateDesc(userId)
-                .stream().map(UserActivityLog::getActivityDate).toList();
+        List<UserActivityLog> logsDesc = activityLogRepository.findByUserIdOrderByActivityDateDesc(userId);
+        List<LocalDate> activeDates = logsDesc.stream().map(UserActivityLog::getActivityDate).toList();
         int currentStreak = computeCurrentStreak(activeDates);
         int longestStreak = computeLongestStreak(activeDates, currentStreak);
-        List<ActivityDayResponse> calendar = buildCalendar(activeDates);
+        List<ActivityDayResponse> calendar = buildCalendar(logsDesc);
 
         return new LearningStatsResponse(wordsLearned, linesCompleted, songsCompleted,
-                currentStreak, longestStreak, calendar);
+                currentStreak, longestStreak, logsDesc.size(), calendar);
     }
 
     /**
@@ -126,13 +170,30 @@ public class LearningStatsService {
         return Math.max(longest, currentStreak);
     }
 
-    private List<ActivityDayResponse> buildCalendar(List<LocalDate> activeDatesDesc) {
-        var activeSet = new java.util.HashSet<>(activeDatesDesc);
+    /**
+     * 마이페이지에서 숫자 더미가 아니라 진짜 달력(일~토 요일 맞춤, 5주)으로 보여줄 수
+     * 있도록, 고정 35일 역산이 아니라 **요일에 맞춰 정렬된** 5주(일요일 시작)를 만든다.
+     * 이번 주 일요일부터 4주 전 일요일까지 총 35일 — 오늘이 일요일이 아니면 이번 주의
+     * "아직 안 지난" 날짜(미래)도 몇 칸 포함되는데, 그 칸들은 당연히 활동이 없어서 빈
+     * 칸으로 자연스럽게 보인다(프론트엔드가 굳이 숨길 필요 없음).
+     */
+    private List<ActivityDayResponse> buildCalendar(List<UserActivityLog> logsDesc) {
+        var countByDate = new java.util.HashMap<LocalDate, Integer>();
+        for (UserActivityLog log : logsDesc) {
+            countByDate.put(log.getActivityDate(), log.getWordReviewCount());
+        }
         LocalDate today = LocalDate.now();
+        // DayOfWeek.getValue(): MONDAY=1 ... SUNDAY=7. 일요일 기준 주 시작이므로 SUNDAY=0으로 맞춘다.
+        int daysSinceSunday = today.getDayOfWeek().getValue() % 7;
+        LocalDate thisWeekSunday = today.minusDays(daysSinceSunday);
+        LocalDate gridStart = thisWeekSunday.minusWeeks(CALENDAR_WEEKS - 1);
+
         List<ActivityDayResponse> calendar = new ArrayList<>(CALENDAR_DAYS);
-        for (int i = CALENDAR_DAYS - 1; i >= 0; i--) {
-            LocalDate date = today.minusDays(i);
-            calendar.add(new ActivityDayResponse(date.toString(), activeSet.contains(date)));
+        for (int i = 0; i < CALENDAR_DAYS; i++) {
+            LocalDate date = gridStart.plusDays(i);
+            boolean active = countByDate.containsKey(date);
+            int wordReviewCount = countByDate.getOrDefault(date, 0);
+            calendar.add(new ActivityDayResponse(date.toString(), active, wordReviewCount));
         }
         return calendar;
     }

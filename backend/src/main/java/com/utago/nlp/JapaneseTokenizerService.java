@@ -201,10 +201,14 @@ public class JapaneseTokenizerService {
             // 단어"가 아니므로(발음/한자 학습 대상이 아님) 애초에 단어장 후보에서 제외한다.
             // 순수 숫자("4" 등)도 마찬가지로 "배울 단어"가 아니라서 제외하고, 캐주얼체
             // "~てる"(~ている의 준말)를 동사 照る(비추다)로 오분석한 경우도 걸러낸다
-            // (아래 isTeIruContraction 참고).
+            // (아래 isTeIruContraction 참고). "〜んだ/〜んです"의 ん(の의 축약)은 Kuromoji가
+            // 名詞-非自立로 분석해서 SKIP_POS(助詞/助動詞 등)에 안 걸리고 그대로 통과하는데,
+            // 독립된 뜻이 없는 글자 하나짜리 토큰이라 "뜻 준비 중"으로만 뜨는 가짜 단어가
+            // 생긴다 — ん 단독 토큰은 품사와 상관없이 항상 제외한다.
             boolean vocabWorthy = !SKIP_POS.contains(pos) && surface.trim().length() > 0
                     && !isLatinOnly(surface) && !isNumericOnly(surface)
-                    && !isTeIruContraction(baseForm, surface, prevPos1);
+                    && !isTeIruContraction(baseForm, surface, prevPos1)
+                    && !isLoneN(surface);
 
             if (furigana != null) {
                 furigana = applyHomographOverride(baseForm, furigana, text.substring(end));
@@ -329,6 +333,12 @@ public class JapaneseTokenizerService {
     /** 순수 숫자(반각/전각)로만 된 토큰인지 — "4"처럼 명사로 오인식되는 숫자를 걸러내는 데 쓴다. */
     private boolean isNumericOnly(String s) {
         return s.codePoints().allMatch(cp -> (cp >= '0' && cp <= '9') || (cp >= 0xFF10 && cp <= 0xFF19));
+    }
+
+    /** "ん" 단독 토큰인지 — の의 구어체 축약(〜んだ/〜んです 등)이라 품사(名詞-非自立)만으로는
+     * 못 걸러낸다. 독립된 의미가 없는 글자 하나짜리라 단어장 후보에서 항상 제외한다. */
+    private boolean isLoneN(String surface) {
+        return "ん".equals(surface.trim());
     }
 
     private String katakanaToHiragana(String katakana) {

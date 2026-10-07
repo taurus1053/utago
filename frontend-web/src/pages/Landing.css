@@ -39,9 +39,18 @@
 .landing-topbar-actions .lang-switcher {
   margin-right: 4px;
 }
+/* 로그인/가입하기 버튼은 언어(한국어/일본어/영어)에 따라 글자 길이가 꽤 달라서
+   (예: "로그인" vs "ログイン" vs "Log in"), 폭을 고정해두지 않으면 언어를 바꿀
+   때마다 버튼 크기가 바뀐다(2026-10-07 피드백). px를 어림짐작으로 고정하면
+   실제보다 너무 넉넉해서 빈 공간이 남기 쉬워서(같은 피드백), Landing.jsx가
+   캔버스로 세 언어 라벨을 실제 폰트 그대로 재서 --landing-*-btn-width 변수로
+   내려주는 값을 쓴다. 초기 렌더(변수가 아직 안 내려온 순간)를 위한 폴백값만
+   여기 둔다. */
 .landing-login-btn {
   height: 40px;
-  padding: 0 18px;
+  width: var(--landing-login-btn-width, 84px);
+  padding: 0 12px;
+  box-sizing: border-box;
   border-radius: 20px;
   border: 1px solid #e6ddcc;
   background: #ffffff;
@@ -50,10 +59,13 @@
   font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .landing-signup-btn {
   height: 40px;
-  padding: 0 20px;
+  width: var(--landing-signup-btn-width, 150px);
+  padding: 0 16px;
+  box-sizing: border-box;
   border-radius: 20px;
   border: none;
   background: linear-gradient(90deg, #5f26f3, #8d47fa);
@@ -62,9 +74,14 @@
   font-weight: 700;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-/* 히어로 */
+/* 히어로 — 원래 레이아웃대로 화면 전체를 억지로 채우지 않고 콘텐츠 높이만큼만
+   차지한다(2026-10-07, 화면을 꽉 채워서 답답하다는 피드백으로 되돌림). 로그아웃
+   전환이 이 실제(콘텐츠 높이) 크기로 정확히 모여들도록 하는 건
+   utils/landingHeroRect.js가 실제 렌더된 크기를 기억해뒀다가 알려주는 방식으로
+   해결한다(TopBar.jsx 참고) — 화면 크기만 보고 어림짐작하지 않는다. */
 .landing-hero {
   position: relative;
   overflow: hidden;
@@ -120,9 +137,13 @@
   gap: 22px;
   margin-top: 16px;
 }
+/* landing-login-btn/signup-btn과 같은 이유로 폭을 고정한다(실제 측정값은
+   Landing.jsx가 --landing-cta-btn-width로 내려준다). */
 .landing-cta-btn {
   height: 52px;
-  padding: 0 32px;
+  width: var(--landing-cta-btn-width, 200px);
+  padding: 0 20px;
+  box-sizing: border-box;
   border-radius: 26px;
   background: #ffffff;
   color: #5f26f3;

@@ -24,6 +24,31 @@
     opacity 0.18s ease;
 }
 
+/* 로그인 성공 → 홈처럼 "상단바가 되는" 전환. 그라데이션 각도를 실제
+   TopBar.css(linear-gradient(90deg, ...))와 똑같이 맞춰서, 다 줄어든 순간
+   진짜 TopBar와 이어 붙여도 각도 차이로 티가 나지 않게 한다. */
+.page-transition-overlay--topbar {
+  background: linear-gradient(90deg, #5f26f3 0%, #7636f6 50%, #8d47fa 100%);
+}
+
+/* 로그아웃 → 랜딩 히어로로 "모여드는" 전환. 그라데이션 각도(150deg)는 기본값과
+   이미 같지만, 장식 원은 기본값이 로그인/회원가입 브랜드 패널(login-brand-circle,
+   420/300 크기) 기준으로 맞춰져 있어서 그대로 쓰면 랜딩 히어로의 실제 원
+   (landing-hero-circle, 520/420 크기)과 크기가 달라 사라지는 순간 티가 난다.
+   그래서 이 variant에서만 랜딩 히어로와 정확히 같은 크기/위치로 덮어쓴다. */
+.page-transition-overlay--hero .page-transition-overlay-circle--top {
+  width: 520px;
+  height: 520px;
+  top: -220px;
+  left: -160px;
+}
+.page-transition-overlay--hero .page-transition-overlay-circle--bottom {
+  width: 420px;
+  height: 420px;
+  bottom: -220px;
+  right: -140px;
+}
+
 .page-transition-overlay-circle {
   position: absolute;
   border-radius: 50%;

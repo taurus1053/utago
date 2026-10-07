@@ -13,6 +13,10 @@ public record LearningStatsResponse(
         int songsCompleted,
         int currentStreakDays,
         int longestStreakDays,
+        /** 스트릭(연속)과 무관하게, 실제로 학습 행위를 한 "전체 날짜 수"(2026-10-07,
+         * 마이페이지 "연속 학습일" 타일을 "학습일수"로 바꾸며 추가 — user_activity_log
+         * 행 개수 그대로). */
+        int totalActiveDays,
         List<ActivityDayResponse> calendar
 ) {
 }

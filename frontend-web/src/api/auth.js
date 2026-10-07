@@ -3,6 +3,16 @@ import { apiGet, apiPost, TOKEN_KEY } from './client'
 
 const USER_KEY = 'utago_user'
 
+// 로그인/로그아웃으로 인증 상태가 바뀔 때마다 쏘는 커스텀 이벤트.
+// App.jsx의 RootRoute("/"가 로그인 여부로 Home/Landing을 가르는 부분)가 이걸
+// 구독해서, 페이지를 통째로 새로고침하지 않고도 즉시 재평가할 수 있게 한다
+// (로그아웃 전환 애니메이션을 로그인 때와 똑같이 SPA navigate()로 재사용하기 위함).
+export const AUTH_CHANGE_EVENT = 'utago-auth-changed'
+
+function notifyAuthChange() {
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
+}
+
 // POST /api/auth/login -> { token, userId, email, nickname }
 export async function login(email, password) {
   const auth = await apiPost('/api/auth/login', { email, password })
@@ -37,6 +47,7 @@ function saveSession(auth) {
     USER_KEY,
     JSON.stringify({ userId: auth.userId, email: auth.email, nickname: auth.nickname }),
   )
+  notifyAuthChange()
 }
 
 export function getToken() {
@@ -55,4 +66,5 @@ export function isLoggedIn() {
 export function logout() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
+  notifyAuthChange()
 }

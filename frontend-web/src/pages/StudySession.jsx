@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import ConfirmModal from '../components/ConfirmModal'
 import './StudySession.css'
 
 // 단어장 "단어 학습하기" — StudyMethodModal에서 학습 방법을 고르면 그 방식으로 items를
@@ -134,6 +135,11 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
   const done = index >= deck.length
   const card = !done ? deck[index] : null
 
+  // 네이티브 confirm() 대신 공용 확인 창(ConfirmModal)을 띄운다(2026-10-07 피드백).
+  // 여기서는 "아니요/네"가 abort가 아니라 둘 다 다시 시작은 하되 섞을지만 가른다 —
+  // shuffleSource가 세팅된 동안 창이 열려있고, 어느 버튼을 눌러도 applyRestart가 불린다.
+  const [shuffleSource, setShuffleSource] = useState(null)
+
   async function handleAnswer(know) {
     if (!card) return
     if (!know) setWrongIds((prev) => new Set(prev).add(card.id))
@@ -144,12 +150,17 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
   }
 
   function restart(sourceItems) {
-    const shouldShuffle = window.confirm('순서를 섞을까요?')
+    setShuffleSource(sourceItems)
+  }
+  function applyRestart(shouldShuffle) {
+    const sourceItems = shuffleSource
+    if (!sourceItems) return
     setDeck(shouldShuffle ? shuffle(sourceItems) : sourceItems)
     setWrongIds(new Set())
     setIndex(0)
     setRevealed(false)
     setShowReading(false)
+    setShuffleSource(null)
   }
   function restartAll() {
     restart(allItems)
@@ -181,6 +192,16 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
             <button type="button" className="wordbook-detail-study-btn" onClick={onExit}>끝낼래요</button>
           </div>
         </div>
+
+        {shuffleSource && (
+          <ConfirmModal
+            title="순서를 섞을까요?"
+            cancelLabel="아니요"
+            confirmLabel="네, 섞을게요"
+            onConfirm={() => applyRestart(true)}
+            onCancel={() => applyRestart(false)}
+          />
+        )}
       </div>
     )
   }

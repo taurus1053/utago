@@ -271,7 +271,7 @@ public class WordbookController {
         Long userId = extractUserId(authentication);
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            return ResponseEntity.ok(wordbookService.review(userId, itemId, request.know()));
+            return ResponseEntity.ok(wordbookService.review(userId, itemId, request.know(), request.method()));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

@@ -43,6 +43,57 @@ public class User {
     @Column(name = "status_message", length = 80)
     private String statusMessage;
 
+    /** 현재 착용 중인 칭호 코드(TitleCatalog 참고, V27) — null이면 아직 아무것도 착용 안 함
+     * (프로필엔 TitleService가 기본값을 골라 보여준다). */
+    @Column(name = "equipped_title_code", length = 60)
+    private String equippedTitleCode;
+
+    /** 누적 학습시간 칭호(1/5/10/30/50/100시간)를 위한 총 학습 시간(초) 누적값(V27) —
+     * 학습 화면의 하트비트(POST /api/users/me/study-ping)로 조금씩 늘어난다. */
+    @Column(name = "total_study_seconds", nullable = false)
+    @Builder.Default
+    private long totalStudySeconds = 0L;
+
+    /** 칭호 "내가 다운로드한 개수"(DOWNLOAD_RECEIVED) 원천 데이터(V29) — 내가 다른 사람의
+     * 단어장을 다운로드(복사)할 때마다(WordbookService.downloadWordbook) 1씩 늘어난다. */
+    @Column(name = "downloads_received_count", nullable = false)
+    @Builder.Default
+    private long downloadsReceivedCount = 0L;
+
+    /** 칭호 "학습 방법별"(STUDY_METHOD) 원천 데이터(V29) — 단어장 학습 게임(플래시카드/퀴즈/
+     * 빈칸채우기/문장배열/카드맞추기)에서 정답을 맞출 때마다 해당 방법의 카운트가 1씩 늘어난다
+     * (WordbookService.review, ReviewWordbookItemRequest.method). */
+    @Column(name = "study_flashcard_count", nullable = false)
+    @Builder.Default
+    private long studyFlashcardCount = 0L;
+    @Column(name = "study_quiz_count", nullable = false)
+    @Builder.Default
+    private long studyQuizCount = 0L;
+    @Column(name = "study_fill_count", nullable = false)
+    @Builder.Default
+    private long studyFillCount = 0L;
+    @Column(name = "study_reorder_count", nullable = false)
+    @Builder.Default
+    private long studyReorderCount = 0L;
+    @Column(name = "study_match_count", nullable = false)
+    @Builder.Default
+    private long studyMatchCount = 0L;
+
+    /** 칭호 "학습 시간대"(TIME_OF_DAY) 원천 데이터(V29) — 단어 복습/가사 진행이 일어난 시각
+     * (LocalTime.now())에 따라 네 버킷 중 하나가 1씩 늘어난다(LearningStatsService 참고). */
+    @Column(name = "study_dawn_count", nullable = false)
+    @Builder.Default
+    private long studyDawnCount = 0L;
+    @Column(name = "study_morning_count", nullable = false)
+    @Builder.Default
+    private long studyMorningCount = 0L;
+    @Column(name = "study_afternoon_count", nullable = false)
+    @Builder.Default
+    private long studyAfternoonCount = 0L;
+    @Column(name = "study_night_count", nullable = false)
+    @Builder.Default
+    private long studyNightCount = 0L;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "native_lang", nullable = false, length = 10)
     private Lang nativeLang;

@@ -20,7 +20,10 @@ import {
   toggleWordbookItemStar,
   updateWordbookItemWord,
 } from '../api/wordbook'
+import { isLoggedIn } from '../api/auth'
+import { sendStudyPing } from '../api/users'
 import TopBar from '../components/TopBar'
+import ConfirmModal from '../components/ConfirmModal'
 import StudySession from './StudySession'
 import StudyMethodModal from './StudyMethodModal'
 import './Wordbook.css'
@@ -690,15 +693,31 @@ export default function Wordbook() {
     setCreateError(null)
   }
 
-  async function handleDeleteBook(e, book) {
+  // 네이티브 confirm() 대신 "새 폴더 만들기"와 같은 스타일의 확인 창(ConfirmModal)을
+  // 띄운다(2026-10-07 피드백) — deleteBookTarget이 세팅된 동안 창이 열려있다.
+  const [deleteBookTarget, setDeleteBookTarget] = useState(null)
+  const [deleteBookBusy, setDeleteBookBusy] = useState(false)
+
+  function handleDeleteBook(e, book) {
     e.stopPropagation()
     if (book.favoriteDefault) return
-    if (!window.confirm('단어장을 정말로 삭제할까요?')) return
+    setDeleteBookTarget(book)
+  }
+  function cancelDeleteBook() {
+    if (deleteBookBusy) return
+    setDeleteBookTarget(null)
+  }
+  async function confirmDeleteBook() {
+    if (!deleteBookTarget) return
+    setDeleteBookBusy(true)
     try {
-      await deleteWordbook(book.id)
+      await deleteWordbook(deleteBookTarget.id)
       await refreshBooks()
+      setDeleteBookTarget(null)
     } catch {
-      // 실패하면 목록이 그대로 남는다 — 다시 시도 가능.
+      // 실패하면 목록이 그대로 남는다 — 창을 열어둔 채 다시 시도 가능.
+    } finally {
+      setDeleteBookBusy(false)
     }
   }
 
@@ -927,16 +946,29 @@ export default function Wordbook() {
     setMode('study')
   }
 
-  // 플래시카드 게임에서 "안다/모른다"를 눌렀을 때만 서버 SRS 상태를 갱신한다(다른 게임은
-  // 정답/오답이 서버 학습 상태에 영향을 주지 않는 연습용 게임).
+  // 5개 학습 게임(플래시카드/퀴즈/빈칸채우기/문장배열/카드맞추기) 모두 정답을 맞추면 서버
+  // SRS 상태를 갱신한다 — studyMethod를 같이 보내서 칭호 "학습 방법별"(STUDY_METHOD,
+  // 2026-10-08 추가) 집계의 원천 데이터가 되게 한다(WordbookService.review 참고).
   async function handleReview(itemId, know) {
     try {
-      const updated = await reviewWordbookItem(itemId, know)
+      const updated = await reviewWordbookItem(itemId, know, studyMethod)
       setItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)))
     } catch {
       // 실패해도 게임 진행은 계속한다 — 흐름이 끊기지 않게.
     }
   }
+
+  // 단어 학습 화면(mode === 'study')에 머무는 동안 30초마다 체류시간 하트비트를 보낸다 —
+  // SongLearn.jsx와 같은 패턴(누적 학습시간 칭호 STUDY_TIME의 원천 데이터). 여기엔 song.id가
+  // 없으니 mode를 의존성으로 쓴다 — 학습 화면을 벗어나면(목록으로) 인터벌이 정리된다.
+  useEffect(() => {
+    if (!isLoggedIn() || mode !== 'study') return
+    const STUDY_PING_INTERVAL_MS = 30000
+    const interval = setInterval(() => {
+      sendStudyPing(STUDY_PING_INTERVAL_MS / 1000).catch(() => {})
+    }, STUDY_PING_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [mode])
 
   const selectedBook = books.find((b) => String(b.id) === String(selectedId))
 
@@ -1332,6 +1364,18 @@ export default function Wordbook() {
           error={moveError}
           onSubmit={handleMoveSubmit}
           onClose={closeMoveModal}
+        />
+      )}
+
+      {deleteBookTarget && (
+        <ConfirmModal
+          title="단어장을 삭제할까요?"
+          message={`"${deleteBookTarget.name}" 단어장을 정말로 삭제할까요? 삭제하면 되돌릴 수 없어요.`}
+          confirmLabel="삭제"
+          danger
+          busy={deleteBookBusy}
+          onConfirm={confirmDeleteBook}
+          onCancel={cancelDeleteBook}
         />
       )}
     </div>

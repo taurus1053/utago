@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCurrentUser, isLoggedIn, logout } from '../api/auth'
+import { startPageTransition } from '../utils/pageTransition'
+import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
 import LangSwitcher from './LangSwitcher'
 import './TopBar.css'
+
+// Login.jsx의 로그인→홈 전환과 정확히 같은 높이 — 로그아웃 전환이 "상단바에서
+// 시작해서 다시 상단바 크기로" 자연스럽게 끝나려면 그려지는 크기가 실제
+// TopBar.css 높이와 어긋나면 안 된다.
+const TOPBAR_HEIGHT = 64
 
 // 홈/곡 추가/곡 학습 등 여러 화면에서 공통으로 쓰는 상단바(원래 Home.jsx 안에만 있던
 // 메뉴·로고·검색·알림·프로필 드롭다운을 분리한 것) — 기능은 완전히 동일하게 유지하고,
@@ -40,6 +47,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
   const menuBtnRef = useRef(null)
   const profileRef = useRef(null)
   const avatarBtnRef = useRef(null)
+  const topbarRef = useRef(null)
 
   function toggleSidebar() {
     setSidebarOpen((v) => !v)
@@ -73,20 +81,41 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
   }, [sidebarOpen, profileOpen])
 
   function handleLogout() {
-    logout()
-    // "/" 는 로그인 여부에 따라 자동으로 갈라진다(App.jsx의 RootRoute) — 로그아웃 직후엔
-    // 비로그인 상태라 랜딩 페이지가 보인다. 로그인 화면으로 곧장 보내지 않는다.
-    //
-    // navigate()만 쓰면 이미 "/"에 떠 있던 RootRoute/Home 컴포넌트가 다시 마운트되지
-    // 않고 그대로 남아있는 경우가 있어서(같은 경로로의 클라이언트 사이드 전환이라
-    // 리렌더가 보장되지 않음), 로그아웃 후에는 페이지를 통째로 새로고침해서 RootRoute가
-    // isLoggedIn()을 처음부터 다시 평가하도록 강제한다.
-    window.location.assign('/')
+    closeAll()
+    // 실제 상단바(보라색)의 현재 위치/크기에서 시작해서 화면 전체를 채운 뒤,
+    // "위로 슬라이드해서 사라지는" 게 아니라 랜딩 페이지의 보라색 히어로 영역
+    // (Landing.jsx의 .landing-hero) 크기로 다시 "모여들며" 줄어든다 — 랜딩에서
+    // 로그인/가입하기를 누르면 히어로가 커지면서 화면을 채우는 전환의 정확히
+    // 반대 방향.
+    // (히어로는 화면을 억지로 꽉 채우지 않고 콘텐츠 높이만큼만 차지하므로,
+    //  도착 크기를 화면 크기로 어림짐작하지 않고 utils/landingHeroRect.js가
+    //  Landing.jsx에서 실측해 기억해둔 실제 크기를 그대로 쓴다. 장식 원 크기/
+    //  위치도 'hero' variant로 랜딩 히어로의 진짜 원과 똑같이 맞춰서, 다
+    //  줄어들어 페이드아웃되는 순간 진짜 히어로와 이어 붙여도 티가 나지
+    //  않게 한다.)
+    const rect = topbarRef.current
+      ? topbarRef.current.getBoundingClientRect()
+      : { top: 0, left: 0, width: window.innerWidth, height: TOPBAR_HEIGHT }
+
+    // "/" 는 로그인 여부에 따라 자동으로 갈라진다(App.jsx의 RootRoute). RootRoute가
+    // auth.js의 AUTH_CHANGE_EVENT를 구독해 로그인 상태를 state로 들고 있어서,
+    // navigate()만으로도 Landing으로 제대로 갈아끼워진다 — 다만 logout()을 지금 바로
+    // 호출하면 (지금 "/"에 있는 경우) RootRoute가 그 즉시 Home→Landing으로 바뀌어버려서,
+    // 오버레이가 아직 화면을 다 덮기도 전에 비로그인 화면이 비쳐 보이는 문제가 있었다.
+    // 그래서 logout()은 오버레이가 화면 전체를 다 채운 뒤(onReveal, navigate 직전)에야
+    // 호출되도록 미뤘다 — 로그인 때 submitting을 전환이 끝날 때까지 들고 있는 것과 같은
+    // 이유로, "보이면 안 되는 상태 변화"는 전부 오버레이 뒤에서 일어나야 한다.
+    startPageTransition(rect, '/', {
+      replace: true,
+      variant: 'hero',
+      getShrinkRect: getLastKnownLandingHeroRect,
+      onReveal: () => logout(),
+    })
   }
 
   return (
     <>
-      <div className="home-topbar">
+      <div className="home-topbar" ref={topbarRef}>
         <div className="home-topbar-left">
           <button aria-label="메뉴 열기" onClick={toggleSidebar} className="home-icon-btn" ref={menuBtnRef}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round">
@@ -203,18 +232,29 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
           </div>
           <div className="home-profile-divider" />
 
-          <a href="#profile-settings" className="home-profile-item">
+          <Link to="/mypage" onClick={closeAll} className="home-profile-item">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4"></circle>
               <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
             </svg>
-            <span>프로필 설정</span>
-          </a>
-          <a href="#lang-settings" className="home-profile-item">
+            <span>마이페이지</span>
+          </Link>
+          <a href="#profile-settings" className="home-profile-item">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 5h16M4 12h16M4 19h9"></path>
             </svg>
-            <span>학습 언어 설정</span>
+            <span>프로필 설정</span>
+          </a>
+          <a href="#display-lang" className="home-profile-item home-profile-item--between">
+            <div className="home-profile-item-left">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20"></path>
+                <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
+              </svg>
+              <span>표시 언어</span>
+            </div>
+            <span className="home-profile-item-value">한국어</span>
           </a>
           <div className="home-profile-toggle-row">
             <div className="home-profile-item-left">
@@ -227,17 +267,6 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
               <div className="home-toggle-knob" />
             </div>
           </div>
-          <a href="#display-lang" className="home-profile-item home-profile-item--between">
-            <div className="home-profile-item-left">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M2 12h20"></path>
-                <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
-              </svg>
-              <span>표시 언어</span>
-            </div>
-            <span className="home-profile-item-value">한국어</span>
-          </a>
           <a href="#support" className="home-profile-item">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>

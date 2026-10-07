@@ -29,4 +29,7 @@ public interface WordbookItemRepository extends JpaRepository<WordbookItem, Long
     @Query(value = "SELECT wi.* FROM wordbook_items wi JOIN wordbooks wb ON wi.wordbook_id = wb.id " +
             "WHERE wb.user_id = :userId ORDER BY RAND() LIMIT 1", nativeQuery = true)
     Optional<WordbookItem> findRandomByUserId(@Param("userId") Long userId);
+
+    /** 칭호 시스템 "단어장추가" 카테고리 — 내 모든 단어장에 담긴 단어 총수(TitleService 참고). */
+    long countByWordbook_User_Id(Long userId);
 }

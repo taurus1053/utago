@@ -158,6 +158,10 @@ public class WordbookService {
 
         source.setDownloadCount(source.getDownloadCount() + 1);
 
+        // 칭호 "내가 다운로드한 개수"(DOWNLOAD_RECEIVED, V29) 원천 데이터 — 내가 "받는" 쪽.
+        user.setDownloadsReceivedCount(user.getDownloadsReceivedCount() + 1);
+        userRepository.save(user);
+
         return WordbookResponse.of(copy, copiedItems.size());
     }
 
@@ -541,7 +545,7 @@ public class WordbookService {
      * 학습 횟수가 올라간 것으로 보인다.
      */
     @Transactional
-    public WordbookItemResponse review(Long userId, Long itemId, boolean know) {
+    public WordbookItemResponse review(Long userId, Long itemId, boolean know, String method) {
         WordbookItem item = requireOwnedItem(userId, itemId);
         UserWordProgress progress = getOrCreateProgress(userId, item.getWord());
         if (know) {
@@ -561,8 +565,32 @@ public class WordbookService {
             progress.setStatus(WordbookItemStatus.LEARNING);
         }
         userWordProgressRepository.save(progress);
-        learningStatsService.recordActivity(userId);
+        // recordActivity(오늘 행 존재 여부)뿐 아니라, 마이페이지 스트릭 캘린더 칸의 색
+        // 농도(단어 학습량)에 쓸 오늘자 복습 횟수도 같이 늘린다.
+        learningStatsService.recordWordReview(userId);
+        // 칭호 "학습 방법별"(STUDY_METHOD, V29) 원천 데이터 — "안다"(정답)를 눌렀을 때만
+        // 해당 학습 방법의 카운트를 늘린다("모른다"는 그 방법을 안 쓴 게 아니라 틀린 것뿐이라
+        // 반복 학습을 유도하는 게 맞지만, 칭호는 "정답을 낸 경험"을 세는 게 자연스럽다).
+        if (know && method != null) {
+            bumpStudyMethodCount(userId, method);
+        }
         return toResponses(userId, List.of(item)).get(0);
+    }
+
+    /** method는 StudySession.jsx의 5개 게임 식별자(flashcard/quiz/fill/reorder/match) 그대로
+     * 내려온다 — 프론트가 바뀌지 않는 한 그대로 매칭된다. 모르는 값이면 조용히 무시. */
+    private void bumpStudyMethodCount(Long userId, String method) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return;
+        switch (method) {
+            case "flashcard" -> user.setStudyFlashcardCount(user.getStudyFlashcardCount() + 1);
+            case "quiz" -> user.setStudyQuizCount(user.getStudyQuizCount() + 1);
+            case "fill" -> user.setStudyFillCount(user.getStudyFillCount() + 1);
+            case "reorder" -> user.setStudyReorderCount(user.getStudyReorderCount() + 1);
+            case "match" -> user.setStudyMatchCount(user.getStudyMatchCount() + 1);
+            default -> { return; }
+        }
+        userRepository.save(user);
     }
 
     /** 단어 하나의 학습 진행 상태를 찾아오거나(없으면) 기본값으로 새로 만든다. */

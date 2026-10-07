@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -8,6 +9,7 @@ import SongSync from './pages/SongSync'
 import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
 import MyPage from './pages/MyPage'
+import TitlesPage from './pages/TitlesPage'
 import BoardList from './pages/BoardList'
 import BoardWrite from './pages/BoardWrite'
 import BoardDetail from './pages/BoardDetail'
@@ -18,13 +20,29 @@ import AdminFeaturedSongs from './pages/AdminFeaturedSongs'
 import Credits from './pages/Credits'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import RequireAuth from './RequireAuth'
-import { isLoggedIn } from './api/auth'
+import { isLoggedIn, AUTH_CHANGE_EVENT } from './api/auth'
 
 // "/" 는 로그인 여부에 따라 다른 화면을 보여준다.
 // - 로그인 상태: 홈 화면
 // - 비로그인 상태: 가입/로그인을 유도하는 랜딩 페이지 (넷플릭스/쿠팡플레이 스타일)
+//
+// 로그인 여부를 매 렌더마다 다시 읽는 게 아니라 state로 들고 있다가, auth.js가
+// login()/logout() 시점에 쏘는 AUTH_CHANGE_EVENT를 구독해서 갱신한다 — 로그아웃
+// 애니메이션이 로그인 때처럼 페이지 새로고침 없는 SPA navigate()만으로도
+// RootRoute를 제대로 다시 그리게 하기 위함(예전엔 이게 안 돼서 로그아웃 시
+// window.location.assign('/')로 통째로 새로고침했었다).
 function RootRoute() {
-  return isLoggedIn() ? <Home /> : <Landing />
+  const [loggedIn, setLoggedIn] = useState(() => isLoggedIn())
+
+  useEffect(() => {
+    function handleAuthChange() {
+      setLoggedIn(isLoggedIn())
+    }
+    window.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange)
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange)
+  }, [])
+
+  return loggedIn ? <Home /> : <Landing />
 }
 
 function App() {
@@ -81,6 +99,16 @@ function App() {
           element={(
             <RequireAuth>
               <MyPage />
+            </RequireAuth>
+          )}
+        />
+        {/* 칭호 전체 페이지 — 마이페이지 "칭호" 카드의 "더보기"로 들어옴. 여기서만
+            대표 칭호를 설정(착용)할 수 있다(claude/소셜_마이페이지_기획.md 15-6번). 로그인 필수 */}
+        <Route
+          path="/mypage/titles"
+          element={(
+            <RequireAuth>
+              <TitlesPage />
             </RequireAuth>
           )}
         />

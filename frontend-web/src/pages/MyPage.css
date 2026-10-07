@@ -223,7 +223,8 @@
   background: none;
   font-size: 13px;
   font-weight: 700;
-  color: #7636f6;
+  /* 2026-10-07 피드백 — 보라색 대신 연한 회색으로 톤 다운 */
+  color: #a89c86;
   cursor: pointer;
   padding: 0;
 }
@@ -417,10 +418,23 @@
 .mypage-side-add {
   font-size: 12px;
   font-weight: 700;
-  color: #7636f6;
+  /* 2026-10-07 피드백 — 보라색 대신 연한 회색, 밑줄 없이 */
+  color: #a89c86;
+  text-decoration: none;
 }
 
-/* 학습 스트릭 */
+/* 학습 스트릭 — 실제 달력처럼 요일 맞춰 5주(일~토). */
+.mypage-streak-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.mypage-streak-weekdays span {
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #b6ac9c;
+}
 .mypage-streak-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -429,51 +443,46 @@
 .mypage-streak-cell {
   aspect-ratio: 1 / 1;
   border-radius: 4px;
-}
-
-/* 칭호 컬렉션 */
-.mypage-title-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.mypage-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
+  justify-content: center;
+  box-sizing: border-box;
 }
-.mypage-title-label {
-  font-size: 13px;
-  font-weight: 700;
-}
-.mypage-title-current {
-  margin-left: auto;
-  font-size: 10px;
-  font-weight: 800;
-  color: #7636f6;
-  background: #f4efff;
-  border-radius: 999px;
-  padding: 2px 7px;
-}
-.mypage-title-progress-label {
-  font-size: 11.5px;
-  color: #8a7f6e;
+.mypage-streak-cell-date {
+  font-size: 9.5px;
   font-weight: 600;
-  margin-bottom: 6px;
+  /* 색은 배경 진하기에 맞춰 JS(streakCellTextColor)가 인라인으로 지정한다
+     (2026-10-07 — 오늘 칸 배경이 진해지면 고정 보라색 글씨가 배경과 겹쳐
+     안 보이던 문제 수정). 아래 값은 인라인 스타일이 적용되기 전 대비용. */
+  color: rgba(32, 26, 20, 0.45);
 }
-.mypage-title-progress-track {
-  width: 100%;
-  height: 6px;
-  background: #f2f2f2;
+.mypage-streak-cell--today {
+  box-shadow: inset 0 0 0 1.5px #5f26f3;
+}
+.mypage-streak-cell--today .mypage-streak-cell-date {
+  font-weight: 800;
+}
+
+/* 칭호 — 마이페이지에서는 보유 칭호를 알약 모양 칩으로 나열만 하고(클릭으로 착용
+   불가, 2026-10-07 피드백으로 세로 목록에서 칩 그리드로 변경). 달성/미달성 구분,
+   진행도, 대표 칭호 설정은 전부 TitlesPage.jsx(칭호 전체 페이지)가 자기 CSS
+   (TitlesPage.css의 .titles-card-*)로 따로 그린다 — 2026-10-08 리디자인으로
+   이 파일의 옛 .mypage-title-list/.mypage-title-row*는 더 안 쓰여서 정리했다. */
+.mypage-title-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mypage-title-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
   border-radius: 999px;
-  overflow: hidden;
-}
-.mypage-title-progress-fill {
-  height: 100%;
-  background: #7636f6;
+  background: #f4efff;
+  color: #7636f6;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* 친구 */

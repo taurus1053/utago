@@ -122,10 +122,11 @@ function useLyricTicker(lines, intervalMs) {
   }
 }
 
-// 가사 한 소절에 보통 들어가는 단어(조사·어미까지 포함한 형태소 단위) 개수를 보면 6개 안팎이
-// 흔해서, 카드 크기를 지키기 위해 한 소절당 최대 6개까지만 보여주고 나머지는 "+N개 더"로
+// .home-lyric-words가 3열 그리드(Home.css)라서, 3줄 분량인 9개까지 보여준다 — "3줄 확보
+// + 9개" 레이아웃. 단어 목록 자체가 항상 3줄 높이를 최소로 확보하므로(.home-lyric-words의
+// min-height, Home.css) 9개보다 적어도 카드가 들쭉날쭉해지지 않고, 그 이상은 "+N개 더"로
 // 뭉뚱그린다(전부 보고 싶으면 가사 상세 화면에서 볼 수 있다).
-const WORD_DISPLAY_LIMIT = 6
+const WORD_DISPLAY_LIMIT = 9
 
 // 가사 소절(원문+의역) + 그 소절에 등장하는 단어/뜻 목록을 함께 보여준다.
 // "오늘의 가사"/"가사 복습하기" 카드가 공통으로 쓴다.
@@ -218,14 +219,17 @@ function SongOfDayCard({ loggedIn }) {
         <div className="home-word-status">
           로그인하면 오늘의 추천곡을 볼 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
         </div>
-      ) : loading ? (
+      ) : loading && !song ? (
         <div className="home-word-status">불러오는 중...</div>
-      ) : error ? (
+      ) : error && !song ? (
         <div className="home-word-status home-word-status--error">추천곡을 불러오지 못했어요.</div>
       ) : !song ? (
         <div className="home-word-status">아직 등록된 곡이 없어요.</div>
       ) : (
-        <Link to={`/songs/${song.songId}`} className="home-song-of-day">
+        <Link
+          to={`/songs/${song.songId}`}
+          className={`home-song-of-day${loading ? ' is-refreshing' : ''}`}
+        >
           <div
             className="home-song-of-day-cover"
             style={{
@@ -289,16 +293,18 @@ function LyricReviewCard({ loggedIn }) {
         <div className="home-word-status">
           로그인하면 단어장에 담은 단어가 나오는 가사를 복습할 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
         </div>
-      ) : loading ? (
+      ) : loading && !line ? (
         <div className="home-word-status">불러오는 중...</div>
-      ) : error ? (
+      ) : error && !line ? (
         <div className="home-word-status home-word-status--error">가사를 불러오지 못했어요.</div>
       ) : !line ? (
         <div className="home-word-status">
           단어장에 담은 단어가 등장하는 가사가 아직 없어요. <Link to="/wordbook">단어장 보러 가기 →</Link>
         </div>
       ) : (
-        <LyricLineBody line={line} />
+        <div className={loading ? 'home-word-card-body is-refreshing' : 'home-word-card-body'}>
+          <LyricLineBody line={line} />
+        </div>
       )}
     </div>
   )

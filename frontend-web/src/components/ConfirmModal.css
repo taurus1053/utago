@@ -1,0 +1,73 @@
+/* Wordbook.css의 "새 폴더 만들기" 창(.wordbook-modal*)과 같은 수치로 맞춘
+   공용 확인 창 — 어느 페이지에서나 똑같이 보이도록 값 자체를 복제했다. */
+.confirm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 80;
+}
+.confirm-modal {
+  width: 340px;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(20, 14, 6, 0.22);
+}
+.confirm-modal-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #201a14;
+}
+.confirm-modal-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #a89c86;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+.confirm-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.confirm-modal-cancel-btn {
+  flex: 1;
+  box-sizing: border-box;
+  border: 1px solid #ececec;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #5b5346;
+  cursor: pointer;
+}
+.confirm-modal-cancel-btn:hover {
+  border-color: #d8c9ff;
+}
+.confirm-modal-confirm-btn {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(90deg, #5f26f3, #8d47fa);
+  cursor: pointer;
+}
+.confirm-modal-confirm-btn--danger {
+  background: linear-gradient(90deg, #e2572f, #e87a4f);
+}
+.confirm-modal-confirm-btn:disabled,
+.confirm-modal-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

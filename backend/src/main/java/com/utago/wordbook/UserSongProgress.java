@@ -39,4 +39,18 @@ public class UserSongProgress {
 
     @Column(name = "last_studied_at")
     private LocalDateTime lastStudiedAt;
+
+    /** 칭호 "같은 곡 복습"(TitleCategory.SONG_REPEAT) — 이 곡을 처음부터 끝까지 완주한
+     * 횟수(2026-10-08 사용자 확정: "끝까지 다시 완주할 때마다" +1). SongService#updateSongProgress
+     * 참고 — lastLineOrder(이어 학습용, 항상 최댓값만 저장)와는 별개 지표다. */
+    @Column(name = "completed_count", nullable = false)
+    @Builder.Default
+    private int completedCount = 0;
+
+    /** 한 번의 "완주"를 중복 집계하지 않기 위한 내부 플래그 — 마지막 줄 근처에서 진행 상황
+     * 업데이트가 여러 번 호출돼도 완주 1회로만 센다. 다시 처음(0번 줄)으로 돌아가면 풀려서
+     * 다음 완주를 또 셀 수 있게 된다. */
+    @Column(name = "completed_this_pass", nullable = false)
+    @Builder.Default
+    private boolean completedThisPass = false;
 }

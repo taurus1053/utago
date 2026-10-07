@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { startPageTransition } from '../utils/pageTransition'
+import { rememberLandingHeroRect } from '../utils/landingHeroRect'
+import { measureMaxTextWidth } from '../utils/measureText'
 import LangSwitcher from '../components/LangSwitcher'
 import './Landing.css'
 
@@ -224,6 +226,7 @@ export default function Landing() {
   })
   const t = TRANSLATIONS[lang]
   const heroRef = useRef(null)
+  const pageRef = useRef(null)
 
   // "무료로 시작하기" / "로그인"을 누르면 즉시 페이지를 바꾸는 대신, 보라색
   // 히어로 영역이 화면을 가득 채웠다가 목적지 페이지의 브랜드 패널 크기로
@@ -249,8 +252,65 @@ export default function Landing() {
     }
   }, [lang])
 
+  // 로그아웃 시 이 히어로 영역으로 "모여드는" 역방향 전환(TopBar.jsx)이 정확한
+  // 도착 크기를 알 수 있도록, 실제 렌더된 히어로 크기를 기억해둔다 — 창 크기가
+  // 바뀌거나(리사이즈) 언어가 바뀌어 줄바꿈이 달라져도 다시 재서 최신 값을 유지한다.
+  // useEffect(페인트 이후)가 아니라 useLayoutEffect(커밋 직후, 페인트 전)를 써야
+  // 한다 — 로그아웃 전환이 이 마운트 직후 첫 프레임에 바로 값을 읽어가는데,
+  // 이 세션에서 랜딩을 한 번도 거치지 않고 로그인한 경우(새로고침 등) useEffect
+  // 타이밍으로는 그 첫 요청에 아직 값이 없어 대략값(fallback)이 쓰이고, 그 대략값이
+  // 실제 히어로 크기와 달라서 "줄어들다 멈추고 갑자기 바뀌는" 어긋남이 보였다
+  // (2026-10-08 피드백).
+  useLayoutEffect(() => {
+    function measure() {
+      if (heroRef.current) {
+        rememberLandingHeroRect(heroRef.current.getBoundingClientRect())
+      }
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [lang])
+
+  // 로그인/가입하기/무료로 시작하기 버튼은 언어(한국어/일본어/영어)마다 글자
+  // 길이가 달라서, 폭을 px로 어림짐작해 고정해두면 실제보다 너무 넉넉하거나
+  // (2026-10-07 피드백 — "모든 언어에서 공백이 남는다") 부족해서 줄바꿈될 수
+  // 있다. 그래서 캔버스로 세 언어 라벨을 실제 폰트 그대로 재서 가장 넓은 폭을
+  // 구하고, 거기에 버튼 좌우 패딩만 더한 값을 CSS 변수로 내려줘서 Landing.css가
+  // 그 값을 폭으로 쓰게 한다(언어가 바뀌어도 이 값 자체는 동일하니 버튼 크기가
+  // 흔들리지 않는다). 구글 폰트(Noto Sans KR)가 아직 로드되기 전에는 대체
+  // 폰트로 재서 약간 부정확할 수 있어서, document.fonts.ready 이후 한 번 더
+  // 다시 잰다.
+  useLayoutEffect(() => {
+    const langCodes = Object.keys(TRANSLATIONS)
+    const LOGIN_TEXTS = langCodes.map((l) => TRANSLATIONS[l].login)
+    const SIGNUP_TEXTS = langCodes.map((l) => TRANSLATIONS[l].signup)
+    // 좌우 패딩(Landing.css의 padding 선언과 맞춰야 한다) + 약간의 여유
+    const LOGIN_PAD = 12 * 2 + 4
+    const SIGNUP_PAD = 16 * 2 + 4
+    const CTA_PAD = 20 * 2 + 4
+
+    function applySizes() {
+      const el = pageRef.current
+      if (!el) return
+      const loginW = Math.ceil(measureMaxTextWidth(LOGIN_TEXTS, "600 13.5px 'Noto Sans KR', system-ui, sans-serif")) + LOGIN_PAD
+      const signupW = Math.ceil(measureMaxTextWidth(SIGNUP_TEXTS, "700 13.5px 'Noto Sans KR', system-ui, sans-serif")) + SIGNUP_PAD
+      const ctaW = Math.ceil(measureMaxTextWidth(SIGNUP_TEXTS, "700 16px 'Noto Sans KR', system-ui, sans-serif")) + CTA_PAD
+      el.style.setProperty('--landing-login-btn-width', `${loginW}px`)
+      el.style.setProperty('--landing-signup-btn-width', `${signupW}px`)
+      el.style.setProperty('--landing-cta-btn-width', `${ctaW}px`)
+    }
+
+    applySizes()
+    // 웹폰트가 이 시점에 아직 로드 중이었다면, 로드 완료 후 실제 폰트 메트릭으로
+    // 한 번 더 정확히 재조정한다.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(applySizes).catch(() => {})
+    }
+  }, [])
+
   return (
-    <div className="landing-page">
+    <div className="landing-page" ref={pageRef}>
       {/* 상단바 */}
       <header className="landing-topbar">
         <div className="landing-topbar-logo">

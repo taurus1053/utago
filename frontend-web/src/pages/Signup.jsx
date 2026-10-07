@@ -9,6 +9,8 @@ import {
 } from '../api/auth'
 import { ApiError } from '../api/client'
 import DatePicker from '../components/DatePicker'
+import { startPageTransition } from '../utils/pageTransition'
+import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
 import './Signup.css'
 
 const NATIVE_LANGS = [
@@ -24,15 +26,30 @@ export default function Signup() {
   const navigate = useNavigate()
   const location = useLocation()
   const [step, setStep] = useState('verify') // verify -> form -> done
+  const brandRef = useRef(null)
 
   // 랜딩 페이지의 전환 애니메이션을 타고 들어왔을 때만 로고/문구를 서서히
   // 페이드인 시킨다. 뒤로가기/앞으로가기나 새로고침으로 바로 들어왔을 땐
   // 애니메이션 없이 즉시 보여줘야 "왜 이렇게 느리지" 하는 느낌이 없다.
   const fromTransition = Boolean(location.state?.fromTransition)
 
+  // Login.jsx의 뒤로가기와 똑같은 전환(화면을 채웠다가 랜딩의 실제 히어로 크기로
+  // 모여듦)을 그대로 재사용한다(2026-10-07 피드백 — 회원가입 페이지에도 뒤로가기가
+  // 필요하다는 요청). utils/landingHeroRect.js가 기억해둔 실제 히어로 크기를 쓴다.
+  function handleBack() {
+    const rect = brandRef.current
+      ? brandRef.current.getBoundingClientRect()
+      : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }
+    startPageTransition(rect, '/', {
+      replace: true,
+      variant: 'hero',
+      getShrinkRect: getLastKnownLandingHeroRect,
+    })
+  }
+
   return (
     <div className="signup-page">
-      <div className="signup-brand">
+      <div className="signup-brand" ref={brandRef}>
         <div className="signup-brand-circle signup-brand-circle--top" />
         <div className="signup-brand-circle signup-brand-circle--bottom" />
         <img
@@ -50,6 +67,9 @@ export default function Signup() {
       </div>
 
       <div className="signup-form-area">
+        <button type="button" className="signup-back-btn" onClick={handleBack}>
+          <span className="signup-back-arrow">&lt;</span> 뒤로가기
+        </button>
         {step === 'verify' && <VerifyStep onVerified={() => setStep('form')} />}
         {step === 'form' && (
           <FormStep onDone={() => setStep('done')} navigate={navigate} />

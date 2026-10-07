@@ -1,12 +1,19 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { login } from '../api/auth'
 import { ApiError } from '../api/client'
+import { startPageTransition } from '../utils/pageTransition'
+import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
 import './Login.css'
+
+// 상단바(TopBar.css)와 정확히 같은 높이 — 전환 애니메이션이 줄어드는 목표 크기를
+// 여기 맞춰야 다 줄어든 순간 진짜 TopBar와 이어 붙여도 어긋나 보이지 않는다.
+const TOPBAR_HEIGHT = 64
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
+  const brandRef = useRef(null)
   const redirectTo = location.state?.from ?? '/'
   // 랜딩 페이지의 전환 애니메이션을 타고 들어왔을 때만 로고/문구를 서서히
   // 페이드인 시킨다. 뒤로가기/앞으로가기나 새로고침으로 바로 들어왔을 땐
@@ -31,22 +38,52 @@ export default function Login() {
     setSubmitting(true)
     try {
       await login(email, password)
-      navigate(redirectTo, { replace: true })
+      // 즉시 navigate하는 대신, 좌측 보라색 브랜드 패널이 화면 전체를 채웠다가
+      // 상단바 크기(64px)로 줄어들며 그 자리에서 실제 홈 화면이 드러나는 전환을
+      // 재생한다(랜딩→로그인 전환과 같은 메커니즘, utils/pageTransition 참고).
+      // submitting은 여기서 끝내지 않는다 — 전환이 끝나고 페이지가 바뀔 때까지
+      // 버튼이 다시 눌리지 않아야 자연스럽다(아래 실패 분기에서만 풀어줌).
+      const rect = brandRef.current
+        ? brandRef.current.getBoundingClientRect()
+        : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }
+      startPageTransition(rect, redirectTo, {
+        replace: true,
+        variant: 'topbar',
+        getShrinkRect: () => ({ top: 0, left: 0, width: window.innerWidth, height: TOPBAR_HEIGHT }),
+      })
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)
       } else {
         setError('로그인 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.')
       }
-    } finally {
       setSubmitting(false)
     }
+  }
+
+  // 랜딩 → 로그인 전환(히어로가 화면을 채웠다가 브랜드 패널 크기로 줄어듦)을
+  // 그대로 역재생한다. 시작 지점은 지금 보이는 브랜드 패널의 실제 위치/크기이고,
+  // 화면을 다 채운 뒤에는 (브랜드 패널 크기로 되돌아가는 게 아니라) 랜딩의
+  // 실제 히어로 영역 크기로 줄어들어야 한다 — 안 그러면 "화면을 덮었다가
+  // 왼쪽 브랜드 패널 폭만큼의 좁은 상자로 줄어든 뒤 갑자기 (훨씬 넓은) 진짜
+  // 랜딩 히어로로 바뀌는" 어색한 결과가 된다(2026-10-07 피드백). TopBar.jsx의
+  // 로그아웃 전환과 같은 방식으로 utils/landingHeroRect.js가 기억해둔 실제
+  // 히어로 크기를 쓴다.
+  function handleBack() {
+    const rect = brandRef.current
+      ? brandRef.current.getBoundingClientRect()
+      : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }
+    startPageTransition(rect, '/', {
+      replace: true,
+      variant: 'hero',
+      getShrinkRect: getLastKnownLandingHeroRect,
+    })
   }
 
   return (
     <div className="login-page">
       {/* 좌측 브랜드 패널 */}
-      <div className="login-brand">
+      <div className="login-brand" ref={brandRef}>
         <div className="login-brand-circle login-brand-circle--top" />
         <div className="login-brand-circle login-brand-circle--bottom" />
         <img
@@ -63,6 +100,9 @@ export default function Login() {
 
       {/* 우측 폼 */}
       <div className="login-form-area">
+        <button type="button" className="login-back-btn" onClick={handleBack}>
+          <span className="login-back-arrow">&lt;</span> 뒤로가기
+        </button>
         <form className="login-form" onSubmit={handleSubmit} noValidate>
           <div className="login-heading">
             <span className="login-title">로그인</span>

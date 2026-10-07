@@ -257,6 +257,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  /* 두 카드(오늘의 추천곡/가사 복습하기)는 같은 높이를 맞춰야 해서 기본값(stretch)을
+     쓴다 — "가사 복습하기" 쪽 단어 목록이 항상 3줄만큼의 공간을 확보해두므로(아래
+     .home-lyric-words min-height), 이 카드의 높이가 안정적인 기준이 되고, 오늘의
+     추천곡 카드(.home-song-of-day-cover가 flex:1로 남는 높이를 채움)가 거기에
+     맞춰 늘어난다. */
 }
 .home-word-card {
   display: flex;
@@ -266,12 +271,7 @@
   border: 1px solid #eee4d2;
   border-radius: 18px;
   padding: 18px 20px;
-  /* 단어 개수가 달라져도(3개짜리 소절 vs 8개짜리 소절) 카드 높이가 들쑥날쑥하지 않도록
-     고정 높이로 통일한다. 단어 목록을 최대 6개(3열 x 2줄)까지만 보여주므로(LyricLineBody),
-     그 크기에 맞춰 이전보다 낮췄다 — 남는 여백이 없도록. */
-  height: 250px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 .home-word-card-header {
   display: flex;
@@ -317,6 +317,18 @@
   color: #5f26f3;
   font-weight: 600;
 }
+/* 새로고침(리프레시) 중에도 이전 내용을 그대로 유지한 채 살짝 흐리게만 보여준다 —
+   "불러오는 중..."으로 통째로 바뀌면 카드 높이가 줄었다 늘었다 해서 아래 섹션이
+   들썩이는(깜빡이는) 문제가 있었다(2026-10-08). */
+.home-word-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: opacity 0.15s ease;
+}
+.home-word-card-body.is-refreshing {
+  opacity: 0.5;
+}
 .home-lyric-original {
   margin: 0;
   font-size: 17px;
@@ -343,10 +355,11 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px 14px;
-  /* 카드 자체는 고정 높이(.home-word-card)이므로, 단어가 많을 땐 이 목록만 내부 스크롤. */
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  /* 단어가 9개(3줄)보다 적어도 "기본 3줄 분량"은 항상 확보해서 카드 높이가 들쭉날쭉하지
+     않게 하되, 그 이상으로 남는 여백은 만들지 않는다 — 딱 3줄 높이만큼만 min-height로
+     잡아둔다(실제 줄 수가 더 적으면 아래쪽이 비어 보이는 대신, 더 많으면 "+N개 더"로
+     넘어간다). */
+  min-height: 60px;
   align-content: start;
 }
 .home-lyric-word-row {
@@ -382,16 +395,23 @@
   color: #c3b8a3;
 }
 
-/* 오늘의 추천곡 — 가사 텍스트 없이 유튜브 썸네일 + 곡 정보만 보여준다. .home-word-card가
-   고정 높이(250px)이므로 그 안에서 남는 공간을 썸네일이 꽉 채우도록 flex:1로 둔다. */
+/* 오늘의 추천곡 — 가사 텍스트 없이 유튜브 썸네일 + 곡 정보만 보여준다. 카드 높이 자체는
+   옆의 "가사 복습하기" 카드(3줄 확보된 단어 목록 기준)에 맞춰 늘어나므로(home-word-row의
+   stretch), 썸네일은 고정 비율 대신 남는 세로 공간을 전부 채운다(flex:1) — 그래야 두 카드
+   높이가 항상 맞는다. */
 .home-song-of-day {
   display: flex;
   flex-direction: column;
+  gap: 10px;
   flex: 1;
   min-height: 0;
-  gap: 10px;
   text-decoration: none;
   color: inherit;
+  transition: opacity 0.15s ease;
+}
+.home-song-of-day.is-refreshing {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .home-song-of-day-cover {
   flex: 1;

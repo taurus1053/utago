@@ -1,28 +1,87 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
-import { getMyPage, getMyStats, updateStatusMessage } from '../api/users'
+import { getMyPage, getMyStats, getMyTitles, updateStatusMessage } from '../api/users'
 import { listWordbooks } from '../api/wordbook'
 import { listMyPosts, listSavedPosts } from '../api/board'
 import './MyPage.css'
 
-// 칭호/친구는 아직 설계·계측이 없어서(claude/소셜_마이페이지_기획.md 10번 참고) 와이어프레임과
-// 레이아웃을 맞추기 위한 용도로만 더미 데이터를 쓴다. 학습 통계 4타일/스트릭은 실제
-// GET /api/users/me/stats로 받아온다(2026-10-02).
+// 친구는 아직 설계·계측이 없어서(claude/소셜_마이페이지_기획.md 10번 참고) 와이어프레임과
+// 레이아웃을 맞추기 위한 용도로만 더미 데이터를 쓴다. 학습 통계 4타일/스트릭/칭호는 전부
+// 실제 API(GET /api/users/me/stats, GET /api/users/me/titles)로 받아온다.
 const EMPTY_STATS = {
   wordsLearned: 0,
   linesCompleted: 0,
   songsCompleted: 0,
   currentStreakDays: 0,
   longestStreakDays: 0,
+  totalActiveDays: 0,
   calendar: [],
 }
 
-const PLACEHOLDER_TITLES = [
-  { icon: '🌱', label: '새싹 학습자', bg: '#f2f2f2', textColor: '#5b5346', iconOpacity: 1, current: false },
-  { icon: '🎵', label: '가사 탐험가', bg: '#f4efff', textColor: '#7636f6', iconOpacity: 1, current: true },
-  { icon: '📖', label: '성실한 독서가', bg: '#f7f7f7', textColor: '#a89c86', iconOpacity: 0.4, current: false },
-]
+const EMPTY_TITLES = { categories: [], equippedTitleCode: null, equippedTitleName: null }
+
+// 칭호 카드에 보여줄 "보유 칭호" 요약 — 카테고리별로 가장 높은 단계의 달성 칭호 하나만
+// 뽑는다(낮은 단계는 상위 단계에 포함되는 의미라 전부 나열할 필요가 없다). 여기서는
+// 착용(대표 칭호 설정) 없이 그냥 나열만 한다 — 대표 칭호 설정은 "더보기"로 들어가는
+// 칭호 전체 페이지(TitlesPage.jsx)에서만 할 수 있다(claude/소셜_마이페이지_기획.md 15-6번).
+function pickHighestAchievedPerCategory(categories) {
+  const result = []
+  for (const group of categories) {
+    let best = null
+    for (const t of group.titles) {
+      if (t.achieved) best = t
+    }
+    if (best) result.push({ ...best, categoryLabel: group.categoryLabel })
+  }
+  return result
+}
+
+// 스트릭 캘린더 요일 헤더 — 백엔드(LearningStatsService.buildCalendar)가 일요일 시작
+// 5주로 정렬해서 내려주므로 그에 맞춘다.
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+
+function todayIso() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+// 칸 색 농도 — 그날 단어 복습 횟수(wordReviewCount)에 비례. 절대 구간으로 나눠서
+// GitHub 잔디밭처럼 "많이 할수록 진해지는" 느낌을 준다(사용자 간 상대 비교가 아니라
+// 매번 같은 기준이라 보기에 안정적). 이번 주의 아직 안 지난 미래 칸은 "0개라서 회색"과
+// 구분되도록 더 옅게 비워둔다.
+// 2026-10-07 피드백 — 공부를 조금만 해도 바로 가장 진한 단계로 뛰어서(구간 폭이
+// 너무 좁았음) 비현실적으로 진해 보였다. 구간을 더 넓게(그리고 한 단계 추가해서
+// 더 완만하게) 잡아 실제 학습량과 진하기가 자연스럽게 비례하도록 한다.
+function streakCellColor(day, today) {
+  if (!day || !day.date) return '#ececec'
+  if (day.date > today) return '#f7f7f7' // 아직 오지 않은 날
+  const count = day.wordReviewCount ?? 0
+  if (count <= 0) return '#ececec'
+  if (count <= 3) return '#e4d6fa'
+  if (count <= 8) return '#c7acf3'
+  if (count <= 15) return '#9c6eec'
+  if (count <= 25) return '#7636f6'
+  return '#4c1ecf'
+}
+
+// 칸 안 날짜 글씨 색 — 배경 진하기에 따라 명암 대비를 맞춘다. 기존엔 "오늘" 칸만
+// 고정된 보라색(#5f26f3) 글씨를 썼는데, 오늘 학습량이 많아 배경 자체가 같은
+// 보라색 계열의 진한 색이 되면 글씨와 배경이 거의 같은 색이 되어 날짜가
+// 안 보이는 문제가 있었다(2026-10-07 피드백). 배경 농도 구간별로 밝은/어두운
+// 글씨를 골라 항상 읽히도록 한다.
+function streakCellTextColor(day, today) {
+  if (!day || !day.date) return 'rgba(32, 26, 20, 0.45)'
+  if (day.date > today) return 'rgba(32, 26, 20, 0.3)' // 아직 오지 않은 날
+  const isToday = day.date === today
+  const count = day.wordReviewCount ?? 0
+  if (count <= 8) {
+    // 배경이 밝은 구간 — 짙은 글씨(오늘은 포인트 보라색으로 강조)
+    return isToday ? '#5f26f3' : 'rgba(32, 26, 20, 0.55)'
+  }
+  // 배경이 진한 구간 — 흰 글씨라야 대비가 나온다
+  return isToday ? '#ffffff' : 'rgba(255, 255, 255, 0.92)'
+}
 
 const PLACEHOLDER_FRIENDS = [
   { label: '하늘' },
@@ -93,6 +152,20 @@ export default function MyPage() {
   const [savedPosts, setSavedPosts] = useState([])
   const [savedPostsLoading, setSavedPostsLoading] = useState(true)
 
+  // 대표 칭호 설정(착용)은 더 이상 여기서 하지 않는다 — "더보기"로 들어가는
+  // 칭호 전체 페이지(TitlesPage.jsx)로 옮겼고, 여기서는 보유 칭호를 그냥
+  // 나열만 한다.
+  const [titles, setTitles] = useState(EMPTY_TITLES)
+  const [titlesLoading, setTitlesLoading] = useState(true)
+
+  function loadTitles() {
+    setTitlesLoading(true)
+    return getMyTitles()
+      .then((data) => setTitles(data || EMPTY_TITLES))
+      .catch(() => setTitles(EMPTY_TITLES))
+      .finally(() => setTitlesLoading(false))
+  }
+
   useEffect(() => {
     getMyPage()
       .then((data) => {
@@ -121,6 +194,9 @@ export default function MyPage() {
       .then(setSavedPosts)
       .catch(() => setSavedPosts([]))
       .finally(() => setSavedPostsLoading(false))
+
+    loadTitles()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function handleSaveStatus() {
@@ -218,10 +294,10 @@ export default function MyPage() {
           </div>
           <div className="mypage-stat-tile">
             <div className="mypage-stat-label">
-              연속 학습일
+              학습일수
               {stats.currentStreakDays >= 3 && ' 🔥'}
             </div>
-            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.currentStreakDays}일`}</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.totalActiveDays}일`}</div>
           </div>
         </div>
 
@@ -347,34 +423,61 @@ export default function MyPage() {
                     ? `${stats.currentStreakDays}일 연속 학습 중이에요`
                     : '아직 학습 기록이 없어요'}
               </div>
+              {/* 요일 헤더 — 백엔드가 일요일 시작 5주로 정렬해서 내려주므로 그대로 맞춘다. */}
+              <div className="mypage-streak-weekdays">
+                {WEEKDAY_LABELS.map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
+              </div>
               <div className="mypage-streak-grid">
-                {(stats.calendar.length > 0 ? stats.calendar : Array.from({ length: 35 }, () => ({ active: false })))
-                  .map((d, i) => (
-                    <div
-                      key={d.date || i}
-                      className="mypage-streak-cell"
-                      style={{ background: d.active ? '#7636f6' : '#ececec' }}
-                    />
-                  ))}
+                {(stats.calendar.length > 0 ? stats.calendar : Array.from({ length: 35 }, () => ({ active: false, wordReviewCount: 0, date: null })))
+                  .map((d, i) => {
+                    const today = todayIso()
+                    const dayOfMonth = d.date ? Number(d.date.slice(8, 10)) : null
+                    return (
+                      <div
+                        key={d.date || i}
+                        className={`mypage-streak-cell${d.date === today ? ' mypage-streak-cell--today' : ''}`}
+                        style={{ background: streakCellColor(d, today) }}
+                        title={d.date ? `${d.date} · 단어 복습 ${d.wordReviewCount ?? 0}회` : undefined}
+                      >
+                        {dayOfMonth !== null && (
+                          <span
+                            className="mypage-streak-cell-date"
+                            style={{ color: streakCellTextColor(d, today) }}
+                          >
+                            {dayOfMonth}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
               </div>
             </section>
 
-            {/* 칭호 컬렉션 (더미) */}
+            {/* 칭호 — GET /api/users/me/titles (claude/소셜_마이페이지_기획.md 15-6번).
+                여기서는 보유 칭호를 그냥 나열만 하고, 대표 칭호 설정(착용)은 "더보기"로
+                들어가는 칭호 전체 페이지(TitlesPage.jsx)에서만 할 수 있다. */}
             <section className="mypage-card mypage-card--side">
-              <div className="mypage-side-title">칭호 컬렉션</div>
-              <div className="mypage-title-list">
-                {PLACEHOLDER_TITLES.map((t) => (
-                  <div key={t.label} className="mypage-title-row" style={{ background: t.bg }}>
-                    <span style={{ opacity: t.iconOpacity }}>{t.icon}</span>
-                    <span className="mypage-title-label" style={{ color: t.textColor }}>{t.label}</span>
-                    {t.current && <span className="mypage-title-current">착용중</span>}
-                  </div>
-                ))}
+              <div className="mypage-side-head">
+                <span>칭호</span>
+                <Link to="/mypage/titles" className="mypage-side-add">더보기</Link>
               </div>
-              <div className="mypage-title-progress-label">다음 칭호까지 120 단어</div>
-              <div className="mypage-title-progress-track">
-                <div className="mypage-title-progress-fill" style={{ width: '62%' }} />
-              </div>
+              {titlesLoading ? (
+                <div className="mypage-status">불러오는 중...</div>
+              ) : (
+                <div className="mypage-title-chips">
+                  {pickHighestAchievedPerCategory(titles.categories).length === 0 ? (
+                    <div className="mypage-status">아직 획득한 칭호가 없어요. 학습을 시작해보세요!</div>
+                  ) : (
+                    pickHighestAchievedPerCategory(titles.categories).map((t) => (
+                      <span key={t.code} className="mypage-title-chip" title={t.categoryLabel}>
+                        {t.name}
+                      </span>
+                    ))
+                  )}
+                </div>
+              )}
             </section>
 
             {/* 친구 (더미) */}

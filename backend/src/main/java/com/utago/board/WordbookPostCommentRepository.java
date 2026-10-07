@@ -9,4 +9,7 @@ public interface WordbookPostCommentRepository extends JpaRepository<WordbookPos
     List<WordbookPostComment> findByPostIdOrderByCreatedAtAsc(Long postId);
 
     long countByPostId(Long postId);
+
+    /** 칭호 시스템 "댓글" 카테고리 — 내가 작성한 댓글 총수(TitleService 참고). */
+    long countByAuthorId(Long authorId);
 }

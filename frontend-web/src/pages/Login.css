@@ -78,11 +78,40 @@
 
 /* 우측 폼 */
 .login-form-area {
+  position: relative;
   flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
+}
+
+.login-back-btn {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  margin: 0;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #7c7261;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.login-back-btn:hover {
+  color: #5b5346;
+  background: #f4efff;
+}
+.login-back-arrow {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .login-form {

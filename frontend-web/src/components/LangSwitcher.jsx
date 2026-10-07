@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { measureMaxTextWidth } from '../utils/measureText'
 import './LangSwitcher.css'
 
 // 페이지에 표시되는 언어(UI 문구)를 고르는 드롭다운. 로그인 상태(모국어 설정)와는
@@ -25,6 +26,25 @@ export default function LangSwitcher({ lang, setLang }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // "한국어"/"日本語"/"English" 중 가장 넓은 라벨 기준으로 라벨 칸 폭을 고정해둬야
+  // 언어를 바꿔도 트리거 버튼 전체 크기가 안 흔들린다(2026-10-07 피드백).
+  // px를 어림짐작하면 너무 넉넉하거나 부족할 수 있어서 캔버스로 실제 재서 쓴다
+  // (Landing.jsx의 버튼 폭 계산과 같은 방식). 두 컨텍스트(랜딩 상단바/로그인
+  // 후 TopBar) 모두 폰트 크기·굵기가 13px/600으로 같아서 하나의 값으로 충분하다.
+  useLayoutEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    function applySize() {
+      const labels = DISPLAY_LANGS.map((l) => l.label)
+      const w = Math.ceil(measureMaxTextWidth(labels, "600 13px 'Noto Sans KR', system-ui, sans-serif"))
+      el.style.setProperty('--lang-switcher-label-width', `${w}px`)
+    }
+    applySize()
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(applySize).catch(() => {})
+    }
+  }, [])
+
   return (
     <div className="lang-switcher" ref={rootRef}>
       <button
@@ -40,7 +60,7 @@ export default function LangSwitcher({ lang, setLang }) {
           <path d="M2 12h20"></path>
           <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
         </svg>
-        <span>{current.label}</span>
+        <span className="lang-switcher-label">{current.label}</span>
         <svg className={`lang-switcher-chevron${open ? ' lang-switcher-chevron--open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>

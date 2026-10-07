@@ -33,4 +33,11 @@ public class UserActivityLog {
 
     @Column(name = "activity_date", nullable = false)
     private LocalDate activityDate;
+
+    /** 그날 단어 복습이 몇 번 일어났는지(V26) — 마이페이지 스트릭 캘린더 칸의 색 농도를
+     * "단어 학습량에 비례"하게 보여주기 위함. 가사 진행은 이 카운트에 포함되지 않는다
+     * (LearningStatsService.recordWordReview() 참고). */
+    @Column(name = "word_review_count", nullable = false)
+    @Builder.Default
+    private int wordReviewCount = 0;
 }

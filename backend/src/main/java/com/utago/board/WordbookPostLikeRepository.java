@@ -15,4 +15,7 @@ public interface WordbookPostLikeRepository extends JpaRepository<WordbookPostLi
     List<WordbookPostLike> findByUserIdAndPostIdIn(Long userId, List<Long> postIds);
 
     long countByPostId(Long postId);
+
+    /** 칭호 시스템 "좋아요" 카테고리 — 내가 누른 좋아요 총수(TitleService 참고). */
+    long countByUserId(Long userId);
 }

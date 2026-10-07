@@ -1,10 +1,10 @@
 // 마이페이지 프로필 API — 전부 로그인 필요(client.js가 토큰을 자동으로 실어 보낸다).
-import { apiGet, apiPatch } from './client'
+import { apiGet, apiPatch, apiPost } from './client'
 
 // GET /api/users/me
 // -> { nickname, avatarColor, avatarInitial, statusMessage, title, learningLangFlag }
-// title은 칭호 시스템 설계가 아직 안 끝나서 고정 placeholder 문구, learningLangFlag도
-// 지금은 일본어만 지원해서 고정값("ja")이다.
+// title은 2026-10-07부터 TitleService가 실제 통계 기준으로 계산한 "현재 착용 칭호" 이름이다
+// (claude/소셜_마이페이지_기획.md 15-6번). learningLangFlag는 지금은 일본어만 지원해서 고정값("ja").
 export async function getMyPage() {
   return apiGet('/api/users/me')
 }
@@ -16,7 +16,26 @@ export async function updateStatusMessage(statusMessage) {
 
 // GET /api/users/me/stats — 마이페이지 학습 통계 4타일 + 스트릭 캘린더.
 // -> { wordsLearned, linesCompleted, songsCompleted, currentStreakDays, longestStreakDays,
-//      calendar: [{ date: "yyyy-MM-dd", active: boolean }, ...] (최근 35일) }
+//      totalActiveDays, calendar: [{ date: "yyyy-MM-dd", active: boolean, wordReviewCount }, ...] }
+// totalActiveDays는 스트릭(연속)과 무관하게 실제로 학습한 전체 날짜 수 — "학습일수" 타일에 쓴다.
 export async function getMyStats() {
   return apiGet('/api/users/me/stats')
+}
+
+// GET /api/users/me/titles — 칭호 컬렉션(카테고리별 달성 현황) + 현재 착용 칭호.
+export async function getMyTitles() {
+  return apiGet('/api/users/me/titles')
+}
+
+// PATCH /api/users/me/equipped-title  payload: { code }
+export async function equipTitle(code) {
+  return apiPatch('/api/users/me/equipped-title', { code })
+}
+
+// POST /api/users/me/study-ping  payload: { seconds }
+// 학습 화면(SongLearn 등)이 약 30초 간격으로 보내는 체류시간 하트비트 — 누적 학습시간
+// 칭호(1/5/10/30/50/100시간)의 원천 데이터가 된다. 실패해도 조용히 무시해도 되는 신호성
+// 요청이라 호출하는 쪽에서 .catch(() => {})로 처리한다.
+export async function sendStudyPing(seconds) {
+  return apiPost('/api/users/me/study-ping', { seconds })
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getSong, updateSongProgress } from '../api/songs'
 import { addWordbookItem, createWordbook, getWordbookMembership, listWordbooks } from '../api/wordbook'
 import { isLoggedIn } from '../api/auth'
+import { sendStudyPing } from '../api/users'
 import TopBar from '../components/TopBar'
 import useYoutubeApiReady from '../hooks/useYoutubeApiReady'
 import './SongLearn.css'
@@ -318,6 +319,21 @@ export default function SongLearn() {
     }, 1000)
     return () => clearTimeout(timer)
   }, [clampedIndex, song?.id])
+
+  // 학습 화면에 머무는 동안 30초마다 "체류시간 하트비트"를 보낸다 — 누적 학습시간
+  // 칭호(1/5/10/30/50/100시간, claude/소셜_마이페이지_기획.md 15-6번)의 원천 데이터.
+  // 화면을 벗어나거나(언마운트) 곡이 바뀌면 인터벌이 정리되므로, 탭을 백그라운드에 두고
+  // 떠나있던 시간까지 과도하게 집계되진 않는다(최대 30초 단위로만 더해짐).
+  useEffect(() => {
+    if (!isLoggedIn() || !song?.id) return
+    const STUDY_PING_INTERVAL_MS = 30000
+    const interval = setInterval(() => {
+      sendStudyPing(STUDY_PING_INTERVAL_MS / 1000).catch(() => {
+        // 실패해도 무시 — 이번 한 번 하트비트가 빠질 뿐, 다음 주기에 다시 시도된다.
+      })
+    }, STUDY_PING_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [song?.id])
 
   const displayMs = isSeeking ? seekPreviewMs : currentMs
   const seekPercent = durationMs > 0 ? Math.min(100, Math.max(0, (displayMs / durationMs) * 100)) : 0

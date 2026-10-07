@@ -115,10 +115,12 @@ export async function toggleWordbookItemStar(itemId) {
   return apiPatch(`/api/wordbooks/items/${itemId}/star`, {})
 }
 
-// POST /api/wordbooks/items/{itemId}/review  payload: { know: boolean }
+// POST /api/wordbooks/items/{itemId}/review  payload: { know: boolean, method?: string }
 // 플래시카드에서 "안다"/"모른다" 버튼 — 서버가 간격 반복(SRS) 상태를 갱신해서 돌려준다.
-export async function reviewWordbookItem(itemId, know) {
-  return apiPost(`/api/wordbooks/items/${itemId}/review`, { know })
+// method(2026-10-08 추가) — 5개 학습 게임 중 어떤 방법이었는지(flashcard/quiz/fill/reorder/
+// match) — 칭호 "학습 방법별"(STUDY_METHOD)의 원천 데이터. 생략하면 그냥 집계에서 빠질 뿐.
+export async function reviewWordbookItem(itemId, know, method) {
+  return apiPost(`/api/wordbooks/items/${itemId}/review`, { know, method })
 }
 
 // POST /api/wordbooks/items/membership  payload: { lemmas: [...], lang }
