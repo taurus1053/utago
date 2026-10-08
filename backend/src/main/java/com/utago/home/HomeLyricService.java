@@ -9,6 +9,7 @@ import com.utago.dictionary.SongLineWordRepository;
 import com.utago.dictionary.Word;
 import com.utago.dictionary.WordMeaning;
 import com.utago.dictionary.WordMeaningRepository;
+import com.utago.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +44,15 @@ public class HomeLyricService {
     private final SongLineRepository songLineRepository;
     private final SongLineWordRepository songLineWordRepository;
     private final WordMeaningRepository wordMeaningRepository;
+    private final UserRepository userRepository;
 
+    /** 2026-10-08 추가 — 모국어로 된 곡은 "오늘의 추천곡"에서도 제외한다(전체 곡 목록과
+     * 같은 이유: 배우는 언어가 아닌 모국어 노래는 추천할 필요가 없음). */
     public Optional<SongOfDayResponse> getRandomSongOfDay(Long userId) {
-        return songRepository.findRandomFeaturedSong(userId).map(song -> new SongOfDayResponse(
+        String nativeLang = userRepository.findById(userId)
+                .map(u -> u.getNativeLang() == null ? null : u.getNativeLang().name())
+                .orElse(null);
+        return songRepository.findRandomFeaturedSong(userId, nativeLang).map(song -> new SongOfDayResponse(
                 song.getId(), song.getTitle(), song.getArtist(), song.getSourceLang(), song.getYoutubeVideoId()
         ));
     }

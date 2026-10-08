@@ -26,7 +26,10 @@ public enum TitleCategory {
     // 값을 계산해서 넣어준다(다른 카테고리는 여전히 카테고리 전체가 같은 값을 공유).
     DOWNLOAD_RECEIVED("받은 단어장"),
     STUDY_METHOD("학습 방법"),
-    TIME_OF_DAY("학습 시간대");
+    TIME_OF_DAY("학습 시간대"),
+    // 2026-10-08 추가(3차) — 곡 장르(Song.genre, V30)별 완곡 수. STUDY_METHOD/TIME_OF_DAY와
+    // 같은 이유로 칭호마다 기준(장르)이 다르므로 TitleService가 코드 단위로 값을 계산한다.
+    GENRE("장르");
 
     private final String label;
 

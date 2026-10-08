@@ -2,9 +2,11 @@
 import { apiGet, apiPatch, apiPost } from './client'
 
 // GET /api/users/me
-// -> { nickname, avatarColor, avatarInitial, statusMessage, title, learningLangFlag }
+// -> { nickname, avatarColor, avatarInitial, statusMessage, title, learningLangFlag, nativeLang }
 // title은 2026-10-07부터 TitleService가 실제 통계 기준으로 계산한 "현재 착용 칭호" 이름이다
 // (claude/소셜_마이페이지_기획.md 15-6번). learningLangFlag는 지금은 일본어만 지원해서 고정값("ja").
+// nativeLang("JA"|"KO"|"EN")은 2026-10-08 추가 — Home.jsx가 "전체 곡" 언어 필터에서
+// 모국어 탭을 숨기는 데 쓴다(모국어 곡은 서버가 애초에 안 내려줌 — SongService.listSongs).
 export async function getMyPage() {
   return apiGet('/api/users/me')
 }

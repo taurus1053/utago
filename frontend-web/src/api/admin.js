@@ -72,3 +72,21 @@ export async function listFeaturedSongs() {
 export async function setSongFeatured(songId, featured) {
   return apiPut(`/api/admin/songs/${songId}/featured`, { featured })
 }
+
+// GET /api/admin/songs/all?onlyUngenred=&page=&size= (ADMIN 전용)
+// 곡 관리 화면 "전체 곡 둘러보기" — 검색어 없이 공개 범위 무관(비공개 포함) 전체 곡을 최신
+// 등록순으로 페이지 단위로 가져온다. onlyUngenred=true면 아직 장르가 없는 곡만 걸러서 준다.
+// -> Spring Page<AdminSongSummaryResponse>
+export async function listAllSongsForAdmin({ onlyUngenred = false, page = 0, size = 20 } = {}) {
+  const params = new URLSearchParams()
+  params.set('onlyUngenred', String(onlyUngenred))
+  params.set('page', String(page))
+  params.set('size', String(size))
+  return apiGet(`/api/admin/songs/all?${params.toString()}`)
+}
+
+// PUT /api/admin/songs/{songId}/genre { genre: string | null } (ADMIN 전용)
+// 곡 하나의 장르를 지정하거나(값) 해제(null)한다. genre 값은 GENRE_OPTIONS의 코드와 같아야 한다.
+export async function setSongGenre(songId, genre) {
+  return apiPut(`/api/admin/songs/${songId}/genre`, { genre })
+}

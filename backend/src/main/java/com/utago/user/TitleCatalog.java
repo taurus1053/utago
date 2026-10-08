@@ -207,12 +207,34 @@ public final class TitleCatalog {
             new Title("TIME_OF_DAY_NIGHT_10", TitleCategory.TIME_OF_DAY, "야행성 학습자", 10, "회")
     );
 
+    /** 2026-10-08 신규(3차) — 장르(Song.genre, V30)별 완곡 수. 장르 하나당 칭호 1개, 그
+     * 장르의 곡을 5곡 완주하면 달성(완주 판정은 SONG 카테고리와 동일한 기준 — "가사를 끝까지
+     * + 단어를 실제로 학습한 적 있음", LearningStatsService.countCompletedSongsByGenre 참고).
+     * 장르가 늘어나면(SongGenre enum 추가) 여기도 같이 추가해야 한다. */
+    public static final List<Title> GENRE = List.of(
+            new Title("GENRE_KPOP_5", TitleCategory.GENRE, "K-POP 러버", 5, "곡"),
+            new Title("GENRE_JPOP_5", TitleCategory.GENRE, "J-POP 러버", 5, "곡"),
+            new Title("GENRE_POP_5", TitleCategory.GENRE, "팝 마니아", 5, "곡"),
+            new Title("GENRE_BALLAD_5", TitleCategory.GENRE, "발라드 감성러", 5, "곡"),
+            new Title("GENRE_ROCK_5", TitleCategory.GENRE, "록 스피릿", 5, "곡"),
+            new Title("GENRE_DANCE_EDM_5", TitleCategory.GENRE, "댄스 플로어 메이커", 5, "곡"),
+            new Title("GENRE_HIPHOP_RNB_5", TitleCategory.GENRE, "힙합 리스너", 5, "곡"),
+            new Title("GENRE_CITY_POP_5", TitleCategory.GENRE, "시티팝 러버", 5, "곡"),
+            new Title("GENRE_ACOUSTIC_FOLK_5", TitleCategory.GENRE, "어쿠스틱 힐링러", 5, "곡"),
+            new Title("GENRE_JAZZ_SOUL_5", TitleCategory.GENRE, "재즈 소울메이트", 5, "곡"),
+            new Title("GENRE_TROT_5", TitleCategory.GENRE, "트로트 명인", 5, "곡"),
+            new Title("GENRE_OST_5", TitleCategory.GENRE, "사운드트랙 덕후", 5, "곡"),
+            new Title("GENRE_ANIME_5", TitleCategory.GENRE, "애니송 마스터", 5, "곡"),
+            new Title("GENRE_VOCALOID_5", TitleCategory.GENRE, "보컬로이드 프로듀서", 5, "곡"),
+            new Title("GENRE_AI_5", TitleCategory.GENRE, "AI 송 얼리어답터", 5, "곡")
+    );
+
     /** TitleService가 카테고리 순서대로 순회할 때 쓰는 전체 목록. 자동 착용 기본값을 고를 때도
      * 이 순서(단어 → 가사 → 곡 → ... )를 우선순위로 쓴다. */
     public static final List<List<Title>> ALL_BY_CATEGORY = List.of(
             WORD, LINE, SONG, WORDBOOK_ADD, STUDY_TIME, STREAK,
             POST, COMMENT, WORDBOOK_DOWNLOAD, MY_POST_COMMENT, MY_POST_LIKE,
             WORD_REPEAT, SONG_REPEAT,
-            DOWNLOAD_RECEIVED, STUDY_METHOD, TIME_OF_DAY
+            DOWNLOAD_RECEIVED, STUDY_METHOD, TIME_OF_DAY, GENRE
     );
 }

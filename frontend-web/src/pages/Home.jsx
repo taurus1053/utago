@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { isLoggedIn } from '../api/auth'
 import { getMySongs, listSongs } from '../api/songs'
 import { getSongOfDay, getLyricReview } from '../api/home'
+import { getMyPage } from '../api/users'
 import { Link } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import './Home.css'
@@ -325,6 +326,23 @@ export default function Home() {
   const [songsLoading, setSongsLoading] = useState(true)
   const [songsError, setSongsError] = useState(null)
 
+  // 모국어가 KO인 사용자에게 "한국어" 탭을 보여줄 필요가 없다(배우는 입장에서 모국어 노래는
+  // 의미가 없음, 2026-10-08 사용자 피드백) — "전체" 탭도 백엔드가 모국어 곡은 자동으로
+  // 빼고 내려주므로(SongService.listSongs), 탭 자체를 안 보여줘서 "눌러도 결과가 없는"
+  // 혼란을 막는다. 비로그인 사용자는 모국어를 모르니 그대로 4개 탭 전부 보여준다.
+  const [nativeLang, setNativeLang] = useState(null)
+  useEffect(() => {
+    if (!isLoggedIn()) return
+    getMyPage().then((data) => setNativeLang(data?.nativeLang ?? null)).catch(() => {})
+  }, [])
+  const langFilterOptions = useMemo(
+    () => LANG_FILTER_OPTIONS.filter((opt) => opt.lang === null || opt.lang !== nativeLang),
+    [nativeLang],
+  )
+  useEffect(() => {
+    if (langFilterIndex >= langFilterOptions.length) setLangFilterIndex(0)
+  }, [langFilterOptions, langFilterIndex])
+
   // 검색어 입력은 400ms 디바운스 후 실제 쿼리에 반영.
   useEffect(() => {
     const t = setTimeout(() => setSearchQuery(searchInput), 400)
@@ -335,7 +353,7 @@ export default function Home() {
     let cancelled = false
     setSongsLoading(true)
     setSongsError(null)
-    const lang = LANG_FILTER_OPTIONS[langFilterIndex]?.lang ?? null
+    const lang = langFilterOptions[langFilterIndex]?.lang ?? null
     listSongs({ query: searchQuery, lang, page: 0, size: 24 })
       .then((data) => {
         if (cancelled) return
@@ -354,7 +372,7 @@ export default function Home() {
     return () => {
       cancelled = true
     }
-  }, [langFilterIndex, searchQuery])
+  }, [langFilterOptions, langFilterIndex, searchQuery])
 
   // "내 곡" 섹션: 실제 GET /api/songs/my 연결 (로그인 필요).
   const loggedIn = isLoggedIn()
@@ -485,7 +503,7 @@ export default function Home() {
 
         {/* 언어 필터 */}
         <div className="home-lang-filters">
-          {LANG_FILTER_OPTIONS.map((opt, i) => (
+          {langFilterOptions.map((opt, i) => (
             <button
               key={opt.label}
               onClick={() => setLangFilterIndex(i)}

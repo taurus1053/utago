@@ -36,6 +36,12 @@ const CATEGORY_META = {
   MY_POST_LIKE: { icon: '❤️', color: '#e0415f' },
   WORD_REPEAT: { icon: '🔁', color: '#6a4fd1' },
   SONG_REPEAT: { icon: '🔂', color: '#9b3fc4' },
+  // 2026-10-08(2차) 신규 — TitleCategory.java에 추가된 3종(claude/소셜_마이페이지_기획.md 17번).
+  DOWNLOAD_RECEIVED: { icon: '📥', color: '#1f8a5c' },
+  STUDY_METHOD: { icon: '🎮', color: '#b8650f' },
+  TIME_OF_DAY: { icon: '🌗', color: '#4a5fc1' },
+  // 2026-10-08(3차) 신규 — 장르별 완곡 칭호(claude/소셜_마이페이지_기획.md 17-8번).
+  GENRE: { icon: '🎧', color: '#c4327a' },
 }
 const DEFAULT_META = { icon: '🌱', color: '#8a7f6e' }
 

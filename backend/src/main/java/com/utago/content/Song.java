@@ -78,4 +78,13 @@ public class Song {
     @Column(nullable = false)
     @Builder.Default
     private boolean featured = false;
+
+    /**
+     * 장르(관리자 지정, claude/소셜_마이페이지_기획.md 17-8번). 기존 곡은 전부 null(미지정)로
+     * 시작하며, 강제 소급 백필 없음 — 관리자가 "곡 관리" 화면에서 하나씩 지정해나간다.
+     * 칭호 "장르"(TitleCategory.GENRE)가 이 값을 기준으로 집계한다.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private SongGenre genre;
 }

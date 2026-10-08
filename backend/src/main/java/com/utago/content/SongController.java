@@ -41,13 +41,17 @@ public class SongController {
     private final TranslationService translationService;
     private final LineTranslationCacheService lineTranslationCacheService;
 
+    // 2026-10-08 추가 — 로그인 사용자의 모국어로 된 곡은 자동으로 빼고 내려준다
+    // (SongService.listSongs 참고). 비로그인이면 userId가 null이라 제외 없이 전체 노출.
     @GetMapping("/api/songs")
     public Page<SongSummaryResponse> listSongs(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Lang lang,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 20) Pageable pageable,
+            Authentication authentication
     ) {
-        return songService.listSongs(query, lang, pageable);
+        Long userId = extractUserId(authentication);
+        return songService.listSongs(query, lang, userId, pageable);
     }
 
     @GetMapping("/api/songs/my")

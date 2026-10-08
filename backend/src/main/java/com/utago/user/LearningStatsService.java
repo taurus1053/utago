@@ -1,5 +1,6 @@
 package com.utago.user;
 
+import com.utago.content.SongGenre;
 import com.utago.content.SongLineRepository;
 import com.utago.dictionary.SongLineWordRepository;
 import com.utago.wordbook.UserSongProgress;
@@ -13,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 마이페이지 "학습 통계" 4타일 + 스트릭. claude/소셜_마이페이지_기획.md 10번 참고.
@@ -120,6 +123,28 @@ public class LearningStatsService {
 
         return new LearningStatsResponse(wordsLearned, linesCompleted, songsCompleted,
                 currentStreak, longestStreak, logsDesc.size(), calendar);
+    }
+
+    /**
+     * 칭호 "장르"(TitleCategory.GENRE, V30) 원천 데이터 — 장르별 완곡 수. "완곡" 판정은
+     * getStats()의 songsCompleted와 동일한 기준(마지막 줄 도달 + hasEngagedWithSong)을 그대로
+     * 쓴다. 장르가 지정 안 된(null) 곡은 집계에서 빠진다(claude/소셜_마이페이지_기획.md 17-8번).
+     */
+    @Transactional(readOnly = true)
+    public Map<SongGenre, Long> countCompletedSongsByGenre(Long userId) {
+        Map<SongGenre, Long> counts = new EnumMap<>(SongGenre.class);
+        for (UserSongProgress progress : userSongProgressRepository.findByUserId(userId)) {
+            SongGenre genre = progress.getSong().getGenre();
+            if (genre == null) continue;
+            Long songId = progress.getSong().getId();
+            int totalLines = songLineRepository.countBySongId(songId);
+            if (totalLines <= 0) continue;
+            int reached = Math.min(progress.getLastLineOrder() + 1, totalLines);
+            if (reached >= totalLines && hasEngagedWithSong(userId, songId)) {
+                counts.merge(genre, 1L, Long::sum);
+            }
+        }
+        return counts;
     }
 
     /**

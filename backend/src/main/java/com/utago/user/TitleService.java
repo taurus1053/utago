@@ -182,6 +182,25 @@ public class TitleService {
             values.put("TIME_OF_DAY_MORNING_10", user.getStudyMorningCount());
             values.put("TIME_OF_DAY_AFTERNOON_10", user.getStudyAfternoonCount());
             values.put("TIME_OF_DAY_NIGHT_10", user.getStudyNightCount());
+
+            // GENRE: 장르 하나당 코드 하나, 각자 그 장르의 완곡 수만 본다(미지정 장르는
+            // countCompletedSongsByGenre에서 이미 제외됨 — 없는 장르는 0으로 둔다).
+            var completedByGenre = learningStatsService.countCompletedSongsByGenre(userId);
+            values.put("GENRE_KPOP_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.KPOP, 0L));
+            values.put("GENRE_JPOP_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.JPOP, 0L));
+            values.put("GENRE_POP_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.POP, 0L));
+            values.put("GENRE_BALLAD_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.BALLAD, 0L));
+            values.put("GENRE_ROCK_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.ROCK, 0L));
+            values.put("GENRE_DANCE_EDM_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.DANCE_EDM, 0L));
+            values.put("GENRE_HIPHOP_RNB_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.HIPHOP_RNB, 0L));
+            values.put("GENRE_CITY_POP_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.CITY_POP, 0L));
+            values.put("GENRE_ACOUSTIC_FOLK_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.ACOUSTIC_FOLK, 0L));
+            values.put("GENRE_JAZZ_SOUL_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.JAZZ_SOUL, 0L));
+            values.put("GENRE_TROT_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.TROT, 0L));
+            values.put("GENRE_OST_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.OST, 0L));
+            values.put("GENRE_ANIME_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.ANIME, 0L));
+            values.put("GENRE_VOCALOID_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.VOCALOID, 0L));
+            values.put("GENRE_AI_5", completedByGenre.getOrDefault(com.utago.content.SongGenre.AI, 0L));
         }
 
         return values;

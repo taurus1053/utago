@@ -7,6 +7,9 @@ import com.utago.user.User;
 import com.utago.user.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -84,6 +87,36 @@ public class AdminSongController {
         // 유튜브 영상 없는 곡을 켜려다 던지는 IllegalStateException은 GlobalExceptionHandler가
         // {"message": ...} 담은 400으로 자동 변환해준다(다른 도메인 에러들과 동일한 패턴).
         return ResponseEntity.ok(songService.setFeatured(songId, request.featured()));
+    }
+
+    /**
+     * 곡 관리 화면 — 장르 지정을 위한 "전체 곡 둘러보기" 목록. 검색어 없이 공개 범위 무관
+     * 전체 곡을 최신 등록순으로 페이지네이션해서 보여준다. onlyUngenred=true면 아직 장르가
+     * 없는 곡만 걸러서 보여준다(claude/소셜_마이페이지_기획.md 17-8번).
+     */
+    @GetMapping("/all")
+    public ResponseEntity<Page<AdminSongSummaryResponse>> listAll(
+            @RequestParam(defaultValue = "false") boolean onlyUngenred,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        HttpStatus failure = adminCheckFailure(authentication);
+        if (failure != null) return ResponseEntity.status(failure).build();
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(songService.listAllSongsForAdmin(onlyUngenred, pageable));
+    }
+
+    /** 곡 관리 화면 — 곡 하나의 장르를 지정하거나(값) 해제(null)한다. */
+    @PutMapping("/{songId}/genre")
+    public ResponseEntity<AdminSongSummaryResponse> setGenre(
+            @PathVariable Long songId,
+            @RequestBody GenreUpdateRequest request,
+            Authentication authentication
+    ) {
+        HttpStatus failure = adminCheckFailure(authentication);
+        if (failure != null) return ResponseEntity.status(failure).build();
+        return ResponseEntity.ok(songService.setGenre(songId, request.genre()));
     }
 
     private HttpStatus adminCheckFailure(Authentication authentication) {

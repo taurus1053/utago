@@ -72,20 +72,40 @@ public class SongService {
      * "전체 곡" 섹션을 대체한다 — provenance=AI_GENERATED 조건을 추가한 이유.
      *
      * query가 있으면 제목 검색 우선, 없고 lang만 있으면 언어 필터, 둘 다 없으면 전체 목록.
+     *
+     * 2026-10-08 추가 — 로그인한 사용자(userId)의 모국어로 된 곡은 배울 필요가 없으니
+     * 결과에서 자동으로 뺀다(사용자 피드백: "한국어가 모국어면 한국어 노래가 뜰 필요 없다").
+     * 명시적으로 lang 필터를 모국어로 줘도(프론트가 그 탭을 안 보여주지만, 방어적으로)
+     * 그냥 빈 목록을 돌려준다 — "눌렀는데 모국어 곡이 나온다"는 혼란을 피한다. 비로그인
+     * (userId == null)이거나 모국어를 모르면 제외 없이 그대로 보여준다.
      */
-    public Page<SongSummaryResponse> listSongs(String query, Lang lang, Pageable pageable) {
+    public Page<SongSummaryResponse> listSongs(String query, Lang lang, Long userId, Pageable pageable) {
+        Lang nativeLang = resolveNativeLang(userId);
         Page<Song> page;
-        if (query != null && !query.isBlank()) {
-            page = songRepository.findByVisibilityAndContentStatusAndProvenanceAndTitleContainingIgnoreCase(
-                    Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, query, pageable);
+        if (lang != null && nativeLang != null && lang == nativeLang) {
+            page = Page.empty(pageable);
+        } else if (query != null && !query.isBlank()) {
+            page = nativeLang == null
+                    ? songRepository.findByVisibilityAndContentStatusAndProvenanceAndTitleContainingIgnoreCase(
+                            Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, query, pageable)
+                    : songRepository.findByVisibilityAndContentStatusAndProvenanceAndTitleContainingIgnoreCaseAndSourceLangNot(
+                            Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, query, nativeLang, pageable);
         } else if (lang != null) {
             page = songRepository.findByVisibilityAndContentStatusAndProvenanceAndSourceLang(
                     Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, lang, pageable);
         } else {
-            page = songRepository.findByVisibilityAndContentStatusAndProvenance(
-                    Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, pageable);
+            page = nativeLang == null
+                    ? songRepository.findByVisibilityAndContentStatusAndProvenance(
+                            Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, pageable)
+                    : songRepository.findByVisibilityAndContentStatusAndProvenanceAndSourceLangNot(
+                            Visibility.PUBLIC, ContentStatus.PUBLISHED, Provenance.AI_GENERATED, nativeLang, pageable);
         }
         return page.map(SongSummaryResponse::from);
+    }
+
+    private Lang resolveNativeLang(Long userId) {
+        if (userId == null) return null;
+        return userRepository.findById(userId).map(User::getNativeLang).orElse(null);
     }
 
     /**
@@ -178,6 +198,10 @@ public class SongService {
     private SongDetailResponse buildAndSaveSong(
             CreateSongRequest request, Long ownerUserId, Visibility visibility, Provenance provenance
     ) {
+        // AI 학습곡(관리자가 작사·작곡·보컬까지 AI로 만들어 등록하는 곡)은 등록 시점에 장르를
+        // AI로 자동 지정한다 — 관리자가 "곡 관리" 화면에서 따로 지정할 필요 없게(필요하면 거기서
+        // 나중에 바꿀 수 있다). 일반 사용자 등록(createSong)은 그대로 미지정으로 시작.
+        SongGenre defaultGenre = provenance == Provenance.AI_GENERATED ? SongGenre.AI : null;
         Song song = Song.builder()
                 .title(request.title())
                 .artist(request.artist())
@@ -188,6 +212,7 @@ public class SongService {
                 .provenance(provenance)
                 .ownerUserId(ownerUserId)
                 .visibility(visibility)
+                .genre(defaultGenre)
                 .build();
         song = songRepository.save(song);
 
@@ -492,6 +517,29 @@ public class SongService {
             throw new IllegalStateException("유튜브 영상이 연결된 곡만 추천곡으로 지정할 수 있습니다.");
         }
         song.setFeatured(featured);
+        return AdminSongSummaryResponse.from(song);
+    }
+
+    /**
+     * 관리자 "곡 관리" 화면 — 장르를 지정하기 위한 "전체 곡 둘러보기" 목록. 검색어 없이도
+     * 공개 범위 무관(PRIVATE 포함) 전체 곡을 최신 등록순으로 페이지 단위로 내려준다(검색은
+     * searchSongsForAdmin이 따로 담당). onlyUngenred=true면 아직 장르가 없는 곡만 걸러서
+     * 보여준다 — 장르 작업을 할 일 목록처럼 순서대로 처리할 수 있게(claude/소셜_마이페이지_
+     * 기획.md 17-8번).
+     */
+    public Page<AdminSongSummaryResponse> listAllSongsForAdmin(boolean onlyUngenred, Pageable pageable) {
+        Page<Song> page = onlyUngenred
+                ? songRepository.findByGenreIsNullOrderByCreatedAtDesc(pageable)
+                : songRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return page.map(AdminSongSummaryResponse::from);
+    }
+
+    /** 관리자 "곡 관리" 화면 — 곡 하나의 장르를 지정하거나(null이 아니면) 해제(null)한다. */
+    @Transactional
+    public AdminSongSummaryResponse setGenre(Long songId, SongGenre genre) {
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+        song.setGenre(genre);
         return AdminSongSummaryResponse.from(song);
     }
 

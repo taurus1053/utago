@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCurrentUser, isLoggedIn, logout } from '../api/auth'
+import { getMyRole } from '../api/admin'
 import { startPageTransition } from '../utils/pageTransition'
 import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
 import LangSwitcher from './LangSwitcher'
@@ -25,6 +26,18 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+
+  // 2026-10-08 추가 — 관리자 계정이면 상단바 메뉴/프로필 드롭다운에 "관리자 페이지" 링크를
+  // 보여준다(기존엔 /admin/... 주소를 직접 타이핑해서 들어가야 했음). getCurrentUser()가
+  // 들고 있는 로그인 세션 정보엔 role이 없어서, 관리자 화면들과 동일하게 GET
+  // /api/users/me/role을 한 번 호출해서 확인한다 — 일반 사용자에겐 그냥 안 보일 뿐이라
+  // 실제 접근 제어는 어차피 각 관리자 화면/엔드포인트가 매번 다시 확인한다.
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    if (!loggedIn) return
+    getMyRole().then((res) => setIsAdmin(res.role === 'ADMIN')).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 페이지 표시 언어(모국어 설정과는 별개) — 비로그인 랜딩 페이지의 언어 선택과
   // 동일한 저장 방식을 쓰되 키만 다르게 둬서 서로 영향을 주지 않게 한다.
@@ -198,6 +211,14 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </svg>
             <span>마이페이지</span>
           </Link>
+          {isAdmin && (
+            <Link to="/admin/featured-songs" className="home-sidebar-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"></path>
+              </svg>
+              <span>관리자 페이지</span>
+            </Link>
+          )}
         </nav>
 
         <div className="home-sidebar-spacer" />
@@ -239,6 +260,14 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </svg>
             <span>마이페이지</span>
           </Link>
+          {isAdmin && (
+            <Link to="/admin/featured-songs" onClick={closeAll} className="home-profile-item">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"></path>
+              </svg>
+              <span>관리자 페이지</span>
+            </Link>
+          )}
           <a href="#profile-settings" className="home-profile-item">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 5h16M4 12h16M4 19h9"></path>

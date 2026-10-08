@@ -27,6 +27,19 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     Page<Song> findByVisibilityAndContentStatusAndProvenance(
             Visibility visibility, ContentStatus contentStatus, Provenance provenance, Pageable pageable);
 
+    /**
+     * 2026-10-08 추가 — 로그인 사용자의 모국어로 된 곡은 "전체 곡"/검색 결과에서 보여줄
+     * 필요가 없다(배우는 언어가 아니니까, 사용자 피드백). 위 두 메서드와 짝을 이루는
+     * "모국어 제외" 버전 — SongService.listSongs가 nativeLang이 있을 때만 이쪽을 쓴다.
+     */
+    Page<Song> findByVisibilityAndContentStatusAndProvenanceAndTitleContainingIgnoreCaseAndSourceLangNot(
+            Visibility visibility, ContentStatus contentStatus, Provenance provenance, String title,
+            Lang excludeSourceLang, Pageable pageable);
+
+    Page<Song> findByVisibilityAndContentStatusAndProvenanceAndSourceLangNot(
+            Visibility visibility, ContentStatus contentStatus, Provenance provenance,
+            Lang excludeSourceLang, Pageable pageable);
+
     /** 마이페이지 - 내가 등록한 곡 목록(공개 범위 무관, 전부 내 것) */
     Page<Song> findByOwnerUserIdOrderByCreatedAtDesc(Long ownerUserId, Pageable pageable);
 
@@ -55,12 +68,16 @@ public interface SongRepository extends JpaRepository<Song, Long> {
      * 영상이 있는 곡만 대상(썸네일/바로 재생을 위해 필요). 다른 사용자의 PRIVATE 곡이
      * 섞이지 않도록 예문 조회와 같은 가시성 규칙을 쓴다(원칙적으로 추천곡은 공개곡이어야
      * 하지만, 혹시 모를 데이터 꼬임에 대비한 안전장치).
+     *
+     * 2026-10-08 추가 — 모국어로 된 곡은 추천곡에서도 제외한다(전체 곡 목록과 같은 이유).
+     * nativeLang이 null이면(이론상 거의 없음 — 가입 시 필수) 제외 없이 전부 후보가 된다.
      */
     @Query(value = "SELECT s.* FROM songs s " +
             "WHERE s.featured = TRUE AND s.youtube_video_id IS NOT NULL " +
             "AND ((s.visibility = 'PUBLIC' AND s.content_status = 'PUBLISHED') OR s.owner_user_id = :userId) " +
+            "AND (:nativeLang IS NULL OR s.source_lang <> :nativeLang) " +
             "ORDER BY RAND() LIMIT 1", nativeQuery = true)
-    Optional<Song> findRandomFeaturedSong(@Param("userId") Long userId);
+    Optional<Song> findRandomFeaturedSong(@Param("userId") Long userId, @Param("nativeLang") String nativeLang);
 
     /**
      * 관리자 "추천곡 관리" 화면 — 제목/아티스트로 곡을 검색한다(추천곡으로 지정할 곡을
@@ -71,4 +88,13 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     /** 관리자 "추천곡 관리" 화면 — 현재 추천곡으로 지정된 곡 전체 목록 */
     List<Song> findByFeaturedTrueOrderByTitleAsc();
+
+    /**
+     * 관리자 "곡 관리" 화면 — 장르 지정을 위해 공개 범위 무관(PRIVATE 포함) 전체 곡을 최신
+     * 등록순으로 훑어보는 목록. "미지정만 보기" 체크 시 findByGenreIsNullOrderByCreatedAtDesc를
+     * 대신 쓴다(AdminSongController 참고).
+     */
+    Page<Song> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<Song> findByGenreIsNullOrderByCreatedAtDesc(Pageable pageable);
 }

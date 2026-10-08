@@ -346,6 +346,63 @@
   cursor: pointer;
 }
 
+/* 곡 관리 화면 — 장르 선택 행 (claude/소셜_마이페이지_기획.md 17-8번) */
+.admin-tr-row-genre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-tr-row-genre-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8a7f6e;
+  flex-shrink: 0;
+}
+.admin-tr-row-genre select {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border: 1px solid #e0cdfb;
+  border-radius: 999px;
+  background: #f3e9ff;
+  color: #5b3fa0;
+  cursor: pointer;
+}
+.admin-tr-row-genre select:focus {
+  outline: none;
+  border-color: #8d47fa;
+}
+.admin-tr-row-genre select.unset {
+  background: #fdfbf6;
+  color: #8a7f6e;
+  border-color: #eee4d2;
+}
+.admin-tr-row-genre-saved {
+  font-size: 11.5px;
+  color: #2f7a3e;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.admin-tr-row-genre-saved.show {
+  opacity: 1;
+}
+.admin-tr-section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-tr-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #5b3fa0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .admin-tr-pagination {
   display: flex;
   align-items: center;

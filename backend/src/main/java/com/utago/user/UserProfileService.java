@@ -84,6 +84,7 @@ public class UserProfileService {
                 initial,
                 user.getStatusMessage(),
                 titleService.getEquippedTitleName(user.getId()),
-                LEARNING_LANG_FLAG);
+                LEARNING_LANG_FLAG,
+                user.getNativeLang());
     }
 }
