@@ -288,3 +288,19 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* 신고 접수 토스트 — claude/소셜_마이페이지_기획.md 23번. */
+.board-detail-report-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: #201a14;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  z-index: 90;
+}

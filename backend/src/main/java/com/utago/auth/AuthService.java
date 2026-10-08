@@ -171,6 +171,13 @@ public class AuthService {
             throw new IllegalStateException("이메일 인증이 필요합니다.");
         }
 
+        // 게시판 신고 처리(claude/소셜_마이페이지_기획.md 23번)로 정지된 계정은 해제 시각이
+        // 지나기 전까지 로그인 자체를 막는다.
+        if (user.getSuspendedUntil() != null && user.getSuspendedUntil().isAfter(LocalDateTime.now())) {
+            String until = user.getSuspendedUntil().toLocalDate().toString();
+            throw new IllegalStateException(until + "까지 이용이 제한된 계정이에요.");
+        }
+
         String token = jwtProvider.generateToken(user.getId(), user.getEmail());
         return new AuthResponse(token, user.getId(), user.getEmail(), user.getNickname());
     }

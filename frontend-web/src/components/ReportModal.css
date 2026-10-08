@@ -1,0 +1,108 @@
+/* ConfirmModal.css와 같은 수치(흰 카드, 18px 라운드, 같은 그림자)로 맞추되, 라디오 목록 +
+   textarea가 들어가는 폼이라 너비를 조금 더 넓게 잡았다. */
+.report-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 80;
+}
+.report-modal {
+  width: 380px;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(20, 14, 6, 0.22);
+}
+.report-modal-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #201a14;
+}
+.report-modal-sub {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #a89c86;
+  line-height: 1.6;
+}
+.report-modal-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.report-modal-reason {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #201a14;
+  cursor: pointer;
+}
+.report-modal-reason input[type='radio'] {
+  accent-color: #7636f6;
+  width: 16px;
+  height: 16px;
+}
+.report-modal-detail {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  color: #201a14;
+}
+.report-modal-detail:focus {
+  outline: none;
+  border-color: #d8c9ff;
+}
+.report-modal-error {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: #e2572f;
+}
+.report-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.report-modal-cancel-btn {
+  flex: 1;
+  box-sizing: border-box;
+  border: 1px solid #ececec;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #5b5346;
+  cursor: pointer;
+}
+.report-modal-cancel-btn:hover {
+  border-color: #d8c9ff;
+}
+.report-modal-confirm-btn {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(90deg, #e2572f, #e87a4f);
+  cursor: pointer;
+}
+.report-modal-confirm-btn:disabled,
+.report-modal-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

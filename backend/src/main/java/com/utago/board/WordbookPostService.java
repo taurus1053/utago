@@ -225,6 +225,24 @@ public class WordbookPostService {
         return true;
     }
 
+    /** 관리자가 신고 처리로 게시글을 삭제 — 소유권 체크 없음(ReportService 전용, claude/
+     * 소셜_마이페이지_기획.md 23번). 일반 삭제(deletePost)와 달리 작성자 본인이 아니어도 된다. */
+    @Transactional
+    public void adminDeletePost(Long postId) {
+        WordbookPost post = requirePost(postId);
+        postRepository.delete(post); // ON DELETE CASCADE로 댓글/좋아요도 함께 삭제됨(V21)
+    }
+
+    /** 관리자가 신고 처리로 댓글을 삭제 — 소유권 체크 없음(ReportService 전용). */
+    @Transactional
+    public void adminDeleteComment(Long commentId) {
+        WordbookPostComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+        WordbookPost post = comment.getPost();
+        commentRepository.delete(comment);
+        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+    }
+
     private WordbookPost requirePost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없어요."));

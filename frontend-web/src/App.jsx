@@ -18,6 +18,7 @@ import AddSong from './pages/AddSong'
 import AdminTranslations from './pages/AdminTranslations'
 import AdminSongs from './pages/AdminSongs'
 import AdminFeaturedSongs from './pages/AdminFeaturedSongs'
+import AdminReports from './pages/AdminReports'
 import Credits from './pages/Credits'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import RequireAuth from './RequireAuth'
@@ -175,6 +176,16 @@ function App() {
           element={(
             <RequireAuth>
               <AdminFeaturedSongs />
+            </RequireAuth>
+          )}
+        />
+        {/* 게시판 신고 처리 — 로그인은 필수, ADMIN 여부는 페이지 자체가
+            /api/users/me/role로 다시 확인함(claude/소셜_마이페이지_기획.md 23번) */}
+        <Route
+          path="/admin/reports"
+          element={(
+            <RequireAuth>
+              <AdminReports />
             </RequireAuth>
           )}
         />

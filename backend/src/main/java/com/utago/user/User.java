@@ -123,4 +123,15 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** 게시판 신고 처리(claude/소셜_마이페이지_기획.md 23번, V34)로 누적되는 경고 횟수 —
+     * 자동 정지 같은 추가 정책은 아직 없고, 운영진이 신고 관리 화면에서 직접 보고 판단한다. */
+    @Column(name = "warning_count", nullable = false)
+    @Builder.Default
+    private int warningCount = 0;
+
+    /** 게시판 신고 처리로 계정이 정지된 경우 그 해제 시각(V34) — null이거나 과거면 정지
+     * 아님. 현재보다 미래면 로그인 자체가 막힌다(AuthService.login() 참고). */
+    @Column(name = "suspended_until")
+    private LocalDateTime suspendedUntil;
 }

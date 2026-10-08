@@ -214,6 +214,15 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
               <span>관리자 페이지</span>
             </Link>
           )}
+          {isAdmin && (
+            <Link to="/admin/reports" className="home-sidebar-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 9v4M12 17h.01"></path>
+                <path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path>
+              </svg>
+              <span>신고 관리</span>
+            </Link>
+          )}
         </nav>
 
         <div className="home-sidebar-spacer" />
@@ -261,6 +270,15 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"></path>
               </svg>
               <span>관리자 페이지</span>
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/admin/reports" onClick={closeAll} className="home-profile-item">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 9v4M12 17h.01"></path>
+                <path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path>
+              </svg>
+              <span>신고 관리</span>
             </Link>
           )}
           <a href="#profile-settings" className="home-profile-item">

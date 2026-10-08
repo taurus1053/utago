@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import TopBar from '../components/TopBar'
+import ReportModal from '../components/ReportModal'
 import { getPost, toggleLike, toggleSave, addComment, deleteComment, deletePost } from '../api/board'
 import { downloadWordbook } from '../api/wordbook'
 import { ApiError } from '../api/client'
@@ -26,6 +27,11 @@ export default function BoardDetail() {
   const [commentSubmitting, setCommentSubmitting] = useState(false)
   const [downloadState, setDownloadState] = useState('idle') // idle | busy | done | error
   const [downloadError, setDownloadError] = useState(null)
+  // 신고 모달 대상 — null이면 닫힘, { type: 'POST'|'COMMENT', id }면 열림(claude/
+  // 소셜_마이페이지_기획.md 23번). 신고 접수 후 다시 신고 못 누르게 막진 않는다(서버가
+  // 이미 PENDING 신고 중복은 막아줌 — ReportService.createReport 참고).
+  const [reportTarget, setReportTarget] = useState(null)
+  const [reportDone, setReportDone] = useState(false)
 
   useEffect(() => {
     load()
@@ -148,9 +154,17 @@ export default function BoardDetail() {
               {post.official && <span className="board-detail-badge">공식</span>}
               <span className="board-detail-dot">·</span>
               <span className="board-detail-date">{formatDate(post.createdAt)}</span>
-              {post.mine && (
+              {post.mine ? (
                 <button type="button" className="board-detail-delete-link" onClick={handleDeletePost}>
                   삭제
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="board-detail-delete-link"
+                  onClick={() => setReportTarget({ type: 'POST', id: post.id })}
+                >
+                  신고
                 </button>
               )}
             </div>
@@ -215,13 +229,21 @@ export default function BoardDetail() {
                   <div className="board-detail-comment-body">
                     <div className="board-detail-comment-head">
                       <span className="board-detail-comment-author">{comment.authorNickname}</span>
-                      {comment.mine && (
+                      {comment.mine ? (
                         <button
                           type="button"
                           className="board-detail-comment-delete"
                           onClick={() => handleDeleteComment(comment.id)}
                         >
                           삭제
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="board-detail-comment-delete"
+                          onClick={() => setReportTarget({ type: 'COMMENT', id: comment.id })}
+                        >
+                          신고
                         </button>
                       )}
                     </div>
@@ -249,6 +271,20 @@ export default function BoardDetail() {
           </>
         )}
       </div>
+
+      {reportTarget && (
+        <ReportModal
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          onCancel={() => setReportTarget(null)}
+          onSubmitted={() => {
+            setReportTarget(null)
+            setReportDone(true)
+            setTimeout(() => setReportDone(false), 2500)
+          }}
+        />
+      )}
+      {reportDone && <div className="board-detail-report-toast">신고가 접수됐어요. 운영진이 검토할게요.</div>}
     </div>
   )
 }

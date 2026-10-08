@@ -90,3 +90,21 @@ export async function listAllSongsForAdmin({ onlyUngenred = false, page = 0, siz
 export async function setSongGenre(songId, genre) {
   return apiPut(`/api/admin/songs/${songId}/genre`, { genre })
 }
+
+// GET /api/admin/reports?status=&page=&size= (ADMIN 전용)
+// status를 생략하면 전체(최신순), 지정하면(PENDING/RESOLVED/REJECTED) 그 상태만 오래된 순
+// (처리 안 된 건부터) -> Spring Page<ReportResponse>
+export async function listReports({ status, page = 0, size = 20 } = {}) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  params.set('page', String(page))
+  params.set('size', String(size))
+  return apiGet(`/api/admin/reports?${params.toString()}`)
+}
+
+// POST /api/admin/reports/{id}/resolve { action, suspendDays? } (ADMIN 전용)
+// action: "NONE"(기각) | "CONTENT_DELETED" | "AUTHOR_WARNED" | "AUTHOR_SUSPENDED"
+// suspendDays는 AUTHOR_SUSPENDED일 때만 의미 있음(비우면 서버 기본값 7일).
+export async function resolveReport(reportId, action, suspendDays) {
+  return apiPost(`/api/admin/reports/${reportId}/resolve`, { action, suspendDays: suspendDays ?? null })
+}
