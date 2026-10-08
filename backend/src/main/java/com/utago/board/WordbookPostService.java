@@ -159,25 +159,52 @@ public class WordbookPostService {
         postRepository.delete(post); // ON DELETE CASCADE로 댓글/좋아요도 함께 삭제됨(V21)
     }
 
+    /**
+     * parentCommentId가 있으면 답글(대댓글, claude/소셜_마이페이지_기획.md 24번) — 답글은
+     * 1단계 깊이만 허용(답글에는 답글을 달 수 없음), 부모 댓글과 같은 게시글이어야 한다.
+     * 알림은 답글이면 "원댓글 작성자"에게만(POST_COMMENT는 생략 — 게시글 작성자가 곧
+     * 원댓글 작성자인 흔한 경우 중복 알림이 가지 않도록), 최상위 댓글이면 기존처럼
+     * 게시글 작성자에게 간다.
+     */
     @Transactional
-    public CommentResponse addComment(Long userId, Long postId, String content) {
+    public CommentResponse addComment(Long userId, Long postId, String content, Long parentCommentId) {
         if (content == null || content.isBlank()) {
             throw new IllegalStateException("댓글 내용을 입력해주세요.");
         }
         WordbookPost post = requirePost(postId);
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        WordbookPostComment parent = null;
+        if (parentCommentId != null) {
+            parent = commentRepository.findById(parentCommentId)
+                    .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+            if (!parent.getPost().getId().equals(postId)) {
+                throw new IllegalStateException("같은 게시글의 댓글에만 답글을 달 수 있어요.");
+            }
+            if (parent.getParent() != null) {
+                throw new IllegalStateException("답글에는 답글을 달 수 없어요.");
+            }
+        }
+
         WordbookPostComment comment = commentRepository.save(WordbookPostComment.builder()
                 .post(post)
                 .author(author)
                 .content(content.trim())
+                .parent(parent)
                 .build());
         post.setCommentCount(post.getCommentCount() + 1);
-        notificationService.notifyPostComment(userId, post);
+
+        if (parent != null) {
+            notificationService.notifyCommentReply(userId, parent);
+        } else {
+            notificationService.notifyPostComment(userId, post);
+        }
         return CommentResponse.of(comment, userId);
     }
 
-    /** 댓글 작성자 본인만 삭제 가능 — 컨트롤러에서 403으로 remap. */
+    /** 댓글 작성자 본인만 삭제 가능 — 컨트롤러에서 403으로 remap. 답글이 달려있으면
+     * DB가 같이 지워주지만(ON DELETE CASCADE, V35), commentCount 캐시는 직접 맞춘다. */
     @Transactional
     public void deleteComment(Long userId, Long commentId) {
         WordbookPostComment comment = commentRepository.findById(commentId)
@@ -186,8 +213,9 @@ public class WordbookPostService {
             throw new IllegalStateException("본인 댓글만 삭제할 수 있어요.");
         }
         WordbookPost post = comment.getPost();
+        long deletedCount = 1 + commentRepository.countByParentId(commentId);
         commentRepository.delete(comment);
-        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+        post.setCommentCount(Math.max(0, (int) (post.getCommentCount() - deletedCount)));
     }
 
     /** 좋아요 토글 — 이미 눌렀으면 취소, 아니면 추가. */
@@ -233,14 +261,16 @@ public class WordbookPostService {
         postRepository.delete(post); // ON DELETE CASCADE로 댓글/좋아요도 함께 삭제됨(V21)
     }
 
-    /** 관리자가 신고 처리로 댓글을 삭제 — 소유권 체크 없음(ReportService 전용). */
+    /** 관리자가 신고 처리로 댓글을 삭제 — 소유권 체크 없음(ReportService 전용). 답글이
+     * 달려있으면 같이 지워지므로(V35) commentCount도 그만큼 같이 깎는다. */
     @Transactional
     public void adminDeleteComment(Long commentId) {
         WordbookPostComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
         WordbookPost post = comment.getPost();
+        long deletedCount = 1 + commentRepository.countByParentId(commentId);
         commentRepository.delete(comment);
-        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
+        post.setCommentCount(Math.max(0, (int) (post.getCommentCount() - deletedCount)));
     }
 
     private WordbookPost requirePost(Long postId) {

@@ -35,6 +35,13 @@ public class WordbookPostComment {
     @Column(nullable = false, length = 500)
     private String content;
 
+    /** 대댓글(답글) 대상 — null이면 최상위 댓글. 1단계 깊이만 허용(답글의 답글은 막음,
+     * WordbookPostService.addComment() 검증 참고). 부모가 삭제되면 같이 삭제됨(DB
+     * ON DELETE CASCADE, V35). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private WordbookPostComment parent;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -94,7 +94,7 @@ public class BoardController {
         Long userId = extractUserId(authentication);
         if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(wordbookPostService.addComment(userId, id, request.content()));
+                .body(wordbookPostService.addComment(userId, id, request.content(), request.parentCommentId()));
     }
 
     /** 댓글 작성자 본인만 삭제 가능 — 소유권 위반은 403으로 remap. */

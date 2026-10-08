@@ -29,9 +29,11 @@ export async function deletePost(id) {
   return apiDelete(`/api/board/posts/${id}`)
 }
 
-// POST /api/board/posts/{id}/comments  payload: { content }
-export async function addComment(postId, content) {
-  return apiPost(`/api/board/posts/${postId}/comments`, { content })
+// POST /api/board/posts/{id}/comments  payload: { content, parentCommentId? }
+// parentCommentId를 넘기면 답글(대댓글, claude/소셜_마이페이지_기획.md 24번) — 1단계
+// 깊이만 허용(답글에는 답글 불가, 서버가 검증).
+export async function addComment(postId, content, parentCommentId = null) {
+  return apiPost(`/api/board/posts/${postId}/comments`, { content, parentCommentId })
 }
 
 export async function deleteComment(postId, commentId) {

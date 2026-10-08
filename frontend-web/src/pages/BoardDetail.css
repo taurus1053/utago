@@ -289,6 +289,56 @@
   cursor: default;
 }
 
+/* 답글(대댓글) — claude/소셜_마이페이지_기획.md 24번. 1단계 깊이만 있어서 들여쓰기 하나로 충분. */
+.board-detail-comment-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.board-detail-comment--reply {
+  margin-left: 40px;
+}
+.board-detail-comment-reply-toggle {
+  border: none;
+  background: none;
+  color: #a89c86;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+}
+.board-detail-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-left: 40px;
+}
+.board-detail-reply-form input {
+  flex: 1;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+}
+.board-detail-reply-form input:focus {
+  border-color: #7c5cff;
+}
+.board-detail-reply-form button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #201a14;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.board-detail-reply-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* 신고 접수 토스트 — claude/소셜_마이페이지_기획.md 23번. */
 .board-detail-report-toast {
   position: fixed;

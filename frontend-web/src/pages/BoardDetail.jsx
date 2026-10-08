@@ -32,6 +32,11 @@ export default function BoardDetail() {
   // 이미 PENDING 신고 중복은 막아줌 — ReportService.createReport 참고).
   const [reportTarget, setReportTarget] = useState(null)
   const [reportDone, setReportDone] = useState(false)
+  // 답글(대댓글, claude/소셜_마이페이지_기획.md 24번) — 어느 최상위 댓글에 답글 입력창이
+  // 열려있는지만 들고 있는다(1단계 깊이만 허용하므로 답글에는 답글 버튼 자체가 없음).
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [replyValue, setReplyValue] = useState('')
+  const [replySubmitting, setReplySubmitting] = useState(false)
 
   useEffect(() => {
     load()
@@ -107,15 +112,40 @@ export default function BoardDetail() {
     }
   }
 
+  async function handleAddReply(e, parentCommentId) {
+    e.preventDefault()
+    if (!replyValue.trim() || replySubmitting) return
+    setReplySubmitting(true)
+    try {
+      const reply = await addComment(post.id, replyValue.trim(), parentCommentId)
+      setPost((prev) => ({
+        ...prev,
+        comments: [...prev.comments, reply],
+        commentCount: prev.commentCount + 1,
+      }))
+      setReplyValue('')
+      setReplyingTo(null)
+    } catch {
+      // 실패하면 입력값은 그대로 남겨둬서 다시 시도할 수 있게 한다.
+    } finally {
+      setReplySubmitting(false)
+    }
+  }
+
   async function handleDeleteComment(commentId) {
     if (!window.confirm('댓글을 삭제할까요?')) return
     try {
       await deleteComment(post.id, commentId)
-      setPost((prev) => ({
-        ...prev,
-        comments: prev.comments.filter((c) => c.id !== commentId),
-        commentCount: Math.max(0, prev.commentCount - 1),
-      }))
+      setPost((prev) => {
+        // 답글(대댓글)이 달린 댓글을 지우면 서버가 그 답글들도 같이 지운다(ON DELETE
+        // CASCADE) — 화면에서도 같이 빼고, 그만큼 commentCount도 더 깎는다.
+        const repliesCount = prev.comments.filter((c) => c.parentCommentId === commentId).length
+        return {
+          ...prev,
+          comments: prev.comments.filter((c) => c.id !== commentId && c.parentCommentId !== commentId),
+          commentCount: Math.max(0, prev.commentCount - 1 - repliesCount),
+        }
+      })
     } catch {
       // 실패하면 목록이 그대로 남는다.
     }
@@ -223,34 +253,101 @@ export default function BoardDetail() {
             </div>
 
             <div className="board-detail-comments">
-              {post.comments.map((comment) => (
-                <div key={comment.id} className="board-detail-comment">
-                  <div className="board-detail-comment-avatar">{comment.authorNickname[0]}</div>
-                  <div className="board-detail-comment-body">
-                    <div className="board-detail-comment-head">
-                      <span className="board-detail-comment-author">{comment.authorNickname}</span>
-                      {comment.mine ? (
-                        <button
-                          type="button"
-                          className="board-detail-comment-delete"
-                          onClick={() => handleDeleteComment(comment.id)}
+              {/* 답글(대댓글, claude/소셜_마이페이지_기획.md 24번) — 1단계 깊이만 허용하므로
+                  최상위 댓글 아래 그 댓글의 답글만 들여써서 보여준다. */}
+              {post.comments
+                .filter((comment) => !comment.parentCommentId)
+                .map((comment) => {
+                  const replies = post.comments.filter((c) => c.parentCommentId === comment.id)
+                  return (
+                    <div key={comment.id} className="board-detail-comment-group">
+                      <div className="board-detail-comment">
+                        <div className="board-detail-comment-avatar">{comment.authorNickname[0]}</div>
+                        <div className="board-detail-comment-body">
+                          <div className="board-detail-comment-head">
+                            <span className="board-detail-comment-author">{comment.authorNickname}</span>
+                            {comment.mine ? (
+                              <button
+                                type="button"
+                                className="board-detail-comment-delete"
+                                onClick={() => handleDeleteComment(comment.id)}
+                              >
+                                삭제
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="board-detail-comment-delete"
+                                onClick={() => setReportTarget({ type: 'COMMENT', id: comment.id })}
+                              >
+                                신고
+                              </button>
+                            )}
+                          </div>
+                          <div className="board-detail-comment-content">{comment.content}</div>
+                          <button
+                            type="button"
+                            className="board-detail-comment-reply-toggle"
+                            onClick={() => {
+                              setReplyingTo((prev) => (prev === comment.id ? null : comment.id))
+                              setReplyValue('')
+                            }}
+                          >
+                            답글
+                          </button>
+                        </div>
+                      </div>
+
+                      {replies.map((reply) => (
+                        <div key={reply.id} className="board-detail-comment board-detail-comment--reply">
+                          <div className="board-detail-comment-avatar">{reply.authorNickname[0]}</div>
+                          <div className="board-detail-comment-body">
+                            <div className="board-detail-comment-head">
+                              <span className="board-detail-comment-author">{reply.authorNickname}</span>
+                              {reply.mine ? (
+                                <button
+                                  type="button"
+                                  className="board-detail-comment-delete"
+                                  onClick={() => handleDeleteComment(reply.id)}
+                                >
+                                  삭제
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="board-detail-comment-delete"
+                                  onClick={() => setReportTarget({ type: 'COMMENT', id: reply.id })}
+                                >
+                                  신고
+                                </button>
+                              )}
+                            </div>
+                            <div className="board-detail-comment-content">{reply.content}</div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {replyingTo === comment.id && (
+                        <form
+                          className="board-detail-reply-form"
+                          onSubmit={(e) => handleAddReply(e, comment.id)}
                         >
-                          삭제
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="board-detail-comment-delete"
-                          onClick={() => setReportTarget({ type: 'COMMENT', id: comment.id })}
-                        >
-                          신고
-                        </button>
+                          <input
+                            type="text"
+                            value={replyValue}
+                            onChange={(e) => setReplyValue(e.target.value)}
+                            placeholder="답글을 입력해주세요"
+                            maxLength={500}
+                            autoFocus
+                          />
+                          <button type="submit" disabled={replySubmitting || !replyValue.trim()}>
+                            등록
+                          </button>
+                        </form>
                       )}
                     </div>
-                    <div className="board-detail-comment-content">{comment.content}</div>
-                  </div>
-                </div>
-              ))}
+                  )
+                })}
               {post.comments.length === 0 && (
                 <div className="board-detail-comment-empty">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</div>
               )}

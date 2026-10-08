@@ -108,3 +108,9 @@ export async function listReports({ status, page = 0, size = 20 } = {}) {
 export async function resolveReport(reportId, action, suspendDays) {
   return apiPost(`/api/admin/reports/${reportId}/resolve`, { action, suspendDays: suspendDays ?? null })
 }
+
+// POST /api/admin/announcements { message } (ADMIN 전용) — claude/소셜_마이페이지_기획.md 24번.
+// 전체 사용자에게 알림 1건씩 뿌린다(되돌릴 수 없음).
+export async function sendAnnouncement(message) {
+  return apiPost('/api/admin/announcements', { message })
+}

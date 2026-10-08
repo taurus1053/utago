@@ -5,6 +5,7 @@ import com.utago.board.WordbookPostComment;
 import com.utago.board.WordbookPostCommentRepository;
 import com.utago.board.WordbookPostRepository;
 import com.utago.board.WordbookPostService;
+import com.utago.notification.NotificationService;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class ReportService {
     private final WordbookPostRepository postRepository;
     private final WordbookPostCommentRepository commentRepository;
     private final WordbookPostService wordbookPostService;
+    private final NotificationService notificationService;
 
     @Transactional
     public void createReport(Long reporterId, ReportTargetType targetType, Long targetId,
@@ -97,7 +99,11 @@ public class ReportService {
         User admin = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
-        switch (action == null ? ReportAction.NONE : action) {
+        ReportAction resolvedAction = action == null ? ReportAction.NONE : action;
+        // CONTENT_DELETED면 콘텐츠가 사라지므로, 알림에 쓸 targetUrl은 삭제 전에 미리 뽑아둔다.
+        String targetUrl = resolveTargetUrl(report);
+
+        switch (resolvedAction) {
             case CONTENT_DELETED -> deleteTargetContentIfPresent(report);
             case AUTHOR_WARNED -> {
                 User author = report.getTargetAuthor();
@@ -111,12 +117,44 @@ public class ReportService {
             case NONE -> { /* 기각 — 콘텐츠/작성자에 아무 조치도 하지 않는다. */ }
         }
 
-        report.setStatus(action == ReportAction.NONE || action == null ? ReportStatus.REJECTED : ReportStatus.RESOLVED);
-        report.setAction(action == null ? ReportAction.NONE : action);
+        report.setStatus(resolvedAction == ReportAction.NONE ? ReportStatus.REJECTED : ReportStatus.RESOLVED);
+        report.setAction(resolvedAction);
         report.setResolvedAt(LocalDateTime.now());
         report.setResolvedBy(admin);
 
+        notifyResolution(adminUserId, report, resolvedAction, suspendDays, targetUrl);
+
         return ReportResponse.of(report);
+    }
+
+    private String resolveTargetUrl(Report report) {
+        if (report.getTargetType() == ReportTargetType.POST) {
+            return report.getPost() != null ? "/board/" + report.getPost().getId() : "/board";
+        }
+        return report.getComment() != null ? "/board/" + report.getComment().getPost().getId() : "/board";
+    }
+
+    /** 신고 처리 결과 알림(claude/소셜_마이페이지_기획.md 24번) — 신고자에게는 항상,
+     * 경고/정지 조치를 받은 작성자에게는 추가로 보낸다. */
+    private void notifyResolution(Long adminUserId, Report report, ReportAction action, Integer suspendDays, String targetUrl) {
+        String targetLabel = report.getTargetType() == ReportTargetType.POST ? "게시글" : "댓글";
+        String reporterMessage = switch (action) {
+            case NONE -> "신고하신 " + targetLabel + "을 검토했지만, 별도 조치는 하지 않기로 했어요.";
+            case CONTENT_DELETED -> "신고하신 " + targetLabel + "이 삭제 처리됐어요.";
+            case AUTHOR_WARNED -> "신고하신 " + targetLabel + "의 작성자에게 경고 조치를 내렸어요.";
+            case AUTHOR_SUSPENDED -> {
+                int days = suspendDays != null && suspendDays > 0 ? suspendDays : DEFAULT_SUSPEND_DAYS;
+                yield "신고하신 " + targetLabel + "의 작성자가 " + days + "일간 이용 정지됐어요.";
+            }
+        };
+        notificationService.notifyReportResolved(adminUserId, report.getReporter().getId(), reporterMessage, targetUrl);
+
+        if (action == ReportAction.AUTHOR_WARNED || action == ReportAction.AUTHOR_SUSPENDED) {
+            String authorMessage = action == ReportAction.AUTHOR_WARNED
+                    ? "작성하신 " + targetLabel + "이 신고되어 경고 조치를 받았어요."
+                    : "작성하신 " + targetLabel + "이 신고되어 이용이 정지됐어요.";
+            notificationService.notifyReportResolved(adminUserId, report.getTargetAuthor().getId(), authorMessage, targetUrl);
+        }
     }
 
     private void deleteTargetContentIfPresent(Report report) {

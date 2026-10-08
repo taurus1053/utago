@@ -44,6 +44,15 @@ public class Notification {
     @JoinColumn(name = "post_id")
     private WordbookPost post;
 
+    /** COMMENT_REPLY를 뺀 나머지 모든 타입과 달리, REPORT_RESOLVED/ANNOUNCEMENT는 매번
+     * 문구가 달라서(처리 액션/공지 내용) 고정 switch 문으로 못 만든다 — 그래서 이 두
+     * 컬럼이 채워진 알림은 그대로 쓴다(V36, NotificationService.toResponse 참고). */
+    @Column(name = "custom_message", length = 500)
+    private String customMessage;
+
+    @Column(name = "custom_target_url", length = 200)
+    private String customTargetUrl;
+
     @Column(name = "is_read", nullable = false)
     @Builder.Default
     private boolean read = false;

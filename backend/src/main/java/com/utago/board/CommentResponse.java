@@ -7,7 +7,8 @@ public record CommentResponse(
         String authorNickname,
         String content,
         LocalDateTime createdAt,
-        boolean mine
+        boolean mine,
+        Long parentCommentId
 ) {
     public static CommentResponse of(WordbookPostComment comment, Long viewerUserId) {
         return new CommentResponse(
@@ -15,6 +16,7 @@ public record CommentResponse(
                 comment.getAuthor().getNickname(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                viewerUserId != null && viewerUserId.equals(comment.getAuthor().getId()));
+                viewerUserId != null && viewerUserId.equals(comment.getAuthor().getId()),
+                comment.getParent() != null ? comment.getParent().getId() : null);
     }
 }
