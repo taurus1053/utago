@@ -48,6 +48,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/songs/my").authenticated()
                         // 나머지 곡 조회는 누구나, 곡 등록(POST)은 로그인한 사용자만.
                         .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
+                        // 문법 학습 섹션(claude/기획_정리.md 2026-10-08) — 목록/상세 열람은 누구나,
+                        // 학습 체크(PATCH /api/grammar/{id}/learned)는 로그인 필요(아래 anyRequest에서 처리).
+                        .requestMatchers(HttpMethod.GET, "/api/grammar/**").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .anyRequest().authenticated()
                 )

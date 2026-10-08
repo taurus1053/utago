@@ -5,6 +5,9 @@ import Signup from './pages/Signup'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
 import SongLearn from './pages/SongLearn'
+import SongGrammar from './pages/SongGrammar'
+import GrammarIndex from './pages/GrammarIndex'
+import GrammarDetail from './pages/GrammarDetail'
 import SongSync from './pages/SongSync'
 import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
@@ -59,6 +62,12 @@ function App() {
         <Route path="/credits" element={<Credits />} />
         <Route path="/songs/new" element={<AddSong />} />
         <Route path="/songs/:id" element={<SongLearn />} />
+        {/* 곡 전체 문법 포인트만 모아 보는 전용 화면 — SongLearn의 "문법 보기" 버튼으로 진입. 로그인 불필요 */}
+        <Route path="/songs/:id/grammar" element={<SongGrammar />} />
+        {/* 곡과 무관한 "문법 학습" 섹션(claude/기획_정리.md 2026-10-08) — 레벨별 목록/상세.
+            열람은 로그인 불필요(학습 완료 체크만 로그인 필요 — GrammarDetail.jsx 내부에서 처리). */}
+        <Route path="/grammar" element={<GrammarIndex />} />
+        <Route path="/grammar/:id" element={<GrammarDetail />} />
         {/* 가사 싱크(탭싱크) 편집 — 곡을 등록한 본인만 저장 가능(서버가 확인), 로그인은 필수 */}
         <Route
           path="/songs/:id/sync"

@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class SongService {
     private final SongLineRepository songLineRepository;
     private final SongLineReadingRepository songLineReadingRepository;
     private final GrammarPointRepository grammarPointRepository;
+    private final GrammarPointService grammarPointService;
     private final UserRepository userRepository;
     private final YoutubeOEmbedClient youtubeOEmbedClient;
     private final JapaneseTokenizerService japaneseTokenizerService;
@@ -249,7 +251,13 @@ public class SongService {
             songLineReadingService.generateKoReadings(lines);
         }
 
-        return SongDetailResponse.from(song, lines, Map.of(), List.of());
+        // 문법 포인트 — claude/소셜_마이페이지_기획.md 11-2번에 "다음에 정교화" 메모로만
+        // 남아있던 기능을 실제로 채움(GrammarPoint 엔티티/프론트 카드는 서비스 초기부터
+        // 있었지만 생성 로직이 아예 없었음). AI 키 미설정/실패 시 빈 리스트 — 곡 등록은
+        // 그대로 성공한다(GrammarPointService 참고).
+        List<GrammarPoint> grammarPoints = grammarPointService.generateForSong(song, lines);
+
+        return SongDetailResponse.from(song, lines, Map.of(), grammarPoints);
     }
 
     /**
@@ -336,6 +344,13 @@ public class SongService {
                 analyzeJapaneseLines(textChangedLines);
                 songLineReadingService.generateKoReadings(textChangedLines);
             }
+
+            // 가사 원문이 바뀌었으니 문법 포인트도 더 이상 맞지 않을 수 있다 — 전체 가사
+            // 기준으로 다시 뽑는다(일부 소절만 보면 맥락을 잃으므로 바뀐 줄만이 아니라
+            // 곡 전체를 다시 넘긴다, GrammarPointService.regenerateForSong 참고).
+            List<SongLine> allLines = new ArrayList<>(lineById.values());
+            allLines.sort(Comparator.comparingInt(SongLine::getLineOrder));
+            grammarPointService.regenerateForSong(song, allLines);
         }
 
         return getSongDetail(songId, userId);

@@ -147,7 +147,6 @@ export default function SongLearn() {
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [activeGrammarLineId, setActiveGrammarLineId] = useState(null)
   const [activeLineIndex, setActiveLineIndex] = useState(0)
   const [expandedAll, setExpandedAll] = useState(false)
   const [autoSync, setAutoSync] = useState(false)
@@ -531,25 +530,6 @@ export default function SongLearn() {
         </div>
 
         <div className="song-learn-right">
-          {song.grammarPoints?.length > 0 && (
-            <section className="song-learn-section">
-              <h2 className="song-learn-section-title">이 곡의 문법 포인트</h2>
-              <div className="song-learn-grammar-list">
-                {song.grammarPoints.map((gp) => (
-                  <div
-                    key={gp.id}
-                    className={`song-learn-grammar-card${gp.exampleLineId === activeGrammarLineId ? ' song-learn-grammar-card--active' : ''}`}
-                    onMouseEnter={() => setActiveGrammarLineId(gp.exampleLineId)}
-                    onMouseLeave={() => setActiveGrammarLineId(null)}
-                  >
-                    <span className="song-learn-grammar-pattern">{gp.pattern}</span>
-                    <p className="song-learn-grammar-explanation">{gp.explanation}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
           <section className="song-learn-section">
             <div className="song-learn-section-header">
               <h2 className="song-learn-section-title">가사</h2>
@@ -596,7 +576,7 @@ export default function SongLearn() {
                         <div
                           key={line.id}
                           id={`line-${line.id}`}
-                          className={`song-learn-line${line.id === activeGrammarLineId ? ' song-learn-line--highlight' : ''}`}
+                          className="song-learn-line"
                           onClick={() => seekToLineStart(idx)}
                         >
                           {line.reading && <span className="song-learn-line-reading">{line.reading}</span>}
@@ -682,6 +662,12 @@ export default function SongLearn() {
                               })}
                             </div>
                           </div>
+                        )}
+
+                        {song.grammarPoints?.length > 0 && (
+                          <Link to={`/songs/${song.id}/grammar`} className="song-learn-grammar-cta">
+                            📖 문법 보기
+                          </Link>
                         )}
                       </>
                     )}

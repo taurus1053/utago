@@ -193,12 +193,12 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </svg>
             <span>단어장</span>
           </Link>
-          <a href="#grammar" className="home-sidebar-link">
+          <Link to="/grammar" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6h16M4 12h10M4 18h7"></path>
             </svg>
             <span>문법</span>
-          </a>
+          </Link>
           <Link to="/mypage" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4"></circle>

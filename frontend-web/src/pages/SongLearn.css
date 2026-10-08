@@ -333,6 +333,43 @@
   color: #5b5346;
 }
 
+/* 문법 전용 페이지(/songs/:id/grammar, SongGrammar.jsx) — claude/소셜_마이페이지_기획.md
+   24-6번. SongLearn.css의 카드 스타일을 그대로 쓰고, 페이지 틀과 예시 소절 인용만 추가. */
+.song-grammar-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+.song-grammar-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #201a14;
+  margin: 0 0 4px;
+}
+.song-grammar-artist {
+  font-size: 14px;
+  color: #a89c86;
+  margin: 0 0 24px;
+}
+.song-grammar-example {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f8f8f8;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.song-grammar-example-original {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3a332a;
+}
+.song-grammar-example-translation {
+  font-size: 13px;
+  color: #8a7f6e;
+}
+
 /* 가사 — "전체 가사 보기"와 "한 줄씩 보기"는 내용 높이가 크게 달라서, 그냥 바꿔치기하면
    문서 전체 높이가 출렁여 화면이 위아래로 움직이는 것처럼 느껴진다. 그래서 두 보기 모드를
    감싸는 뷰포트 자체의 높이는 고정해두고, 넘치는 내용(주로 전체 가사 보기)만 그 안에서
@@ -494,6 +531,27 @@
   font-size: 14px;
   font-weight: 700;
   color: #8a7f6e;
+}
+
+/* "이 소절의 단어" 아래 — 곡 전체 문법 포인트 페이지(/songs/:id/grammar)로 이동(claude/
+   소셜_마이페이지_기획.md 24-6번). 카드가 아니라 눈에 띄는 버튼형 링크로 — "이 소절"이
+   아니라 "이 곡 전체"로 이동한다는 걸 분명히 하기 위함. */
+.song-learn-grammar-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: #f4efff;
+  color: #5f26f3;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.song-learn-grammar-cta:hover {
+  background: #e9dcfd;
 }
 .song-learn-word-table {
   display: flex;

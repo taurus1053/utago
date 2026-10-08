@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+
+/* 곡과 무관한 "문법 학습" 섹션(GrammarIndex.jsx/GrammarDetail.jsx) — claude/기획_정리.md
+   2026-10-08 신규. 색상/타이포는 SongLearn.css의 문법 카드 톤(퍼플 포인트 #5f26f3/#8d47fa)을
+   그대로 따른다 — 상단바/서브바(.app-subbar)는 components/TopBar.css 공용 스타일을 쓴다. */
+
+.grammar-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+.grammar-status {
+  padding: 60px 24px;
+  text-align: center;
+  color: #a89c86;
+  font-size: 14px;
+}
+.grammar-status--error {
+  color: #b0512f;
+}
+
+.grammar-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+/* 목록 화면 */
+.grammar-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #201a14;
+  margin: 0 0 4px;
+}
+.grammar-subtitle {
+  font-size: 14px;
+  color: #a89c86;
+  margin: 0 0 20px;
+}
+
+.grammar-level-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.grammar-level-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid #ececec;
+  background: #ffffff;
+  color: #6b5c46;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.grammar-level-tab:hover {
+  background: #f8f5ff;
+}
+.grammar-level-tab--active {
+  background: #5f26f3;
+  border-color: #5f26f3;
+  color: #ffffff;
+}
+
+.grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.grammar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(20, 20, 20, 0.04), 0 1px 2px rgba(20, 20, 20, 0.03);
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.grammar-card:hover {
+  border-color: #8d47fa;
+  box-shadow: 0 0 0 2px rgba(141, 71, 250, 0.12);
+}
+.grammar-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.grammar-card-pattern {
+  font-weight: 700;
+  font-size: 16px;
+  color: #5f26f3;
+}
+.grammar-card-meaning {
+  font-size: 14px;
+  color: #5b5346;
+}
+.grammar-card-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f26f3;
+  background: #f1e9ff;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* 상세 화면 */
+.grammar-detail-level {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5f26f3;
+  background: #f1e9ff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+.grammar-detail-pattern {
+  font-size: 26px;
+  font-weight: 800;
+  color: #201a14;
+  margin: 0 0 6px;
+}
+.grammar-detail-meaning {
+  font-size: 16px;
+  color: #5b5346;
+  margin: 0 0 16px;
+}
+.grammar-detail-structure {
+  font-size: 14px;
+  color: #6b5c46;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+.grammar-detail-explanation {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #3a332a;
+  margin: 0 0 20px;
+}
+.grammar-detail-example {
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.grammar-detail-example-original {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3a332a;
+}
+.grammar-detail-example-translation {
+  font-size: 13px;
+  color: #8a7f6e;
+}
+
+.grammar-learned-btn {
+  display: inline-block;
+  border: 1px solid #5f26f3;
+  background: #ffffff;
+  color: #5f26f3;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 10px 22px;
+  cursor: pointer;
+  margin-bottom: 28px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.grammar-learned-btn:hover {
+  background: #f8f5ff;
+}
+.grammar-learned-btn--active {
+  background: #5f26f3;
+  color: #ffffff;
+}
+.grammar-detail-login-hint {
+  font-size: 13px;
+  color: #a89c86;
+  margin-bottom: 28px;
+}
+
+.grammar-detail-songs-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #201a14;
+  margin: 0 0 12px;
+}
+.grammar-detail-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.grammar-detail-song-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.grammar-detail-song-item:hover {
+  border-color: #8d47fa;
+}
+.grammar-detail-song-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3a332a;
+}
+.grammar-detail-song-artist {
+  font-size: 13px;
+  color: #a89c86;
+}
