@@ -10,6 +10,7 @@ import SongEdit from './pages/SongEdit'
 import Wordbook from './pages/Wordbook'
 import MyPage from './pages/MyPage'
 import TitlesPage from './pages/TitlesPage'
+import Friends from './pages/Friends'
 import BoardList from './pages/BoardList'
 import BoardWrite from './pages/BoardWrite'
 import BoardDetail from './pages/BoardDetail'
@@ -109,6 +110,16 @@ function App() {
           element={(
             <RequireAuth>
               <TitlesPage />
+            </RequireAuth>
+          )}
+        />
+        {/* 친구 — 검색/요청/수락·거절/내 친구 목록을 한 화면에서 처리(claude/소셜_마이페이지_기획.md
+            4번/18번). 마이페이지 사이드바 "+ 추가"가 여기로 연결된다. 로그인 필수 */}
+        <Route
+          path="/friends"
+          element={(
+            <RequireAuth>
+              <Friends />
             </RequireAuth>
           )}
         />

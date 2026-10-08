@@ -4,11 +4,12 @@ import TopBar from '../components/TopBar'
 import { getMyPage, getMyStats, getMyTitles, updateStatusMessage } from '../api/users'
 import { listWordbooks } from '../api/wordbook'
 import { listMyPosts, listSavedPosts } from '../api/board'
+import { listFriends } from '../api/friends'
 import './MyPage.css'
 
-// 친구는 아직 설계·계측이 없어서(claude/소셜_마이페이지_기획.md 10번 참고) 와이어프레임과
-// 레이아웃을 맞추기 위한 용도로만 더미 데이터를 쓴다. 학습 통계 4타일/스트릭/칭호는 전부
-// 실제 API(GET /api/users/me/stats, GET /api/users/me/titles)로 받아온다.
+// 학습 통계 4타일/스트릭/칭호/친구는 전부 실제 API(GET /api/users/me/stats,
+// GET /api/users/me/titles, GET /api/friends)로 받아온다(친구는 2026-10-08(3차), 18번 참고 —
+// 이전엔 Friendship 기능 자체가 없어서 더미 데이터로 자리만 채워뒀었다).
 const EMPTY_STATS = {
   wordsLearned: 0,
   linesCompleted: 0,
@@ -83,13 +84,9 @@ function streakCellTextColor(day, today) {
   return isToday ? '#ffffff' : 'rgba(255, 255, 255, 0.92)'
 }
 
-const PLACEHOLDER_FRIENDS = [
-  { label: '하늘' },
-  { label: '유진' },
-  { label: '준호' },
-  { label: '+4' },
-]
-const PLACEHOLDER_FRIEND_COUNT = 7
+// 친구 카드엔 아바타를 최대 4개까지만 보여주고, 그 이상은 "+N"으로 뭉친다(와이어프레임
+// 그대로, PLACEHOLDER_FRIENDS 더미 시절의 레이아웃을 실제 데이터로 유지).
+const FRIEND_AVATAR_DISPLAY_LIMIT = 4
 
 const LEARNING_LANG_LABELS = { ja: '일본어 학습 중' }
 
@@ -158,6 +155,10 @@ export default function MyPage() {
   const [titles, setTitles] = useState(EMPTY_TITLES)
   const [titlesLoading, setTitlesLoading] = useState(true)
 
+  // 친구 — claude/소셜_마이페이지_기획.md 18번(2026-10-08(3차))부터 실제 데이터.
+  const [friends, setFriends] = useState([])
+  const [friendsLoading, setFriendsLoading] = useState(true)
+
   function loadTitles() {
     setTitlesLoading(true)
     return getMyTitles()
@@ -196,6 +197,12 @@ export default function MyPage() {
       .finally(() => setSavedPostsLoading(false))
 
     loadTitles()
+
+    setFriendsLoading(true)
+    listFriends()
+      .then((data) => setFriends(data || []))
+      .catch(() => setFriends([]))
+      .finally(() => setFriendsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -480,17 +487,37 @@ export default function MyPage() {
               )}
             </section>
 
-            {/* 친구 (더미) */}
+            {/* 친구 — claude/소셜_마이페이지_기획.md 18번(2026-10-08(3차))부터 실제 구현.
+                검색/요청/수락·거절은 전용 /friends 페이지에서 처리하고, 여기서는 친구 수 +
+                아바타 몇 개만 요약해서 보여준다. */}
             <section className="mypage-card mypage-card--side">
               <div className="mypage-side-head">
-                <span>친구 {PLACEHOLDER_FRIEND_COUNT}</span>
-                <a href="#" className="mypage-side-add" onClick={(e) => e.preventDefault()}>+ 추가</a>
+                <span>친구 {friendsLoading ? '' : friends.length}</span>
+                <Link to="/friends" className="mypage-side-add">+ 추가</Link>
               </div>
-              <div className="mypage-friends-row">
-                {PLACEHOLDER_FRIENDS.map((f, i) => (
-                  <div key={i} className="mypage-friend-avatar">{f.label}</div>
-                ))}
-              </div>
+              {friendsLoading ? (
+                <div className="mypage-status">불러오는 중...</div>
+              ) : friends.length === 0 ? (
+                <div className="mypage-status">아직 친구가 없어요. "+ 추가"로 검색해보세요!</div>
+              ) : (
+                <div className="mypage-friends-row">
+                  {friends.slice(0, FRIEND_AVATAR_DISPLAY_LIMIT).map((f) => (
+                    <div
+                      key={f.userId}
+                      className="mypage-friend-avatar"
+                      style={{ background: f.avatarColor || '#f2f2f2' }}
+                      title={f.nickname}
+                    >
+                      {f.avatarInitial}
+                    </div>
+                  ))}
+                  {friends.length > FRIEND_AVATAR_DISPLAY_LIMIT && (
+                    <div className="mypage-friend-avatar">
+                      +{friends.length - FRIEND_AVATAR_DISPLAY_LIMIT}
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
 
           </div>
