@@ -1,6 +1,7 @@
 package com.utago.board;
 
 import com.utago.content.Visibility;
+import com.utago.notification.NotificationService;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
 import com.utago.wordbook.Wordbook;
@@ -40,6 +41,7 @@ public class WordbookPostService {
     private final WordbookRepository wordbookRepository;
     private final WordbookItemRepository wordbookItemRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public Page<PostSummaryResponse> listPosts(String sort, int page, int size, Long viewerUserId) {
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 50));
@@ -171,6 +173,7 @@ public class WordbookPostService {
                 .content(content.trim())
                 .build());
         post.setCommentCount(post.getCommentCount() + 1);
+        notificationService.notifyPostComment(userId, post);
         return CommentResponse.of(comment, userId);
     }
 
@@ -201,6 +204,7 @@ public class WordbookPostService {
         }
         likeRepository.save(WordbookPostLike.builder().post(post).user(user).build());
         post.setLikeCount(post.getLikeCount() + 1);
+        notificationService.notifyPostLike(userId, post);
         return true;
     }
 

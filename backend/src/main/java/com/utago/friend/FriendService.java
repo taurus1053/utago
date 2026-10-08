@@ -1,5 +1,6 @@
 package com.utago.friend;
 
+import com.utago.notification.NotificationService;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class FriendService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<FriendSearchResponse> search(Long myUserId, String nickname) {
@@ -64,6 +66,7 @@ public class FriendService {
                 .addresseeId(addresseeUserId)
                 .status(FriendshipStatus.PENDING)
                 .build());
+        notificationService.notifyFriendRequest(myUserId, addresseeUserId);
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +107,7 @@ public class FriendService {
         }
         f.setStatus(FriendshipStatus.ACCEPTED);
         f.setRespondedAt(java.time.LocalDateTime.now());
+        notificationService.notifyFriendAccepted(myUserId, f.getRequesterId());
     }
 
     /** 받은 요청 거절 — addressee 본인만. 재요청이 자유롭도록 행 자체를 삭제한다. */

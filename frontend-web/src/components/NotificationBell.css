@@ -1,0 +1,112 @@
+/* 알림 드롭다운 — claude/소셜_마이페이지_기획.md 21번. TopBar.css의 home-profile-dropdown과
+   같은 디자인 언어(흰 배경, 둥근 모서리, 그림자)를 재사용하되 폭/위치만 다르게 잡는다.
+   home-bell-btn/home-bell-badge는 기존 TopBar.css에 이미 있어서 그대로 재사용한다. */
+.notif-dropdown {
+  position: fixed;
+  top: 74px;
+  right: 72px;
+  width: 340px;
+  max-height: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  z-index: 25;
+  box-sizing: border-box;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.notif-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #201a14;
+  flex-shrink: 0;
+}
+.notif-mark-all-btn {
+  border: none;
+  background: none;
+  color: #7636f6;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.notif-dropdown-list {
+  overflow-y: auto;
+  padding: 0 6px 6px;
+}
+.notif-empty {
+  padding: 32px 12px;
+  text-align: center;
+  color: #a89c86;
+  font-size: 13px;
+}
+.notif-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  font-family: inherit;
+}
+.notif-item:hover {
+  background: #f4efff;
+}
+.notif-item--unread {
+  background: #faf7ff;
+}
+.notif-item-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #201a14;
+  flex-shrink: 0;
+}
+.notif-item-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.notif-item-message {
+  font-size: 13px;
+  color: #201a14;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.notif-item-time {
+  font-size: 11.5px;
+  color: #a89c86;
+  margin-top: 2px;
+}
+.notif-item-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7636f6;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .notif-dropdown {
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}

@@ -5,6 +5,7 @@ import { getMyRole } from '../api/admin'
 import { startPageTransition } from '../utils/pageTransition'
 import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
 import LangSwitcher from './LangSwitcher'
+import NotificationBell from './NotificationBell'
 import './TopBar.css'
 
 // Login.jsx의 로그인→홈 전환과 정확히 같은 높이 — 로그아웃 전환이 "상단바에서
@@ -163,13 +164,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
           {loggedIn ? (
             <>
               <LangSwitcher lang={displayLang} setLang={setDisplayLang} />
-              <button aria-label="알림" className="home-icon-btn home-bell-btn">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <span className="home-bell-badge">3</span>
-              </button>
+              <NotificationBell />
               <button aria-label="프로필 메뉴 열기" onClick={toggleProfile} className="home-avatar-btn" ref={avatarBtnRef}>
                 {avatarInitial}
               </button>
