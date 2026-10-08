@@ -3,6 +3,7 @@ package com.utago.user;
 import com.utago.board.WordbookPost;
 import com.utago.board.WordbookPostCommentRepository;
 import com.utago.board.WordbookPostRepository;
+import com.utago.friend.FriendshipRepository;
 import com.utago.wordbook.UserSongProgressRepository;
 import com.utago.wordbook.UserWordProgressRepository;
 import com.utago.wordbook.WordbookItemRepository;
@@ -39,6 +40,7 @@ public class TitleService {
     private final WordbookRepository wordbookRepository;
     private final UserWordProgressRepository userWordProgressRepository;
     private final UserSongProgressRepository userSongProgressRepository;
+    private final FriendshipRepository friendshipRepository;
 
     @Transactional(readOnly = true)
     public TitlesResponse getTitles(Long userId) {
@@ -149,7 +151,8 @@ public class TitleService {
                 Map.entry(TitleCategory.MY_POST_LIKE, myPostLikesTotal),
                 Map.entry(TitleCategory.WORD_REPEAT, (long) userWordProgressRepository.findMaxRepetitionCountByUserId(userId)),
                 Map.entry(TitleCategory.SONG_REPEAT, (long) userSongProgressRepository.findMaxCompletedCountByUserId(userId)),
-                Map.entry(TitleCategory.DOWNLOAD_RECEIVED, user == null ? 0L : user.getDownloadsReceivedCount())
+                Map.entry(TitleCategory.DOWNLOAD_RECEIVED, user == null ? 0L : user.getDownloadsReceivedCount()),
+                Map.entry(TitleCategory.FRIEND_COUNT, (long) friendshipRepository.findAcceptedByUserId(userId).size())
         );
 
         Map<String, Long> values = new java.util.HashMap<>();

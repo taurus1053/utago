@@ -229,12 +229,24 @@ public final class TitleCatalog {
             new Title("GENRE_AI_5", TitleCategory.GENRE, "AI 송 얼리어답터", 5, "곡")
     );
 
+    /** 2026-10-08 신규(4차) — 친구(Friendship, V31) 수. ACCEPTED 상태인 관계 개수
+     * (FriendshipRepository.findAcceptedByUserId(userId).size(), 양방향 관계라 상대가
+     * requester였든 addressee였든 1명당 1로 센다). */
+    public static final List<Title> FRIEND_COUNT = List.of(
+            new Title("FRIEND_COUNT_1", TitleCategory.FRIEND_COUNT, "첫 친구", 1, "명"),
+            new Title("FRIEND_COUNT_5", TitleCategory.FRIEND_COUNT, "친구 환영단", 5, "명"),
+            new Title("FRIEND_COUNT_10", TitleCategory.FRIEND_COUNT, "인싸의 시작", 10, "명"),
+            new Title("FRIEND_COUNT_20", TitleCategory.FRIEND_COUNT, "소셜 네트워커", 20, "명"),
+            new Title("FRIEND_COUNT_30", TitleCategory.FRIEND_COUNT, "인맥왕", 30, "명"),
+            new Title("FRIEND_COUNT_50", TitleCategory.FRIEND_COUNT, "모두의 친구", 50, "명")
+    );
+
     /** TitleService가 카테고리 순서대로 순회할 때 쓰는 전체 목록. 자동 착용 기본값을 고를 때도
      * 이 순서(단어 → 가사 → 곡 → ... )를 우선순위로 쓴다. */
     public static final List<List<Title>> ALL_BY_CATEGORY = List.of(
             WORD, LINE, SONG, WORDBOOK_ADD, STUDY_TIME, STREAK,
             POST, COMMENT, WORDBOOK_DOWNLOAD, MY_POST_COMMENT, MY_POST_LIKE,
             WORD_REPEAT, SONG_REPEAT,
-            DOWNLOAD_RECEIVED, STUDY_METHOD, TIME_OF_DAY, GENRE
+            DOWNLOAD_RECEIVED, STUDY_METHOD, TIME_OF_DAY, GENRE, FRIEND_COUNT
     );
 }
