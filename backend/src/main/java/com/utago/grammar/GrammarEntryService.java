@@ -79,7 +79,11 @@ public class GrammarEntryService {
             return List.of();
         }
         String prompt = buildPrompt(level);
-        Optional<String> raw = anthropicClient.complete(prompt, 4000);
+        // (2026-10-09) 4000으로는 N1처럼 설명이 길어지는 레벨에서 응답이 배열 중간에 잘려
+        // JSON 파싱이 통째로 실패하는 문제가 있었다 — 재기동해도 매번 같은 지점에서 잘려서
+        // 영영 안 채워짐. 여유 있게 올려서 끝까지 받는다(모자라면 parse()의 salvage 경로가
+        // 그래도 완성된 항목만은 건져서 저장한다).
+        Optional<String> raw = anthropicClient.complete(prompt, 8000);
         if (raw.isEmpty()) {
             return List.of();
         }
@@ -144,24 +148,50 @@ public class GrammarEntryService {
             if (!node.isArray()) {
                 return List.of();
             }
-            List<ParsedEntry> out = new ArrayList<>();
-            for (JsonNode inner : node) {
-                out.add(new ParsedEntry(
-                        inner.path("pattern").asText(null),
-                        inner.path("meaning").asText(null),
-                        inner.path("explanation").asText(null),
-                        inner.path("structure").asText(null),
-                        inner.path("exampleSentence").asText(null),
-                        inner.path("exampleTranslation").asText(null)
-                ));
-                if (out.size() >= ENTRIES_PER_LEVEL) {
-                    break;
-                }
-            }
-            return out;
+            return toEntries(node);
         } catch (Exception e) {
-            log.warn("[GrammarEntryService] 응답 파싱 실패: {}", e.getMessage());
+            // 응답이 max_tokens에 걸려 배열 중간에서 잘렸을 수 있다 — 끝까지 닫힌 마지막
+            // 항목까지만 잘라서 다시 파싱을 시도한다("][" 보정). 그래도 안 되면 포기.
+            List<ParsedEntry> salvaged = parseSalvaged(text);
+            if (!salvaged.isEmpty()) {
+                log.warn("[GrammarEntryService] 응답이 중간에 잘려 전체 파싱 실패 — 완성된 항목 {}개만 복구",
+                        salvaged.size());
+                return salvaged;
+            }
+            log.warn("[GrammarEntryService] 응답 파싱 실패: {} (응답 길이={}자)", e.getMessage(), text.length());
             return List.of();
         }
+    }
+
+    private List<ParsedEntry> parseSalvaged(String text) {
+        int start = text.indexOf('[');
+        int lastClose = text.lastIndexOf('}');
+        if (start < 0 || lastClose <= start) {
+            return List.of();
+        }
+        try {
+            JsonNode node = objectMapper.readTree(text.substring(start, lastClose + 1) + "]");
+            return node.isArray() ? toEntries(node) : List.of();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    private List<ParsedEntry> toEntries(JsonNode arrayNode) {
+        List<ParsedEntry> out = new ArrayList<>();
+        for (JsonNode inner : arrayNode) {
+            out.add(new ParsedEntry(
+                    inner.path("pattern").asText(null),
+                    inner.path("meaning").asText(null),
+                    inner.path("explanation").asText(null),
+                    inner.path("structure").asText(null),
+                    inner.path("exampleSentence").asText(null),
+                    inner.path("exampleTranslation").asText(null)
+            ));
+            if (out.size() >= ENTRIES_PER_LEVEL) {
+                break;
+            }
+        }
+        return out;
     }
 }

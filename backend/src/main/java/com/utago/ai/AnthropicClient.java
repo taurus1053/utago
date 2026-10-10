@@ -78,7 +78,12 @@ public class AnthropicClient {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
-                    .timeout(Duration.ofSeconds(30))
+                    // (2026-10-09) 원래 30초였는데, max_tokens가 큰 호출(문법 사전 레벨 생성 등,
+                    // 최대 8000)은 모델이 응답을 다 쓰는 데 30초를 넘기는 경우가 있었다 —
+                    // 응답이 오기도 전에 클라이언트가 먼저 HttpTimeoutException으로 포기해버려서,
+                    // 재시도해도 매번 똑같이 타임아웃으로 실패하는 문제가 있었다(GrammarEntryService
+                    // N1 생성이 계속 비어있던 원인). 넉넉하게 120초로 올린다.
+                    .timeout(Duration.ofSeconds(120))
                     .header("x-api-key", apiKey)
                     .header("anthropic-version", ANTHROPIC_VERSION)
                     .header("content-type", "application/json")
