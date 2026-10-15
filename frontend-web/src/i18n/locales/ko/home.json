@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "continue": "이어서 학습하기",
+    "review": "복습하기",
+    "progressLines": "{{current}} / {{total}}줄",
+    "completedCount": "완주 {{count}}회",
+    "daysAgo": "{{count}}일 전",
+    "albumAlt": "{{title}} 앨범 자켓",
+    "emptyTitle": "아직 복습할 곡이 없어요",
+    "emptySub1": "노래를 하나 완주하면",
+    "emptySub2": "여기에 복습 목록이 생겨요",
+    "browse": "곡 둘러보기"
+  },
+  "langFilter": {
+    "all": "전체",
+    "JA": "일본어",
+    "KO": "한국어",
+    "EN": "영어"
+  },
+  "loading": "불러오는 중...",
+  "loginLink": "로그인하러 가기 →",
+  "refresh": "다른 가사 보기",
+  "songOfDay": {
+    "label": "오늘의 추천곡",
+    "loginPrompt": "로그인하면 오늘의 추천곡을 볼 수 있어요.",
+    "loadError": "추천곡을 불러오지 못했어요.",
+    "empty": "아직 등록된 곡이 없어요.",
+    "cta": "학습하러 가기 →"
+  },
+  "lyricReview": {
+    "label": "가사 복습하기",
+    "loginPrompt": "로그인하면 단어장에 담은 단어가 나오는 가사를 복습할 수 있어요.",
+    "loadError": "가사를 불러오지 못했어요.",
+    "empty": "단어장에 담은 단어가 등장하는 가사가 아직 없어요.",
+    "wordbookLink": "단어장 보러 가기 →"
+  },
+  "lyric": {
+    "meaningPending": "뜻 준비 중",
+    "moreWords_other": "+{{count}}개 단어 더"
+  },
+  "popular": {
+    "title": "인기 급상승"
+  },
+  "genre": {
+    "title": "장르 · 난이도로 둘러보기",
+    "ballad": "발라드",
+    "beginner": "초급",
+    "advanced": "고급"
+  },
+  "mySongs": {
+    "title": "내 곡",
+    "add": "+ 곡 추가",
+    "loginPrompt": "로그인하면 직접 등록한 곡들을 여기서 볼 수 있어요.",
+    "loadError": "내 곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.",
+    "empty": "아직 등록한 곡이 없어요. 좋아하는 곡을 직접 추가해보세요."
+  },
+  "allSongs": {
+    "title": "전체 곡",
+    "count_other": "{{count}}곡",
+    "loadError": "곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.",
+    "empty": "조건에 맞는 곡이 아직 없어요."
+  },
+  "footer": {
+    "credits": "크레딧"
+  }
+}

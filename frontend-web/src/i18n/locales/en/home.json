@@ -1,0 +1,68 @@
+{
+  "hero": {
+    "continue": "Continue learning",
+    "review": "Review",
+    "progressLines": "{{current}} / {{total}} lines",
+    "completedCount": "Completed {{count}}×",
+    "daysAgo": "{{count}} days ago",
+    "albumAlt": "{{title}} album cover",
+    "emptyTitle": "No songs to review yet",
+    "emptySub1": "Finish a song and your",
+    "emptySub2": "review list will show up here",
+    "browse": "Browse songs"
+  },
+  "langFilter": {
+    "all": "All",
+    "JA": "Japanese",
+    "KO": "Korean",
+    "EN": "English"
+  },
+  "loading": "Loading...",
+  "loginLink": "Go to log in →",
+  "refresh": "Show another lyric",
+  "songOfDay": {
+    "label": "Today's pick",
+    "loginPrompt": "Log in to see today's recommended song.",
+    "loadError": "Couldn't load the recommended song.",
+    "empty": "No songs have been added yet.",
+    "cta": "Start learning →"
+  },
+  "lyricReview": {
+    "label": "Lyric review",
+    "loginPrompt": "Log in to review lyrics that contain words from your wordbook.",
+    "loadError": "Couldn't load the lyrics.",
+    "empty": "There are no lyrics with words from your wordbook yet.",
+    "wordbookLink": "Go to wordbook →"
+  },
+  "lyric": {
+    "meaningPending": "Meaning coming soon",
+    "moreWords_one": "+{{count}} more word",
+    "moreWords_other": "+{{count}} more words"
+  },
+  "popular": {
+    "title": "Trending now"
+  },
+  "genre": {
+    "title": "Browse by genre & level",
+    "ballad": "Ballad",
+    "beginner": "Beginner",
+    "advanced": "Advanced"
+  },
+  "mySongs": {
+    "title": "My songs",
+    "add": "+ Add song",
+    "loginPrompt": "Log in to see the songs you added here.",
+    "loadError": "Couldn't load your songs. Please try again in a moment.",
+    "empty": "You haven't added any songs yet. Try adding one you love."
+  },
+  "allSongs": {
+    "title": "All songs",
+    "count_one": "{{count}} song",
+    "count_other": "{{count}} songs",
+    "loadError": "Couldn't load the song list. Please try again in a moment.",
+    "empty": "No songs match yet."
+  },
+  "footer": {
+    "credits": "Credits"
+  }
+}

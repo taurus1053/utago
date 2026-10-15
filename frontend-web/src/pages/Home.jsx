@@ -4,6 +4,7 @@ import { getMySongs, listSongs } from '../api/songs'
 import { getSongOfDay, getLyricReview } from '../api/home'
 import { getMyPage } from '../api/users'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import TopBar from '../components/TopBar'
 import './Home.css'
 
@@ -28,7 +29,8 @@ const CONTINUE_SONG = {
   artist: 'Vaundy',
   cover: '/covers/odoriko.webp',
   progressPercent: 35,
-  progressLabel: '12 / 34줄',
+  progressCurrent: 12,
+  progressTotal: 34,
 }
 const CONTINUE_LINES = [
   '夜の帳が下りる頃 街の灯りが揺れる',
@@ -42,8 +44,8 @@ const REVIEW_SONG = {
   title: 'アイドル',
   artist: 'YOASOBI',
   cover: '/covers/idol.jpg',
-  completedLabel: '완주 3회',
-  lastLabel: '5일 전',
+  completedCount: 3,
+  lastDays: 5,
 }
 const REVIEW_LINES = [
   '夜道を歩きながら 君のことを思う',
@@ -64,9 +66,9 @@ const GENRES = [
   { label: 'J-POP', bg: 'linear-gradient(135deg,#f3e2d8,#e9c3ae)', color: '#7a3417' },
   { label: 'K-POP', bg: 'linear-gradient(135deg,#eef1e6,#d3ddc4)', color: '#445236' },
   { label: 'POP', bg: 'linear-gradient(135deg,#e7edf3,#c6d6e6)', color: '#2c4a68' },
-  { label: '발라드', bg: 'linear-gradient(135deg,#efe6f5,#d9c3ea)', color: '#5c3a75' },
-  { label: '초급', bg: 'linear-gradient(135deg,#fdeee0,#f6cfa8)', color: '#8a4a10' },
-  { label: '고급', bg: '#201a14', color: '#ffffff' },
+  { label: '발라드', labelKey: 'ballad', bg: 'linear-gradient(135deg,#efe6f5,#d9c3ea)', color: '#5c3a75' },
+  { label: '초급', labelKey: 'beginner', bg: 'linear-gradient(135deg,#fdeee0,#f6cfa8)', color: '#8a4a10' },
+  { label: '고급', labelKey: 'advanced', bg: '#201a14', color: '#ffffff' },
 ]
 
 const LANG_BADGE = {
@@ -78,12 +80,8 @@ const LANG_BADGE = {
 // 뱃지에는 내부 코드(JA/KO/EN) 대신 흔히 쓰는 국가 코드 스타일 약어로 표시한다.
 const LANG_BADGE_LABEL = { JA: 'JP', KO: 'KR', EN: 'EN' }
 
-const LANG_FILTER_OPTIONS = [
-  { label: '전체', lang: null },
-  { label: '일본어', lang: 'JA' },
-  { label: '한국어', lang: 'KO' },
-  { label: '영어', lang: 'EN' },
-]
+// 탭 이름은 화면에서 t(`langFilter.${lang ?? 'all'}`)로 번역해서 보여준다
+const LANG_FILTER_OPTIONS = [{ lang: null }, { lang: 'JA' }, { lang: 'KO' }, { lang: 'EN' }]
 
 const SONG_COVER_FALLBACK = '#e7e0d4'
 
@@ -132,6 +130,7 @@ const WORD_DISPLAY_LIMIT = 9
 // 가사 소절(원문+의역) + 그 소절에 등장하는 단어/뜻 목록을 함께 보여준다.
 // "오늘의 가사"/"가사 복습하기" 카드가 공통으로 쓴다.
 function LyricLineBody({ line }) {
+  const { t } = useTranslation('home')
   const words = line.words ?? []
   const shownWords = words.slice(0, WORD_DISPLAY_LIMIT)
   const moreCount = words.length - shownWords.length
@@ -153,26 +152,27 @@ function LyricLineBody({ line }) {
               <span className="home-lyric-word-lemma">{w.lemma}</span>
               {w.reading && <span className="home-lyric-word-reading">{w.reading}</span>}
               <span className="home-lyric-word-meaning">
-                {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : '뜻 준비 중'}
+                {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : t('lyric.meaningPending')}
               </span>
             </li>
           ))}
         </ul>
       )}
-      {moreCount > 0 && <p className="home-lyric-words-more">+{moreCount}개 단어 더</p>}
+      {moreCount > 0 && <p className="home-lyric-words-more">{t('lyric.moreWords', { count: moreCount })}</p>}
     </>
   )
 }
 
 function RefreshButton({ onClick, disabled }) {
+  const { t } = useTranslation('home')
   return (
     <button
       type="button"
       className="home-word-refresh-btn"
       onClick={onClick}
       disabled={disabled}
-      aria-label="다른 가사 보기"
-      title="다른 가사 보기"
+      aria-label={t('refresh')}
+      title={t('refresh')}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
@@ -187,6 +187,7 @@ function RefreshButton({ onClick, disabled }) {
 // 임의의 가사 텍스트를 노출하는 건 저작권 리스크가 있어서 — 가사 텍스트는 전혀 내려받지
 // 않고, 유튜브 자체 썸네일 + 곡 정보 + 학습 페이지 링크만 보여주는 "곡 추천"으로 바꿨다.
 function SongOfDayCard({ loggedIn }) {
+  const { t } = useTranslation('home')
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(loggedIn)
   const [error, setError] = useState(null)
@@ -213,19 +214,19 @@ function SongOfDayCard({ loggedIn }) {
   return (
     <div className="home-word-card">
       <div className="home-word-card-header">
-        <span className="home-word-card-label">오늘의 추천곡</span>
+        <span className="home-word-card-label">{t('songOfDay.label')}</span>
         {loggedIn && <RefreshButton onClick={fetchSong} disabled={loading} />}
       </div>
       {!loggedIn ? (
         <div className="home-word-status">
-          로그인하면 오늘의 추천곡을 볼 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
+          {t('songOfDay.loginPrompt')} <Link to="/login">{t('loginLink')}</Link>
         </div>
       ) : loading && !song ? (
-        <div className="home-word-status">불러오는 중...</div>
+        <div className="home-word-status">{t('loading')}</div>
       ) : error && !song ? (
-        <div className="home-word-status home-word-status--error">추천곡을 불러오지 못했어요.</div>
+        <div className="home-word-status home-word-status--error">{t('songOfDay.loadError')}</div>
       ) : !song ? (
-        <div className="home-word-status">아직 등록된 곡이 없어요.</div>
+        <div className="home-word-status">{t('songOfDay.empty')}</div>
       ) : (
         <Link
           to={`/songs/${song.songId}`}
@@ -250,7 +251,7 @@ function SongOfDayCard({ loggedIn }) {
                   {LANG_BADGE_LABEL[song.sourceLang] ?? song.sourceLang}
                 </span>
               )}
-              <span className="home-song-of-day-cta">학습하러 가기 →</span>
+              <span className="home-song-of-day-cta">{t('songOfDay.cta')}</span>
             </div>
           </div>
         </Link>
@@ -263,6 +264,7 @@ function SongOfDayCard({ loggedIn }) {
 // 소절 중 무작위 하나 + 그 소절의 단어/뜻 목록. 비로그인이거나 해당하는 가사가 없으면
 // 안내 문구와 함께 단어장으로 가는 링크를 보여준다.
 function LyricReviewCard({ loggedIn }) {
+  const { t } = useTranslation('home')
   const [line, setLine] = useState(null)
   const [loading, setLoading] = useState(loggedIn)
   const [error, setError] = useState(null)
@@ -287,20 +289,20 @@ function LyricReviewCard({ loggedIn }) {
   return (
     <div className="home-word-card">
       <div className="home-word-card-header">
-        <span className="home-word-card-label">가사 복습하기</span>
+        <span className="home-word-card-label">{t('lyricReview.label')}</span>
         {loggedIn && <RefreshButton onClick={fetchLine} disabled={loading} />}
       </div>
       {!loggedIn ? (
         <div className="home-word-status">
-          로그인하면 단어장에 담은 단어가 나오는 가사를 복습할 수 있어요. <Link to="/login">로그인하러 가기 →</Link>
+          {t('lyricReview.loginPrompt')} <Link to="/login">{t('loginLink')}</Link>
         </div>
       ) : loading && !line ? (
-        <div className="home-word-status">불러오는 중...</div>
+        <div className="home-word-status">{t('loading')}</div>
       ) : error && !line ? (
-        <div className="home-word-status home-word-status--error">가사를 불러오지 못했어요.</div>
+        <div className="home-word-status home-word-status--error">{t('lyricReview.loadError')}</div>
       ) : !line ? (
         <div className="home-word-status">
-          단어장에 담은 단어가 등장하는 가사가 아직 없어요. <Link to="/wordbook">단어장 보러 가기 →</Link>
+          {t('lyricReview.empty')} <Link to="/wordbook">{t('lyricReview.wordbookLink')}</Link>
         </div>
       ) : (
         <div className={loading ? 'home-word-card-body is-refreshing' : 'home-word-card-body'}>
@@ -312,6 +314,7 @@ function LyricReviewCard({ loggedIn }) {
 }
 
 export default function Home() {
+  const { t } = useTranslation('home')
   const hasReviewSong = true
 
   const continueTicker = useLyricTicker(CONTINUE_LINES, 2600)
@@ -345,8 +348,8 @@ export default function Home() {
 
   // 검색어 입력은 400ms 디바운스 후 실제 쿼리에 반영.
   useEffect(() => {
-    const t = setTimeout(() => setSearchQuery(searchInput), 400)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setSearchQuery(searchInput), 400)
+    return () => clearTimeout(timer)
   }, [searchInput])
 
   useEffect(() => {
@@ -419,13 +422,13 @@ export default function Home() {
             <img className="home-hero-bg" src={CONTINUE_SONG.cover} alt="" aria-hidden="true" />
             <div className="home-hero-overlay" />
             <div className="home-hero-top">
-              <img className="home-hero-cover" src={CONTINUE_SONG.cover} alt={`${CONTINUE_SONG.title} 앨범 자켓`} />
+              <img className="home-hero-cover" src={CONTINUE_SONG.cover} alt={t('hero.albumAlt', { title: CONTINUE_SONG.title })} />
               <div className="home-hero-info">
                 <div className="home-hero-eyebrow">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
-                  <span>이어서 학습하기</span>
+                  <span>{t('hero.continue')}</span>
                 </div>
                 <div className="home-hero-title">{CONTINUE_SONG.title}</div>
                 <div className="home-hero-artist">{CONTINUE_SONG.artist}</div>
@@ -433,7 +436,7 @@ export default function Home() {
                   <div className="home-hero-progress-track">
                     <div className="home-hero-progress-fill" style={{ width: `${CONTINUE_SONG.progressPercent}%` }} />
                   </div>
-                  <span className="home-hero-progress-label">{CONTINUE_SONG.progressLabel}</span>
+                  <span className="home-hero-progress-label">{t('hero.progressLines', { current: CONTINUE_SONG.progressCurrent, total: CONTINUE_SONG.progressTotal })}</span>
                 </div>
               </div>
             </div>
@@ -455,20 +458,20 @@ export default function Home() {
                 <img className="home-hero-bg" src={REVIEW_SONG.cover} alt="" aria-hidden="true" />
                 <div className="home-hero-overlay" style={{ background: 'rgba(10,14,28,0.4)' }} />
                 <div className="home-hero-top">
-                  <img className="home-hero-cover" src={REVIEW_SONG.cover} alt={`${REVIEW_SONG.title} 앨범 자켓`} />
+                  <img className="home-hero-cover" src={REVIEW_SONG.cover} alt={t('hero.albumAlt', { title: REVIEW_SONG.title })} />
                   <div className="home-hero-info">
                     <div className="home-hero-eyebrow">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
                         <polyline points="21 3 21 9 15 9"></polyline>
                       </svg>
-                      <span>복습하기</span>
+                      <span>{t('hero.review')}</span>
                     </div>
                     <div className="home-hero-title">{REVIEW_SONG.title}</div>
                     <div className="home-hero-artist">{REVIEW_SONG.artist}</div>
                     <div className="home-hero-progress-row">
-                      <span className="home-hero-pill">{REVIEW_SONG.completedLabel}</span>
-                      <span className="home-hero-progress-label">{REVIEW_SONG.lastLabel}</span>
+                      <span className="home-hero-pill">{t('hero.completedCount', { count: REVIEW_SONG.completedCount })}</span>
+                      <span className="home-hero-progress-label">{t('hero.daysAgo', { count: REVIEW_SONG.lastDays })}</span>
                     </div>
                   </div>
                 </div>
@@ -492,10 +495,10 @@ export default function Home() {
                   </svg>
                 </div>
                 <div className="home-hero-empty-text">
-                  <span className="home-hero-empty-title">아직 복습할 곡이 없어요</span>
-                  <span className="home-hero-empty-sub">노래를 하나 완주하면<br />여기에 복습 목록이 생겨요</span>
+                  <span className="home-hero-empty-title">{t('hero.emptyTitle')}</span>
+                  <span className="home-hero-empty-sub">{t('hero.emptySub1')}<br />{t('hero.emptySub2')}</span>
                 </div>
-                <a href="#browse" className="home-hero-empty-btn">곡 둘러보기</a>
+                <a href="#browse" className="home-hero-empty-btn">{t('hero.browse')}</a>
               </div>
             )}
           </div>
@@ -505,11 +508,11 @@ export default function Home() {
         <div className="home-lang-filters">
           {langFilterOptions.map((opt, i) => (
             <button
-              key={opt.label}
+              key={opt.lang ?? 'all'}
               onClick={() => setLangFilterIndex(i)}
               className={`home-lang-filter${i === langFilterIndex ? ' home-lang-filter--active' : ''}`}
             >
-              {opt.label}
+              {t(`langFilter.${opt.lang ?? 'all'}`)}
             </button>
           ))}
         </div>
@@ -522,7 +525,7 @@ export default function Home() {
 
         {/* 인기 급상승 */}
         <section className="home-section">
-          <h2 className="home-section-title">인기 급상승</h2>
+          <h2 className="home-section-title">{t('popular.title')}</h2>
           <div className="home-popular-grid">
             {POPULAR_SONGS.map((song, i) => (
               <div key={song.title} className="home-popular-card">
@@ -539,11 +542,11 @@ export default function Home() {
 
         {/* 장르·난이도로 둘러보기 */}
         <section className="home-section">
-          <h2 className="home-section-title">장르 · 난이도로 둘러보기</h2>
+          <h2 className="home-section-title">{t('genre.title')}</h2>
           <div className="home-genre-grid">
             {GENRES.map((g) => (
               <div key={g.label} className="home-genre-chip" style={{ background: g.bg, color: g.color }}>
-                {g.label}
+                {g.labelKey ? t(`genre.${g.labelKey}`) : g.label}
               </div>
             ))}
           </div>
@@ -552,16 +555,16 @@ export default function Home() {
         {/* 내 곡 - 실제 GET /api/songs/my 연결. 등록한 곡은 본인에게만 보인다(PRIVATE). */}
         <section className="home-section">
           <div className="home-section-header">
-            <h2 className="home-section-title">내 곡</h2>
+            <h2 className="home-section-title">{t('mySongs.title')}</h2>
             <div className="home-section-header-right">
-              <Link to="/songs/new" className="home-section-add-song">+ 곡 추가</Link>
+              <Link to="/songs/new" className="home-section-add-song">{t('mySongs.add')}</Link>
             </div>
           </div>
 
           {!loggedIn ? (
             <div className="home-song-empty">
-              로그인하면 직접 등록한 곡들을 여기서 볼 수 있어요.{' '}
-              <Link to="/login">로그인하러 가기 →</Link>
+              {t('mySongs.loginPrompt')}{' '}
+              <Link to="/login">{t('loginLink')}</Link>
             </div>
           ) : mySongsLoading ? (
             <div className="home-song-grid">
@@ -569,16 +572,16 @@ export default function Home() {
                 <div key={i} className="home-song-card home-song-card--skeleton">
                   <div className="home-song-cover" style={{ background: SONG_COVER_FALLBACK }} />
                   <div className="home-song-meta">
-                    <span className="home-song-title">불러오는 중...</span>
+                    <span className="home-song-title">{t('loading')}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : mySongsError ? (
-            <div className="home-song-error">내 곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+            <div className="home-song-error">{t('mySongs.loadError')}</div>
           ) : mySongs.length === 0 ? (
             <div className="home-song-empty">
-              아직 등록한 곡이 없어요. 좋아하는 곡을 직접 추가해보세요.
+              {t('mySongs.empty')}
             </div>
           ) : (
             <div className="home-song-grid">
@@ -607,12 +610,12 @@ export default function Home() {
         {/* 전체 곡 - 실제 GET /api/songs 연결 */}
         <section className="home-section">
           <div className="home-section-header">
-            <h2 className="home-section-title">전체 곡</h2>
+            <h2 className="home-section-title">{t('allSongs.title')}</h2>
             <div className="home-section-header-right">
               {!songsLoading && !songsError && (
-                <span className="home-section-count">{songsTotal}곡</span>
+                <span className="home-section-count">{t('allSongs.count', { count: songsTotal })}</span>
               )}
-              <Link to="/songs/new" className="home-section-add-song">+ 곡 추가</Link>
+              <Link to="/songs/new" className="home-section-add-song">{t('mySongs.add')}</Link>
             </div>
           </div>
 
@@ -622,15 +625,15 @@ export default function Home() {
                 <div key={i} className="home-song-card home-song-card--skeleton">
                   <div className="home-song-cover" style={{ background: SONG_COVER_FALLBACK }} />
                   <div className="home-song-meta">
-                    <span className="home-song-title">불러오는 중...</span>
+                    <span className="home-song-title">{t('loading')}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : songsError ? (
-            <div className="home-song-error">곡 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>
+            <div className="home-song-error">{t('allSongs.loadError')}</div>
           ) : songs.length === 0 ? (
-            <div className="home-song-empty">조건에 맞는 곡이 아직 없어요.</div>
+            <div className="home-song-empty">{t('allSongs.empty')}</div>
           ) : (
             <div className="home-song-grid">
               {songs.map((song) => {
@@ -657,7 +660,7 @@ export default function Home() {
 
       </div>
       <footer className="home-footer">
-        <Link to="/credits">크레딧</Link>
+        <Link to="/credits">{t('footer.credits')}</Link>
       </footer>
     </div>
   )
