@@ -1,0 +1,27 @@
+{
+  "methodModal": {
+    "title": "How do you want to study?"
+  },
+  "methods": {
+    "flashcard": {
+      "title": "Flashcards",
+      "desc": "Look at a word, recall its meaning, then check."
+    },
+    "quiz": {
+      "title": "Meaning quiz",
+      "desc": "See a word and pick the right meaning from 4 choices."
+    },
+    "fill": {
+      "title": "Fill in the blank",
+      "desc": "Pick the word that fills the blank in a real lyric line."
+    },
+    "reorder": {
+      "title": "Reorder the line",
+      "desc": "Put the scrambled pieces back into lyric order."
+    },
+    "match": {
+      "title": "Match cards",
+      "desc": "Pair word cards with meaning cards."
+    }
+  }
+}

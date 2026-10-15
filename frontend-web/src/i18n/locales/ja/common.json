@@ -30,7 +30,11 @@
     "confirm": "確認",
     "cancel": "キャンセル",
     "processing": "処理中...",
-    "loading": "読み込み中..."
+    "loading": "読み込み中...",
+    "close": "閉じる",
+    "delete": "削除",
+    "edit": "編集",
+    "move": "移動"
   },
   "datePicker": {
     "placeholder": "生年月日を選択",
@@ -41,5 +45,10 @@
   },
   "errors": {
     "generic": "リクエストの処理中に問題が発生しました。しばらくしてからもう一度お試しください。"
+  },
+  "langName": {
+    "JA": "日本語",
+    "KO": "韓国語",
+    "EN": "英語"
   }
 }

@@ -1,0 +1,110 @@
+{
+  "countShort_one": "{{count}} word",
+  "countShort_other": "{{count}} words",
+  "wordCount_one": "{{count}} word",
+  "wordCount_other": "{{count}} words",
+  "moveModal": {
+    "title": "Move to another wordbook",
+    "sub": "Choose a wordbook to move the selected words to.",
+    "empty": "There are no other wordbooks to move to. Create a new one on the left first."
+  },
+  "folderSelect": {
+    "none": "No folder",
+    "empty": "No folders yet"
+  },
+  "create": {
+    "titleFolder": "📁 New folder",
+    "titleBook": "📖 New wordbook",
+    "folderPh": "Folder name",
+    "bookPh": "Wordbook name",
+    "busy": "Creating...",
+    "submit": "Create",
+    "failed": "Couldn't create it. Please try again in a moment."
+  },
+  "addWord": {
+    "title": "Add word",
+    "sub": "Enter a Japanese word to add to \"{{name}}\". The reading and meaning are filled in automatically, and you can fix anything that's wrong.",
+    "word": "Word",
+    "wordPh": "e.g. 食べる, たべる",
+    "pronunciation": "Reading",
+    "looking": "Looking up...",
+    "pronunciationPh": "e.g. たべる",
+    "meaning": "Meaning (one per line)",
+    "meaningPh": "e.g. to eat",
+    "notFound": "This word isn't in the dictionary. Enter the reading and meaning yourself.",
+    "busy": "Adding...",
+    "submit": "Add",
+    "failed": "Couldn't add it. Please try again in a moment."
+  },
+  "editWord": {
+    "title": "Edit word",
+    "sub": "Fix the reading and meaning of \"{{lemma}}\". If the word itself is wrong, delete it and add it again.",
+    "busy": "Saving...",
+    "submit": "Save",
+    "failed": "Couldn't save the changes. Please try again in a moment."
+  },
+  "moveFolder": {
+    "title": "Move wordbook",
+    "sub": "Choose a folder to move \"{{name}}\" to.",
+    "busy": "Moving...",
+    "failed": "Couldn't move it. Please try again in a moment."
+  },
+  "sidebar": {
+    "privateAria": "Private wordbook",
+    "menuAria": "{{name}} menu",
+    "makePrivate": "Make private",
+    "makePublic": "Make public",
+    "title": "My wordbooks",
+    "newAria": "Create new",
+    "createFolder": "📁 New folder",
+    "createBook": "📖 New wordbook",
+    "loadError": "Couldn't load.",
+    "folderDeleteAria": "Delete {{name}} folder",
+    "folderEmpty": "Empty",
+    "browse": "Browse wordbooks"
+  },
+  "main": {
+    "pick": "Select a wordbook on the left, or create a new one.",
+    "renameAria": "Rename wordbook",
+    "renameTitle": "Rename",
+    "selectCancel": "Cancel selection",
+    "select": "Select",
+    "addWord": "+ Add word",
+    "study": "Study",
+    "toList": "Back to list",
+    "loadError": "Couldn't load words.",
+    "empty": "No words yet. Add some with \"+ Add word\" above, or use the wordbook icon button on the song study screen.",
+    "selectAria": "Select {{lemma}}",
+    "unstar": "Remove from favorites",
+    "star": "Add to favorites",
+    "meaningPending": "Meaning coming soon",
+    "studyCount": "Studied {{count}}×",
+    "editAria": "Edit reading and meaning",
+    "removeAria": "Remove from wordbook",
+    "selectedCount": "{{count}} selected"
+  },
+  "confirm": {
+    "deleteFolder": "Delete this folder? The wordbooks inside won't be deleted — they'll move out of the folder.",
+    "removeWord": "Remove this word from the wordbook?",
+    "removeWordFavorite": "Remove this word from the wordbook?\nIt will also be deleted from its original wordbook.",
+    "removeSelected_one": "Remove {{count}} selected word from the wordbook?",
+    "removeSelected_other": "Remove {{count}} selected words from the wordbook?",
+    "visibilityFailed": "Couldn't change the visibility. Please try again in a moment."
+  },
+  "deleteBook": {
+    "title": "Delete this wordbook?",
+    "message": "Delete the wordbook \"{{name}}\"? This can't be undone."
+  },
+  "detail": {
+    "defaultName": "Wordbook",
+    "loadError": "Couldn't load the wordbook.",
+    "empty": "No words yet. Add words with the \"＋ Wordbook\" button on the song study screen.",
+    "studyBtn": "🎴 Review with flashcards",
+    "reviewCount": "Reviewed {{count}}×",
+    "done_one": "You finished reviewing {{count}} word!",
+    "done_other": "You finished reviewing {{count}} words!",
+    "tapToReveal": "Tap to see the meaning",
+    "dontKnow": "Don't know",
+    "know": "Know it"
+  }
+}

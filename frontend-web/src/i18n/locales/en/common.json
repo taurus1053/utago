@@ -30,7 +30,11 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "processing": "Processing...",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "move": "Move"
   },
   "datePicker": {
     "placeholder": "Select date of birth",
@@ -41,5 +45,10 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again in a moment."
+  },
+  "langName": {
+    "JA": "Japanese",
+    "KO": "Korean",
+    "EN": "English"
   }
 }
