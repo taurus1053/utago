@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { startPageTransition } from '../utils/pageTransition'
 import { rememberLandingHeroRect } from '../utils/landingHeroRect'
 import { measureMaxTextWidth } from '../utils/measureText'
+import { useTranslation } from 'react-i18next'
+import { SUPPORTED_LANGS } from '../i18n'
+import { useDisplayLang } from '../i18n/useDisplayLang'
 import LangSwitcher from '../components/LangSwitcher'
 import './Landing.css'
 
@@ -60,66 +63,6 @@ const POPULAR_SONGS = [
   { title: 'Blinding Lights', artist: 'The Weeknd', gradient: 'linear-gradient(135deg,#efe0ea,#d8a9c4)' },
   { title: 'Perfect', artist: 'Ed Sheeran', gradient: 'linear-gradient(135deg,#e5f1f0,#b7dbd7)' },
 ]
-
-const TRANSLATIONS = {
-  ko: {
-    login: '로그인',
-    signup: '무료로 시작하기',
-    heroTitle: ['좋아하는 노래로,', '새로운 언어를 배우다'],
-    heroSubtitle: '노래 가사를 따라가며 단어·문법·발음을 한 번에,\n우타고와 함께 지금 바로 시작해보세요.',
-    heroCta: '무료로 시작하기',
-    heroLogin: '이미 계정이 있으신가요? 로그인',
-    popularTitle: '지금 인기있는 곡',
-    featuresTitle: '우타고만의 학습 방식',
-    features: [
-      { icon: 'song', title: '좋아하는 노래로 시작', desc: '가사를 따라 부르며 자연스럽게 외국어를 익혀요. 지루한 교재 대신, 좋아하는 곡으로 공부하세요.' },
-      { icon: 'grammar', title: '문법까지 한 번에', desc: '가사 속 핵심 문법을 정리해서 보여줘요. 단어와 발음뿐 아니라 문장 구조까지 이해할 수 있어요.' },
-      { icon: 'globe', title: '내 모국어에 맞는 발음', desc: '내 모국어에 따라 발음 표기가 자동으로 바뀌어요. 한국어, 일본어, 영어 사용자 모두를 위한 학습 구조예요.' },
-    ],
-    bottomTitle: '지금 바로 시작해보세요',
-    bottomSubtitle: '가입은 1분이면 충분해요.',
-    footer: '© 2026 Utago (우타고)',
-    credits: '크레딧',
-  },
-  ja: {
-    login: 'ログイン',
-    signup: '無料で始める',
-    heroTitle: ['好きな歌で、', '新しい言語を学ぶ'],
-    heroSubtitle: '歌詞を追いながら単語・文法・発音を一度に。\n今すぐUtagoを始めてみましょう。',
-    heroCta: '無料で始める',
-    heroLogin: 'すでにアカウントをお持ちですか？ ログイン',
-    popularTitle: '今人気の曲',
-    featuresTitle: 'Utagoならではの学習方法',
-    features: [
-      { icon: 'song', title: '好きな曲からスタート', desc: '歌詞を口ずさみながら自然に外国語を身につけましょう。退屈な教材の代わりに、好きな曲で勉強できます。' },
-      { icon: 'grammar', title: '文法までまとめて', desc: '歌詞の中の重要な文法を整理して表示します。単語や発音だけでなく文の構造まで理解できます。' },
-      { icon: 'globe', title: '母国語に合わせた発音', desc: '母国語に応じて発音表記が自動的に切り替わります。韓国語・日本語・英語話者すべてに対応した学習構造です。' },
-    ],
-    bottomTitle: '今すぐ始めましょう',
-    bottomSubtitle: '登録は1分もかかりません。',
-    footer: '© 2026 Utago (歌語)',
-    credits: 'クレジット',
-  },
-  en: {
-    login: 'Log in',
-    signup: 'Get started free',
-    heroTitle: ['Learn a new language', 'through songs you love'],
-    heroSubtitle: 'Follow along with the lyrics and pick up vocabulary, grammar,\nand pronunciation all at once — start with Utago right now.',
-    heroCta: 'Get started free',
-    heroLogin: 'Already have an account? Log in',
-    popularTitle: 'Trending songs',
-    featuresTitle: 'The Utago way of learning',
-    features: [
-      { icon: 'song', title: 'Start with songs you love', desc: 'Pick up a new language naturally by singing along. Study with songs you actually enjoy, not boring textbooks.' },
-      { icon: 'grammar', title: 'Grammar, covered too', desc: 'Key grammar points from the lyrics are broken down for you, so you understand sentence structure, not just words.' },
-      { icon: 'globe', title: 'Pronunciation for your language', desc: 'Pronunciation guides switch automatically based on your native language — built for Korean, Japanese, and English speakers alike.' },
-    ],
-    bottomTitle: 'Start learning today',
-    bottomSubtitle: 'Signing up takes less than a minute.',
-    footer: '© 2026 Utago',
-    credits: 'Credits',
-  },
-}
 
 // 앨범 자켓 무한 스크롤 마퀴.
 // CSS keyframe(translateX(-50%))으로 만들면 아이템 개수·gap 값에 따라
@@ -217,14 +160,10 @@ function MarqueeItem({ song }) {
 }
 
 export default function Landing() {
-  const [lang, setLang] = useState(() => {
-    try {
-      return localStorage.getItem('utago_landing_lang') || 'ko'
-    } catch {
-      return 'ko'
-    }
-  })
-  const t = TRANSLATIONS[lang]
+  // 문구는 i18n/locales/<언어>/landing.json. 표시 언어 선택/저장은 i18n이 전담한다
+  // (예전엔 랜딩만의 저장 키(utago_landing_lang)를 따로 썼는데 상단바와 하나로 통합했다).
+  const { t, i18n } = useTranslation('landing')
+  const [lang, setLang] = useDisplayLang()
   const heroRef = useRef(null)
   const pageRef = useRef(null)
 
@@ -243,14 +182,6 @@ export default function Landing() {
       )
     }
   }
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('utago_landing_lang', lang)
-    } catch {
-      // localStorage를 못 쓰는 환경이면 그냥 무시 (언어 선택 자체는 계속 동작)
-    }
-  }, [lang])
 
   // 로그아웃 시 이 히어로 영역으로 "모여드는" 역방향 전환(TopBar.jsx)이 정확한
   // 도착 크기를 알 수 있도록, 실제 렌더된 히어로 크기를 기억해둔다 — 창 크기가
@@ -282,9 +213,8 @@ export default function Landing() {
   // 폰트로 재서 약간 부정확할 수 있어서, document.fonts.ready 이후 한 번 더
   // 다시 잰다.
   useLayoutEffect(() => {
-    const langCodes = Object.keys(TRANSLATIONS)
-    const LOGIN_TEXTS = langCodes.map((l) => TRANSLATIONS[l].login)
-    const SIGNUP_TEXTS = langCodes.map((l) => TRANSLATIONS[l].signup)
+    const LOGIN_TEXTS = SUPPORTED_LANGS.map((l) => i18n.getFixedT(l, 'landing')('login'))
+    const SIGNUP_TEXTS = SUPPORTED_LANGS.map((l) => i18n.getFixedT(l, 'landing')('signup'))
     // 좌우 패딩(Landing.css의 padding 선언과 맞춰야 한다) + 약간의 여유
     const LOGIN_PAD = 12 * 2 + 4
     const SIGNUP_PAD = 16 * 2 + 4
@@ -307,7 +237,7 @@ export default function Landing() {
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(applySizes).catch(() => {})
     }
-  }, [])
+  }, [i18n])
 
   return (
     <div className="landing-page" ref={pageRef}>
@@ -318,8 +248,8 @@ export default function Landing() {
         </div>
         <div className="landing-topbar-actions">
           <LangSwitcher lang={lang} setLang={setLang} />
-          <Link to="/login" className="landing-login-btn" onClick={handleBrandNavClick('/login')}>{t.login}</Link>
-          <Link to="/signup" className="landing-signup-btn" onClick={handleBrandNavClick('/signup')}>{t.signup}</Link>
+          <Link to="/login" className="landing-login-btn" onClick={handleBrandNavClick('/login')}>{t('login')}</Link>
+          <Link to="/signup" className="landing-signup-btn" onClick={handleBrandNavClick('/signup')}>{t('signup')}</Link>
         </div>
       </header>
 
@@ -330,12 +260,12 @@ export default function Landing() {
 
         <div className="landing-hero-content">
           <h1 className="landing-hero-title">
-            {t.heroTitle[0]}
+            {t('heroTitle1')}
             <br />
-            {t.heroTitle[1]}
+            {t('heroTitle2')}
           </h1>
           <p className="landing-hero-subtitle">
-            {t.heroSubtitle.split('\n').map((line, i, arr) => (
+            {t('heroSubtitle').split('\n').map((line, i, arr) => (
               <span key={i}>
                 {line}
                 {i < arr.length - 1 && <br />}
@@ -343,23 +273,23 @@ export default function Landing() {
             ))}
           </p>
           <div className="landing-hero-actions">
-            <Link to="/signup" className="landing-cta-btn" onClick={handleBrandNavClick('/signup')}>{t.heroCta}</Link>
-            <Link to="/login" className="landing-hero-login-link" onClick={handleBrandNavClick('/login')}>{t.heroLogin}</Link>
+            <Link to="/signup" className="landing-cta-btn" onClick={handleBrandNavClick('/signup')}>{t('heroCta')}</Link>
+            <Link to="/login" className="landing-hero-login-link" onClick={handleBrandNavClick('/login')}>{t('heroLogin')}</Link>
           </div>
         </div>
       </section>
 
       {/* 지금 인기있는 곡 - 무한 스크롤 마퀴 */}
       <section className="landing-popular">
-        <h2 className="landing-popular-title">{t.popularTitle}</h2>
+        <h2 className="landing-popular-title">{t('popularTitle')}</h2>
         <Marquee items={POPULAR_SONGS} />
       </section>
 
       {/* 특징 */}
       <section className="landing-features">
-        <h2 className="landing-features-title">{t.featuresTitle}</h2>
+        <h2 className="landing-features-title">{t('featuresTitle')}</h2>
         <div className="landing-features-grid">
-          {t.features.map((f) => (
+          {t('features', { returnObjects: true }).map((f) => (
             <div key={f.title} className="landing-feature-card">
               <div className="landing-feature-icon">{ICONS[f.icon]}</div>
               <div className="landing-feature-text-title">{f.title}</div>
@@ -371,14 +301,14 @@ export default function Landing() {
 
       {/* 하단 CTA */}
       <section className="landing-bottom-cta">
-        <h2 className="landing-bottom-cta-title">{t.bottomTitle}</h2>
-        <p className="landing-bottom-cta-subtitle">{t.bottomSubtitle}</p>
-        <Link to="/signup" className="landing-cta-btn landing-cta-btn--light" onClick={handleBrandNavClick('/signup')}>{t.heroCta}</Link>
+        <h2 className="landing-bottom-cta-title">{t('bottomTitle')}</h2>
+        <p className="landing-bottom-cta-subtitle">{t('bottomSubtitle')}</p>
+        <Link to="/signup" className="landing-cta-btn landing-cta-btn--light" onClick={handleBrandNavClick('/signup')}>{t('heroCta')}</Link>
       </section>
 
       <footer className="landing-footer">
-        <span>{t.footer}</span>
-        <Link to="/credits" className="landing-footer-link">{t.credits}</Link>
+        <span>{t('footer')}</span>
+        <Link to="/credits" className="landing-footer-link">{t('credits')}</Link>
       </footer>
     </div>
   )

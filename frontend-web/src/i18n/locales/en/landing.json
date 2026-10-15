@@ -1,0 +1,20 @@
+{
+  "login": "Log in",
+  "signup": "Get started free",
+  "heroTitle1": "Learn a new language",
+  "heroTitle2": "through songs you love",
+  "heroSubtitle": "Follow along with the lyrics and pick up vocabulary, grammar,\nand pronunciation all at once — start with Utago right now.",
+  "heroCta": "Get started free",
+  "heroLogin": "Already have an account? Log in",
+  "popularTitle": "Trending songs",
+  "featuresTitle": "The Utago way of learning",
+  "features": [
+    { "icon": "song", "title": "Start with songs you love", "desc": "Pick up a new language naturally by singing along. Study with songs you actually enjoy, not boring textbooks." },
+    { "icon": "grammar", "title": "Grammar, covered too", "desc": "Key grammar points from the lyrics are broken down for you, so you understand sentence structure, not just words." },
+    { "icon": "globe", "title": "Pronunciation for your language", "desc": "Pronunciation guides switch automatically based on your native language — built for Korean, Japanese, and English speakers alike." }
+  ],
+  "bottomTitle": "Start learning today",
+  "bottomSubtitle": "Signing up takes less than a minute.",
+  "footer": "© 2026 Utago",
+  "credits": "Credits"
+}

@@ -1,0 +1,28 @@
+{
+  "langSwitcher": {
+    "ariaLabel": "表示言語を選択"
+  },
+  "topbar": {
+    "openMenu": "メニューを開く",
+    "searchPlaceholder": "曲・アーティストを検索",
+    "openProfileMenu": "プロフィールメニューを開く",
+    "mainMenu": "メインメニュー",
+    "login": "ログイン"
+  },
+  "nav": {
+    "home": "ホーム",
+    "wordbook": "単語帳",
+    "grammar": "文法",
+    "mypage": "マイページ",
+    "admin": "管理者ページ",
+    "reports": "通報管理",
+    "announcements": "運営からのお知らせ"
+  },
+  "profileMenu": {
+    "profileSettings": "プロフィール設定",
+    "displayLanguage": "表示言語",
+    "darkMode": "ダークモード",
+    "support": "サポート",
+    "logout": "ログアウト"
+  }
+}
