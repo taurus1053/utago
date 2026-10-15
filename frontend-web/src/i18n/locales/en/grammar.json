@@ -1,0 +1,17 @@
+{
+  "index": {
+    "title": "Grammar",
+    "subtitle": "Learn the key grammar for each level, one point at a time.",
+    "loadError": "Couldn't load the grammar list.",
+    "empty": "Grammar for this level isn't ready yet.",
+    "learned": "Learned"
+  },
+  "detail": {
+    "title": "Grammar details",
+    "loadError": "Couldn't load this grammar point.",
+    "learned": "✓ Learned",
+    "markLearned": "Mark as learned",
+    "loginHint": "Log in to mark grammar as learned.",
+    "songs": "Songs that use this grammar"
+  }
+}

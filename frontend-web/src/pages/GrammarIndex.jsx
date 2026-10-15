@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getGrammarList } from '../api/grammar'
 import TopBar from '../components/TopBar'
 import './Grammar.css'
@@ -10,6 +11,7 @@ import './Grammar.css'
 const LEVELS = ['N5', 'N4', 'N3', 'N2', 'N1']
 
 export default function GrammarIndex() {
+  const { t } = useTranslation('grammar')
   const [level, setLevel] = useState('N5')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,8 +43,8 @@ export default function GrammarIndex() {
       <TopBar showSearch={false} />
 
       <div className="grammar-shell">
-        <h1 className="grammar-title">문법 학습</h1>
-        <p className="grammar-subtitle">레벨별 핵심 문법을 하나씩 익혀보세요.</p>
+        <h1 className="grammar-title">{t('index.title')}</h1>
+        <p className="grammar-subtitle">{t('index.subtitle')}</p>
 
         <div className="grammar-level-tabs">
           {LEVELS.map((l) => (
@@ -57,11 +59,11 @@ export default function GrammarIndex() {
         </div>
 
         {loading ? (
-          <div className="grammar-status">불러오는 중...</div>
+          <div className="grammar-status">{t('common:actions.loading')}</div>
         ) : error ? (
-          <div className="grammar-status grammar-status--error">문법 목록을 불러오지 못했어요.</div>
+          <div className="grammar-status grammar-status--error">{t('index.loadError')}</div>
         ) : items.length === 0 ? (
-          <div className="grammar-status">아직 이 레벨의 문법이 준비되지 않았어요.</div>
+          <div className="grammar-status">{t('index.empty')}</div>
         ) : (
           <div className="grammar-list">
             {items.map((item) => (
@@ -70,7 +72,7 @@ export default function GrammarIndex() {
                   <span className="grammar-card-pattern">{item.pattern}</span>
                   <span className="grammar-card-meaning">{item.meaning}</span>
                 </div>
-                {item.learned && <span className="grammar-card-badge">학습 완료</span>}
+                {item.learned && <span className="grammar-card-badge">{t('index.learned')}</span>}
               </Link>
             ))}
           </div>

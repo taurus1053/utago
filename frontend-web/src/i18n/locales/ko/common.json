@@ -50,5 +50,12 @@
     "JA": "일본어",
     "KO": "한국어",
     "EN": "영어"
+  },
+  "notifications": {
+    "aria": "알림",
+    "title": "알림",
+    "markAll": "모두 읽음",
+    "empty": "아직 알림이 없어요.",
+    "justNow": "방금 전"
   }
 }

@@ -50,5 +50,12 @@
     "JA": "Japanese",
     "KO": "Korean",
     "EN": "English"
+  },
+  "notifications": {
+    "aria": "Notifications",
+    "title": "Notifications",
+    "markAll": "Mark all as read",
+    "empty": "No notifications yet.",
+    "justNow": "Just now"
   }
 }
