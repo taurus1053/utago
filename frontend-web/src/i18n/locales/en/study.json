@@ -23,5 +23,47 @@
       "title": "Match cards",
       "desc": "Pair word cards with meaning cards."
     }
+  },
+  "done": {
+    "otherMethod": "Try another way"
+  },
+  "readingHint": "Show reading",
+  "otherMethod": "See other methods",
+  "next": "Next",
+  "score": "You got {{correct}} of {{total}} right!",
+  "empty": {
+    "flashcard": "No words to study.",
+    "quiz": "Not enough words with meanings to make a quiz (at least 2 needed).",
+    "fill": "Fill in the blank needs at least 2 words that appear in real lyrics. You don't have enough yet.",
+    "reorder": "Reordering needs words that appear in real lyrics. You don't have any yet.",
+    "match": "Matching needs at least 2 words with meanings."
+  },
+  "flashcard": {
+    "done_one": "You finished studying {{count}} word!",
+    "done_other": "You finished studying {{count}} words!",
+    "restart": "Start over",
+    "wrongOnly": "Wrong only",
+    "noWrongTitle": "You didn't tap \"Study it\" on any word this round.",
+    "finish": "Finish",
+    "shuffleTitle": "Shuffle the order?",
+    "shuffleNo": "No",
+    "shuffleYes": "Yes, shuffle",
+    "study": "Study it",
+    "know": "I know it"
+  },
+  "reorder": {
+    "done_one": "You got {{count}} line right!",
+    "done_other": "You got all {{count}} lines right!",
+    "progress": "{{index}} / {{total}} ({{solved}} done)",
+    "hint": "These are lyrics that use \"{{lemma}}\". Tap the words in their original order.",
+    "correct": "Correct!",
+    "wrong": "Think again",
+    "reshuffle": "Shuffle again",
+    "check": "Check"
+  },
+  "match": {
+    "progress": "{{matched}} / {{total}} pairs",
+    "done_one": "You matched {{count}} pair!",
+    "done_other": "You matched all {{count}} pairs!"
   }
 }

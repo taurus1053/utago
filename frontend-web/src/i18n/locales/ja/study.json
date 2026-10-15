@@ -23,5 +23,44 @@
       "title": "カードマッチング",
       "desc": "単語カードと意味カードをペアにします。"
     }
+  },
+  "done": {
+    "otherMethod": "別の方法で"
+  },
+  "readingHint": "読み方を見る",
+  "otherMethod": "別の方法を見る",
+  "next": "次へ",
+  "score": "{{total}}問中{{correct}}問正解！",
+  "empty": {
+    "flashcard": "学習する単語がありません。",
+    "quiz": "クイズを作るには、意味のある単語が少なすぎます（2語以上必要）。",
+    "fill": "穴埋めをするには、実際の歌詞に出てくる単語が2語以上必要です。まだ足りません。",
+    "reorder": "文の並べ替えをするには、実際の歌詞に出てくる単語が必要です。まだありません。",
+    "match": "カードマッチングをするには、意味のある単語が2語以上必要です。"
+  },
+  "flashcard": {
+    "done_other": "{{count}}語の学習が終わりました！",
+    "restart": "最初から",
+    "wrongOnly": "間違えた単語だけ",
+    "noWrongTitle": "今回「勉強する」を押した単語がありません。",
+    "finish": "終わる",
+    "shuffleTitle": "順番をシャッフルしますか？",
+    "shuffleNo": "いいえ",
+    "shuffleYes": "はい、シャッフルします",
+    "study": "勉強する",
+    "know": "知っている"
+  },
+  "reorder": {
+    "done_other": "{{count}}文をすべて正解しました！",
+    "progress": "{{index}} / {{total}}（{{solved}}件完了）",
+    "hint": "「{{lemma}}」が使われている歌詞です。元の順番どおりに単語をタップしてください。",
+    "correct": "正解です！",
+    "wrong": "もう一度考えてみましょう",
+    "reshuffle": "もう一度混ぜる",
+    "check": "確認"
+  },
+  "match": {
+    "progress": "{{matched}} / {{total}}ペア",
+    "done_other": "{{count}}ペアをすべて合わせました！"
   }
 }

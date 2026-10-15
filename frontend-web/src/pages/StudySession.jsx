@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
 import './StudySession.css'
 
@@ -94,14 +95,15 @@ function GameHeader({ title, progress }) {
 }
 
 function DoneScreen({ text, onBack, onExit }) {
+  const { t } = useTranslation('study')
   return (
     <div className="wordbook-study-content">
       <div className="wordbook-study-done">
         <span className="wordbook-study-done-emoji">🎉</span>
         <p className="wordbook-study-done-text">{text}</p>
         <div className="study-done-actions">
-          <button type="button" className="wordbook-detail-study-btn" onClick={onBack}>다른 방법으로</button>
-          <button type="button" className="wordbook-main-back-btn" onClick={onExit}>목록으로</button>
+          <button type="button" className="wordbook-detail-study-btn" onClick={onBack}>{t('done.otherMethod')}</button>
+          <button type="button" className="wordbook-main-back-btn" onClick={onExit}>{t('wordbook:main.toList')}</button>
         </div>
       </div>
     </div>
@@ -111,17 +113,19 @@ function DoneScreen({ text, onBack, onExit }) {
 // 발음(히라가나 등)을 바로 보여주지 않고, 눌러야 보이는 힌트 버튼. reading이 없으면 아무것도
 // 렌더링하지 않는다. 언어와 무관하게 item.reading 값 하나만 쓰므로 다른 언어에도 그대로 쓴다.
 function ReadingHint({ reading, revealed, onReveal, className }) {
+  const { t } = useTranslation('study')
   if (!reading) return null
   if (revealed) return <span className={className}>{reading}</span>
   return (
     <button type="button" className="study-hint-btn" onClick={onReveal}>
-      발음 보기
+      {t('readingHint')}
     </button>
   )
 }
 
 // ---------- 1. 플래시카드 ----------
 function FlashcardGame({ items, onReview, onBack, onExit }) {
+  const { t } = useTranslation('study')
   // "처음부터"를 누르면 이 단어장의 전체 단어로 되돌아가야 하므로, 진입 시점의 전체 목록을
   // 별도로 기억해둔다 — deck(지금 도는 회차)과는 다르다(deck은 "오답만"일 때 부분집합이 됨).
   const [allItems] = useState(items)
@@ -170,34 +174,34 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
     restart(allItems.filter((it) => wrongIds.has(it.id)))
   }
 
-  if (items.length === 0) return <EmptyState text="학습할 단어가 없어요." onBack={onBack} onExit={onExit} />
+  if (items.length === 0) return <EmptyState text={t('empty.flashcard')} onBack={onBack} onExit={onExit} />
 
   if (done) {
     return (
       <div className="wordbook-study-content">
         <div className="wordbook-study-done">
           <span className="wordbook-study-done-emoji">🎉</span>
-          <p className="wordbook-study-done-text">{`${deck.length}개 단어 학습을 끝냈어요!`}</p>
+          <p className="wordbook-study-done-text">{t('flashcard.done', { count: deck.length })}</p>
           <div className="study-done-actions">
-            <button type="button" className="wordbook-main-back-btn" onClick={restartAll}>처음부터</button>
+            <button type="button" className="wordbook-main-back-btn" onClick={restartAll}>{t('flashcard.restart')}</button>
             <button
               type="button"
               className="wordbook-main-back-btn"
               onClick={restartWrongOnly}
               disabled={wrongIds.size === 0}
-              title={wrongIds.size === 0 ? '이번 회차에 "공부할게요"를 누른 단어가 없어요.' : undefined}
+              title={wrongIds.size === 0 ? t('flashcard.noWrongTitle') : undefined}
             >
-              오답만 {wrongIds.size > 0 ? `(${wrongIds.size})` : ''}
+              {t('flashcard.wrongOnly')} {wrongIds.size > 0 ? `(${wrongIds.size})` : ''}
             </button>
-            <button type="button" className="wordbook-detail-study-btn" onClick={onExit}>끝낼래요</button>
+            <button type="button" className="wordbook-detail-study-btn" onClick={onExit}>{t('flashcard.finish')}</button>
           </div>
         </div>
 
         {shuffleSource && (
           <ConfirmModal
-            title="순서를 섞을까요?"
-            cancelLabel="아니요"
-            confirmLabel="네, 섞을게요"
+            title={t('flashcard.shuffleTitle')}
+            cancelLabel={t('flashcard.shuffleNo')}
+            confirmLabel={t('flashcard.shuffleYes')}
             onConfirm={() => applyRestart(true)}
             onCancel={() => applyRestart(false)}
           />
@@ -208,7 +212,7 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
 
   return (
     <div className="wordbook-study-content">
-      <GameHeader title="플래시카드" progress={`${index + 1} / ${deck.length}`} />
+      <GameHeader title={t('methods.flashcard.title')} progress={`${index + 1} / ${deck.length}`} />
       <div className="wordbook-study-card" onClick={() => setRevealed(true)}>
         <span className="wordbook-study-card-word">{card.lemma}</span>
         <ReadingHint
@@ -221,14 +225,14 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
           className="wordbook-study-card-reading"
         />
         {revealed ? (
-          <span className="wordbook-study-card-meaning">{firstMeaning(card) ?? '뜻 준비 중'}</span>
+          <span className="wordbook-study-card-meaning">{firstMeaning(card) ?? t('wordbook:main.meaningPending')}</span>
         ) : (
-          <span className="wordbook-study-card-hint">탭해서 뜻 보기</span>
+          <span className="wordbook-study-card-hint">{t('wordbook:detail.tapToReveal')}</span>
         )}
       </div>
       <div className="wordbook-study-actions">
-        <button type="button" className="wordbook-study-btn wordbook-study-btn--no" onClick={() => handleAnswer(false)}>공부할게요</button>
-        <button type="button" className="wordbook-study-btn wordbook-study-btn--yes" onClick={() => handleAnswer(true)}>알고있어요</button>
+        <button type="button" className="wordbook-study-btn wordbook-study-btn--no" onClick={() => handleAnswer(false)}>{t('flashcard.study')}</button>
+        <button type="button" className="wordbook-study-btn wordbook-study-btn--yes" onClick={() => handleAnswer(true)}>{t('flashcard.know')}</button>
       </div>
     </div>
   )
@@ -236,6 +240,7 @@ function FlashcardGame({ items, onReview, onBack, onExit }) {
 
 // ---------- 2. 의미 맞추기 퀴즈 ----------
 function QuizGame({ items, onReview, onBack, onExit }) {
+  const { t } = useTranslation('study')
   // 정답을 맞출 때마다 onReview가 부모의 items를 갱신하는데(학습횟수 반영), 그 새 배열을
   // 그대로 dependency로 쓰면 문제 목록/보기가 한창 풀이 중에 다시 섞여버린다 — 그래서 이
   // 게임에 처음 들어올 때의 items를 스냅샷으로 고정해두고, 그 이후 부모 갱신은 무시한다.
@@ -259,8 +264,8 @@ function QuizGame({ items, onReview, onBack, onExit }) {
   const [correctCount, setCorrectCount] = useState(0)
   const done = index >= questions.length
 
-  if (pool.length < 2) return <EmptyState text="퀴즈를 만들기엔 뜻이 있는 단어가 너무 적어요(2개 이상 필요)." onBack={onBack} onExit={onExit} />
-  if (done) return <DoneScreen text={`${questions.length}문제 중 ${correctCount}개 맞췄어요!`} onBack={onBack} onExit={onExit} />
+  if (pool.length < 2) return <EmptyState text={t('empty.quiz')} onBack={onBack} onExit={onExit} />
+  if (done) return <DoneScreen text={t('score', { total: questions.length, correct: correctCount })} onBack={onBack} onExit={onExit} />
 
   const q = questions[index]
   const correctAnswer = firstMeaning(q.item)
@@ -286,7 +291,7 @@ function QuizGame({ items, onReview, onBack, onExit }) {
 
   return (
     <div className="wordbook-study-content">
-      <GameHeader title="의미 맞추기 퀴즈" progress={`${index + 1} / ${questions.length}`} />
+      <GameHeader title={t('methods.quiz.title')} progress={`${index + 1} / ${questions.length}`} />
       <div className="study-quiz-prompt">
         <span className="study-quiz-word">{q.item.lemma}</span>
         <ReadingHint
@@ -319,7 +324,7 @@ function QuizGame({ items, onReview, onBack, onExit }) {
         })}
       </div>
       {solved && (
-        <button type="button" className="wordbook-detail-study-btn study-next-btn" onClick={next}>다음</button>
+        <button type="button" className="wordbook-detail-study-btn study-next-btn" onClick={next}>{t('next')}</button>
       )}
     </div>
   )
@@ -327,6 +332,7 @@ function QuizGame({ items, onReview, onBack, onExit }) {
 
 // ---------- 3. 빈칸 채우기 ----------
 function FillBlankGame({ items, onReview, onBack, onExit }) {
+  const { t } = useTranslation('study')
   // QuizGame과 같은 이유로 items를 진입 시점에 고정한다 — 정답을 맞춰 onReview가 부모
   // 상태를 갱신해도 문제/보기가 도중에 다시 계산되지 않는다.
   const [frozenItems] = useState(items)
@@ -356,9 +362,9 @@ function FillBlankGame({ items, onReview, onBack, onExit }) {
   const done = index >= questions.length
 
   if (pool.length < 2) {
-    return <EmptyState text="빈칸 채우기를 하려면 실제 가사에 등장한 단어가 2개 이상 있어야 해요. 아직 그런 단어가 부족해요." onBack={onBack} onExit={onExit} />
+    return <EmptyState text={t('empty.fill')} onBack={onBack} onExit={onExit} />
   }
-  if (done) return <DoneScreen text={`${questions.length}문제 중 ${correctCount}개 맞췄어요!`} onBack={onBack} onExit={onExit} />
+  if (done) return <DoneScreen text={t('score', { total: questions.length, correct: correctCount })} onBack={onBack} onExit={onExit} />
 
   const q = questions[index]
   const { item } = q
@@ -393,7 +399,7 @@ function FillBlankGame({ items, onReview, onBack, onExit }) {
 
   return (
     <div className="wordbook-study-content">
-      <GameHeader title="빈칸 채우기" progress={`${index + 1} / ${questions.length}`} />
+      <GameHeader title={t('methods.fill.title')} progress={`${index + 1} / ${questions.length}`} />
       <div className="study-fill-sentence">
         {before}
         <span className={`study-fill-blank${solved ? ' study-fill-blank--revealed' : ''}`}>
@@ -435,14 +441,14 @@ function FillBlankGame({ items, onReview, onBack, onExit }) {
             >
               <span className="study-fill-explain-word-lemma">{w.lemma}</span>
               <span className="study-fill-explain-word-meaning">
-                {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : '뜻 준비 중'}
+                {w.meanings && w.meanings.length > 0 ? w.meanings.join(', ') : t('wordbook:main.meaningPending')}
               </span>
             </p>
           ))}
         </div>
       )}
       {solved && (
-        <button type="button" className="wordbook-detail-study-btn study-next-btn" onClick={next}>다음</button>
+        <button type="button" className="wordbook-detail-study-btn study-next-btn" onClick={next}>{t('next')}</button>
       )}
     </div>
   )
@@ -450,6 +456,8 @@ function FillBlankGame({ items, onReview, onBack, onExit }) {
 
 // ---------- 4. 문장 배열하기 ----------
 function ReorderGame({ items, onReview, onBack, onExit }) {
+  // 이 게임은 타일 변수 이름이 t라서 번역 함수는 tr로 받는다
+  const { t: tr } = useTranslation('study')
   // 같은 이유로 items를 진입 시점에 고정 — 정답을 맞춰 onReview가 부모 상태를 갱신해도
   // 순서/타일 구성이 도중에 바뀌지 않는다.
   const [frozenItems] = useState(items)
@@ -641,9 +649,9 @@ function ReorderGame({ items, onReview, onBack, onExit }) {
   }, [pickedKeys, segments, checked])
 
   if (pool.length === 0) {
-    return <EmptyState text="문장 배열하기를 하려면 실제 가사에 등장한 단어가 있어야 해요. 아직 그런 단어가 없어요." onBack={onBack} onExit={onExit} />
+    return <EmptyState text={tr('empty.reorder')} onBack={onBack} onExit={onExit} />
   }
-  if (done) return <DoneScreen text={`${order.length}개 문장을 다 맞췄어요!`} onBack={onBack} onExit={onExit} />
+  if (done) return <DoneScreen text={tr('reorder.done', { count: order.length })} onBack={onBack} onExit={onExit} />
   if (!segments) return null
 
   function pickTile(tile) {
@@ -682,8 +690,8 @@ function ReorderGame({ items, onReview, onBack, onExit }) {
 
   return (
     <div className="wordbook-study-content">
-      <GameHeader title="문장 배열하기" progress={`${index + 1} / ${order.length} (${solvedCount}개 완료)`} />
-      <p className="study-reorder-hint">"{current.lemma}"가 쓰인 가사예요. 원래 순서대로 단어를 눌러보세요.</p>
+      <GameHeader title={tr('methods.reorder.title')} progress={tr('reorder.progress', { index: index + 1, total: order.length, solved: solvedCount })} />
+      <p className="study-reorder-hint">{tr('reorder.hint', { lemma: current.lemma })}</p>
       {current.exampleTranslation && (
         <p className="study-reorder-translation">{current.exampleTranslation}</p>
       )}
@@ -714,7 +722,7 @@ function ReorderGame({ items, onReview, onBack, onExit }) {
       <div ref={poolRef} className={`study-reorder-pool${allPlaced && checked ? ' study-reorder-pool--message' : ''}`}>
         {allPlaced && checked ? (
           <p className={`study-reorder-result${checked === 'correct' ? ' study-reorder-result--correct' : ' study-reorder-result--wrong'}`}>
-            {checked === 'correct' ? '정답입니다!' : '다시 생각해 보세요'}
+            {checked === 'correct' ? tr('reorder.correct') : tr('reorder.wrong')}
           </p>
         ) : (
           segments.map((t) => {
@@ -750,11 +758,11 @@ function ReorderGame({ items, onReview, onBack, onExit }) {
       )}
 
       <div className="study-reorder-actions">
-        <button type="button" className="wordbook-main-back-btn" onClick={resetTiles} disabled={checked === 'correct'}>다시 섞기</button>
+        <button type="button" className="wordbook-main-back-btn" onClick={resetTiles} disabled={checked === 'correct'}>{tr('reorder.reshuffle')}</button>
         {checked === 'correct' ? (
-          <button type="button" className="wordbook-detail-study-btn" onClick={goNext}>다음</button>
+          <button type="button" className="wordbook-detail-study-btn" onClick={goNext}>{tr('next')}</button>
         ) : (
-          <button type="button" className="wordbook-detail-study-btn" disabled={!allPlaced} onClick={checkAnswer}>확인</button>
+          <button type="button" className="wordbook-detail-study-btn" disabled={!allPlaced} onClick={checkAnswer}>{tr('reorder.check')}</button>
         )}
       </div>
     </div>
@@ -763,6 +771,7 @@ function ReorderGame({ items, onReview, onBack, onExit }) {
 
 // ---------- 5. 카드 맞추기 ----------
 function MatchGame({ items, onReview, onBack, onExit }) {
+  const { t } = useTranslation('study')
   // 같은 이유로 items를 진입 시점에 고정 — 짝을 맞춰 onReview가 부모 상태를 갱신해도
   // 카드 구성이 도중에 바뀌지 않는다.
   const [frozenItems] = useState(items)
@@ -777,10 +786,10 @@ function MatchGame({ items, onReview, onBack, onExit }) {
   const [wrongPair, setWrongPair] = useState(null)
 
   if (pool.length < 2) {
-    return <EmptyState text="카드 맞추기를 하려면 뜻이 있는 단어가 2개 이상 있어야 해요." onBack={onBack} onExit={onExit} />
+    return <EmptyState text={t('empty.match')} onBack={onBack} onExit={onExit} />
   }
   if (matched.size === round.length) {
-    return <DoneScreen text={`${round.length}쌍을 모두 맞췄어요!`} onBack={onBack} onExit={onExit} />
+    return <DoneScreen text={t('match.done', { count: round.length })} onBack={onBack} onExit={onExit} />
   }
 
   function pickWord(card) {
@@ -813,7 +822,7 @@ function MatchGame({ items, onReview, onBack, onExit }) {
 
   return (
     <div className="wordbook-study-content">
-      <GameHeader title="카드 맞추기" progress={`${matched.size} / ${round.length}쌍`} />
+      <GameHeader title={t('methods.match.title')} progress={t('match.progress', { matched: matched.size, total: round.length })} />
       <div className="study-match-grid">
         <div className="study-match-col">
           {wordCards.map((card) => {
@@ -857,13 +866,14 @@ function MatchGame({ items, onReview, onBack, onExit }) {
 }
 
 function EmptyState({ text, onBack, onExit }) {
+  const { t } = useTranslation('study')
   return (
     <div className="wordbook-study-content">
       <div className="wordbook-study-done">
         <p className="wordbook-study-done-text">{text}</p>
         <div className="study-done-actions">
-          <button type="button" className="wordbook-detail-study-btn" onClick={onBack}>다른 방법 보기</button>
-          <button type="button" className="wordbook-main-back-btn" onClick={onExit}>목록으로</button>
+          <button type="button" className="wordbook-detail-study-btn" onClick={onBack}>{t('otherMethod')}</button>
+          <button type="button" className="wordbook-main-back-btn" onClick={onExit}>{t('wordbook:main.toList')}</button>
         </div>
       </div>
     </div>

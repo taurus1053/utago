@@ -23,5 +23,44 @@
       "title": "카드 맞추기",
       "desc": "단어 카드와 뜻 카드를 짝지어요."
     }
+  },
+  "done": {
+    "otherMethod": "다른 방법으로"
+  },
+  "readingHint": "발음 보기",
+  "otherMethod": "다른 방법 보기",
+  "next": "다음",
+  "score": "{{total}}문제 중 {{correct}}개 맞췄어요!",
+  "empty": {
+    "flashcard": "학습할 단어가 없어요.",
+    "quiz": "퀴즈를 만들기엔 뜻이 있는 단어가 너무 적어요(2개 이상 필요).",
+    "fill": "빈칸 채우기를 하려면 실제 가사에 등장한 단어가 2개 이상 있어야 해요. 아직 그런 단어가 부족해요.",
+    "reorder": "문장 배열하기를 하려면 실제 가사에 등장한 단어가 있어야 해요. 아직 그런 단어가 없어요.",
+    "match": "카드 맞추기를 하려면 뜻이 있는 단어가 2개 이상 있어야 해요."
+  },
+  "flashcard": {
+    "done_other": "{{count}}개 단어 학습을 끝냈어요!",
+    "restart": "처음부터",
+    "wrongOnly": "오답만",
+    "noWrongTitle": "이번 회차에 \"공부할게요\"를 누른 단어가 없어요.",
+    "finish": "끝낼래요",
+    "shuffleTitle": "순서를 섞을까요?",
+    "shuffleNo": "아니요",
+    "shuffleYes": "네, 섞을게요",
+    "study": "공부할게요",
+    "know": "알고있어요"
+  },
+  "reorder": {
+    "done_other": "{{count}}개 문장을 다 맞췄어요!",
+    "progress": "{{index}} / {{total}} ({{solved}}개 완료)",
+    "hint": "\"{{lemma}}\"가 쓰인 가사예요. 원래 순서대로 단어를 눌러보세요.",
+    "correct": "정답입니다!",
+    "wrong": "다시 생각해 보세요",
+    "reshuffle": "다시 섞기",
+    "check": "확인"
+  },
+  "match": {
+    "progress": "{{matched}} / {{total}}쌍",
+    "done_other": "{{count}}쌍을 모두 맞췄어요!"
   }
 }
