@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import TopBar from '../components/TopBar'
 import ReportModal from '../components/ReportModal'
 import { getPost, toggleLike, toggleSave, addComment, deleteComment, deletePost } from '../api/board'
@@ -18,6 +19,7 @@ function formatDate(isoString) {
 }
 
 export default function BoardDetail() {
+  const { t } = useTranslation('board')
   const { id } = useParams()
   const navigate = useNavigate()
   const [post, setPost] = useState(null)
@@ -48,7 +50,7 @@ export default function BoardDetail() {
     setError(null)
     getPost(id)
       .then(setPost)
-      .catch(() => setError('게시글을 불러오지 못했어요.'))
+      .catch(() => setError(t('loadError')))
       .finally(() => setLoading(false))
   }
 
@@ -89,7 +91,7 @@ export default function BoardDetail() {
       setDownloadState('done')
     } catch (err) {
       setDownloadState('error')
-      setDownloadError(err instanceof ApiError ? err.message : '추가하지 못했어요. 잠시 후 다시 시도해주세요.')
+      setDownloadError(err instanceof ApiError ? err.message : t('detail.downloadFailed'))
     }
   }
 
@@ -133,7 +135,7 @@ export default function BoardDetail() {
   }
 
   async function handleDeleteComment(commentId) {
-    if (!window.confirm('댓글을 삭제할까요?')) return
+    if (!window.confirm(t('detail.confirmDeleteComment'))) return
     try {
       await deleteComment(post.id, commentId)
       setPost((prev) => {
@@ -152,12 +154,12 @@ export default function BoardDetail() {
   }
 
   async function handleDeletePost() {
-    if (!window.confirm('게시글을 삭제할까요?')) return
+    if (!window.confirm(t('detail.confirmDeletePost'))) return
     try {
       await deletePost(post.id)
       navigate('/board')
     } catch {
-      alert('게시글을 삭제하지 못했어요.')
+      alert(t('detail.deletePostFailed'))
     }
   }
 
@@ -167,13 +169,13 @@ export default function BoardDetail() {
 
       <div className="board-detail-shell">
         {loading ? (
-          <div className="board-detail-status">불러오는 중...</div>
+          <div className="board-detail-status">{t('common:actions.loading')}</div>
         ) : error || !post ? (
-          <div className="board-detail-status board-detail-status--error">{error || '게시글을 찾을 수 없어요.'}</div>
+          <div className="board-detail-status board-detail-status--error">{error || t('detail.notFound')}</div>
         ) : (
           <>
             <button type="button" className="board-detail-back-link" onClick={() => navigate('/board')}>
-              ← 단어장 둘러보기
+              {t('detail.back')}
             </button>
 
             <h1 className="board-detail-title">{post.title}</h1>
@@ -181,12 +183,12 @@ export default function BoardDetail() {
             <div className="board-detail-top">
               <div className="board-detail-author-avatar">{post.authorNickname?.[0]}</div>
               <span className="board-detail-author">{post.authorNickname}</span>
-              {post.official && <span className="board-detail-badge">공식</span>}
+              {post.official && <span className="board-detail-badge">{t('official')}</span>}
               <span className="board-detail-dot">·</span>
               <span className="board-detail-date">{formatDate(post.createdAt)}</span>
               {post.mine ? (
                 <button type="button" className="board-detail-delete-link" onClick={handleDeletePost}>
-                  삭제
+                  {t('detail.delete')}
                 </button>
               ) : (
                 <button
@@ -194,7 +196,7 @@ export default function BoardDetail() {
                   className="board-detail-delete-link"
                   onClick={() => setReportTarget({ type: 'POST', id: post.id })}
                 >
-                  신고
+                  {t('detail.report')}
                 </button>
               )}
             </div>
@@ -209,7 +211,7 @@ export default function BoardDetail() {
                 <div>
                   <div className="board-detail-wordbook-name">{post.wordbookName}</div>
                   <div className="board-detail-wordbook-meta">
-                    {post.wordbookItemCount}개 단어 · 다운로드 {post.wordbookDownloadCount}회
+                    {t('wordCount', { count: post.wordbookItemCount })} · {t('detail.downloads', { count: post.wordbookDownloadCount })}
                   </div>
                   {post.wordbookPreviewLemmas?.length > 0 && (
                     <div className="board-detail-wordbook-preview">
@@ -225,7 +227,7 @@ export default function BoardDetail() {
                 onClick={handleDownload}
                 disabled={downloadState === 'busy' || downloadState === 'done'}
               >
-                {downloadState === 'done' ? '추가됨' : downloadState === 'busy' ? '추가하는 중...' : '내 단어장에 추가'}
+                {downloadState === 'done' ? t('detail.downloadDone') : downloadState === 'busy' ? t('detail.downloadBusy') : t('detail.download')}
               </button>
             </div>
             {downloadError && <div className="board-detail-download-error">{downloadError}</div>}
@@ -236,15 +238,15 @@ export default function BoardDetail() {
                 className={`board-detail-like-btn${post.likedByMe ? ' board-detail-like-btn--active' : ''}`}
                 onClick={handleLike}
               >
-                {post.likedByMe ? '♥' : '♡'} 좋아요 {post.likeCount}
+                {post.likedByMe ? '♥' : '♡'} {t('detail.like', { count: post.likeCount })}
               </button>
-              <span className="board-detail-comment-count">💬 댓글 {post.commentCount}</span>
+              <span className="board-detail-comment-count">💬 {t('detail.comments', { count: post.commentCount })}</span>
               <button
                 type="button"
                 className={`board-detail-save-btn${post.savedByMe ? ' board-detail-save-btn--active' : ''}`}
                 onClick={handleSave}
                 aria-pressed={post.savedByMe}
-                aria-label={post.savedByMe ? '저장 취소' : '저장하기'}
+                aria-label={post.savedByMe ? t('detail.unsave') : t('detail.save')}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill={post.savedByMe ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -272,7 +274,7 @@ export default function BoardDetail() {
                                 className="board-detail-comment-delete"
                                 onClick={() => handleDeleteComment(comment.id)}
                               >
-                                삭제
+                                {t('detail.delete')}
                               </button>
                             ) : (
                               <button
@@ -280,7 +282,7 @@ export default function BoardDetail() {
                                 className="board-detail-comment-delete"
                                 onClick={() => setReportTarget({ type: 'COMMENT', id: comment.id })}
                               >
-                                신고
+                                {t('detail.report')}
                               </button>
                             )}
                           </div>
@@ -293,7 +295,7 @@ export default function BoardDetail() {
                               setReplyValue('')
                             }}
                           >
-                            답글
+                            {t('detail.reply')}
                           </button>
                         </div>
                       </div>
@@ -310,7 +312,7 @@ export default function BoardDetail() {
                                   className="board-detail-comment-delete"
                                   onClick={() => handleDeleteComment(reply.id)}
                                 >
-                                  삭제
+                                  {t('detail.delete')}
                                 </button>
                               ) : (
                                 <button
@@ -318,7 +320,7 @@ export default function BoardDetail() {
                                   className="board-detail-comment-delete"
                                   onClick={() => setReportTarget({ type: 'COMMENT', id: reply.id })}
                                 >
-                                  신고
+                                  {t('detail.report')}
                                 </button>
                               )}
                             </div>
@@ -336,12 +338,12 @@ export default function BoardDetail() {
                             type="text"
                             value={replyValue}
                             onChange={(e) => setReplyValue(e.target.value)}
-                            placeholder="답글을 입력해주세요"
+                            placeholder={t('detail.replyPlaceholder')}
                             maxLength={500}
                             autoFocus
                           />
                           <button type="submit" disabled={replySubmitting || !replyValue.trim()}>
-                            등록
+                            {t('detail.submitComment')}
                           </button>
                         </form>
                       )}
@@ -349,7 +351,7 @@ export default function BoardDetail() {
                   )
                 })}
               {post.comments.length === 0 && (
-                <div className="board-detail-comment-empty">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</div>
+                <div className="board-detail-comment-empty">{t('detail.noComments')}</div>
               )}
             </div>
 
@@ -358,11 +360,11 @@ export default function BoardDetail() {
                 type="text"
                 value={commentValue}
                 onChange={(e) => setCommentValue(e.target.value)}
-                placeholder="댓글을 입력해주세요"
+                placeholder={t('detail.commentPlaceholder')}
                 maxLength={500}
               />
               <button type="submit" disabled={commentSubmitting || !commentValue.trim()}>
-                등록
+                {t('detail.submitComment')}
               </button>
             </form>
           </>
@@ -381,7 +383,7 @@ export default function BoardDetail() {
           }}
         />
       )}
-      {reportDone && <div className="board-detail-report-toast">신고가 접수됐어요. 운영진이 검토할게요.</div>}
+      {reportDone && <div className="board-detail-report-toast">{t('detail.reportToast')}</div>}
     </div>
   )
 }

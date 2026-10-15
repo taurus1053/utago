@@ -1,0 +1,71 @@
+{
+  "sort": {
+    "popular": "人気順",
+    "latest": "新着順",
+    "downloads": "ダウンロード順"
+  },
+  "title": "単語帳を探す",
+  "writeBtn": "+ 投稿する",
+  "searchPlaceholder": "タイトル検索",
+  "loadError": "投稿を読み込めませんでした。",
+  "empty": "まだ共有された単語帳がありません。最初の投稿をしてみましょう！",
+  "official": "公式",
+  "justNow": "たった今",
+  "wordCount_other": "{{count}}語",
+  "wordsShort_other": "{{count}}語",
+  "write": {
+    "title": "単語帳の投稿",
+    "loadingBooks": "単語帳を読み込み中...",
+    "noBooks": "投稿できる単語帳がありません。先に単語帳を作成してください（お気に入り単語帳は投稿できません）。",
+    "pickBook": "投稿する単語帳",
+    "titleLabel": "タイトル",
+    "titlePlaceholder": "タイトルを入力してください",
+    "bodyLabel": "内容",
+    "bodyPlaceholder": "どんな単語帳か紹介してください",
+    "errorPickBook": "投稿する単語帳を選択してください。",
+    "errorRequired": "タイトルと内容を入力してください。",
+    "errorFailed": "投稿できませんでした。しばらくしてからもう一度お試しください。",
+    "submit": "投稿する",
+    "submitting": "投稿中..."
+  },
+  "detail": {
+    "back": "← 単語帳を探す",
+    "notFound": "投稿が見つかりません。",
+    "delete": "削除",
+    "report": "通報",
+    "downloads_other": "ダウンロード{{count}}回",
+    "download": "自分の単語帳に追加",
+    "downloadBusy": "追加中...",
+    "downloadDone": "追加済み",
+    "downloadFailed": "追加できませんでした。しばらくしてからもう一度お試しください。",
+    "like": "いいね {{count}}",
+    "comments": "コメント {{count}}",
+    "unsave": "保存を取り消す",
+    "save": "保存する",
+    "reply": "返信",
+    "replyPlaceholder": "返信を入力してください",
+    "submitComment": "送信",
+    "commentPlaceholder": "コメントを入力してください",
+    "noComments": "まだコメントがありません。最初のコメントを残しましょう！",
+    "confirmDeleteComment": "コメントを削除しますか？",
+    "confirmDeletePost": "投稿を削除しますか？",
+    "deletePostFailed": "投稿を削除できませんでした。",
+    "reportToast": "通報を受け付けました。運営が確認します。"
+  },
+  "report": {
+    "titlePost": "投稿を通報",
+    "titleComment": "コメントを通報",
+    "sub": "通報理由を選択してください。受け付けた通報は運営が確認します。",
+    "reason": {
+      "SPAM": "スパム・広告",
+      "ABUSE": "暴言・誹謗中傷",
+      "ADULT": "わいせつ物",
+      "COPYRIGHT": "著作権侵害",
+      "ETC": "その他"
+    },
+    "detailPlaceholder": "詳細（任意）",
+    "submitting": "受付中...",
+    "submit": "通報する",
+    "failed": "通報を受け付けられませんでした。しばらくしてからもう一度お試しください。"
+  }
+}

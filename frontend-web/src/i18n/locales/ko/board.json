@@ -1,0 +1,71 @@
+{
+  "sort": {
+    "popular": "인기순",
+    "latest": "최신순",
+    "downloads": "다운로드순"
+  },
+  "title": "단어장 둘러보기",
+  "writeBtn": "+ 글쓰기",
+  "searchPlaceholder": "제목 검색",
+  "loadError": "게시글을 불러오지 못했어요.",
+  "empty": "아직 올라온 단어장이 없어요. 첫 게시글을 올려보세요!",
+  "official": "공식",
+  "justNow": "방금 전",
+  "wordCount_other": "{{count}}개 단어",
+  "wordsShort_other": "{{count}}개",
+  "write": {
+    "title": "단어장 게시글 쓰기",
+    "loadingBooks": "단어장을 불러오는 중...",
+    "noBooks": "올릴 수 있는 단어장이 없어요. 먼저 단어장을 만들어주세요(즐겨찾기 단어장은 게시할 수 없어요).",
+    "pickBook": "올릴 단어장",
+    "titleLabel": "제목",
+    "titlePlaceholder": "제목을 입력해주세요",
+    "bodyLabel": "내용",
+    "bodyPlaceholder": "어떤 단어장인지 소개해주세요",
+    "errorPickBook": "올릴 단어장을 선택해주세요.",
+    "errorRequired": "제목과 내용을 입력해주세요.",
+    "errorFailed": "게시글을 올리지 못했어요. 잠시 후 다시 시도해주세요.",
+    "submit": "게시하기",
+    "submitting": "올리는 중..."
+  },
+  "detail": {
+    "back": "← 단어장 둘러보기",
+    "notFound": "게시글을 찾을 수 없어요.",
+    "delete": "삭제",
+    "report": "신고",
+    "downloads_other": "다운로드 {{count}}회",
+    "download": "내 단어장에 추가",
+    "downloadBusy": "추가하는 중...",
+    "downloadDone": "추가됨",
+    "downloadFailed": "추가하지 못했어요. 잠시 후 다시 시도해주세요.",
+    "like": "좋아요 {{count}}",
+    "comments": "댓글 {{count}}",
+    "unsave": "저장 취소",
+    "save": "저장하기",
+    "reply": "답글",
+    "replyPlaceholder": "답글을 입력해주세요",
+    "submitComment": "등록",
+    "commentPlaceholder": "댓글을 입력해주세요",
+    "noComments": "아직 댓글이 없어요. 첫 댓글을 남겨보세요!",
+    "confirmDeleteComment": "댓글을 삭제할까요?",
+    "confirmDeletePost": "게시글을 삭제할까요?",
+    "deletePostFailed": "게시글을 삭제하지 못했어요.",
+    "reportToast": "신고가 접수됐어요. 운영진이 검토할게요."
+  },
+  "report": {
+    "titlePost": "게시글 신고",
+    "titleComment": "댓글 신고",
+    "sub": "신고 사유를 선택해주세요. 접수된 신고는 운영진이 검토해요.",
+    "reason": {
+      "SPAM": "스팸/광고",
+      "ABUSE": "욕설/비방",
+      "ADULT": "음란물",
+      "COPYRIGHT": "저작권 침해",
+      "ETC": "기타"
+    },
+    "detailPlaceholder": "상세 내용(선택)",
+    "submitting": "접수하는 중...",
+    "submit": "신고하기",
+    "failed": "신고를 접수하지 못했어요. 잠시 후 다시 시도해주세요."
+  }
+}

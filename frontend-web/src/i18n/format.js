@@ -12,3 +12,16 @@ export function formatDate(lang, date, options) {
   }
   return formatter.format(date)
 }
+
+// "5분 전" / "5 minutes ago" / "5分前" — 언어별 상대 시간 표기(Intl.RelativeTimeFormat).
+// value는 과거면 음수(-5), unit은 'minute' | 'hour' | 'day'.
+const relCache = new Map()
+
+export function formatRelative(lang, value, unit) {
+  let formatter = relCache.get(lang)
+  if (!formatter) {
+    formatter = new Intl.RelativeTimeFormat(lang, { numeric: 'always' })
+    relCache.set(lang, formatter)
+  }
+  return formatter.format(value, unit)
+}
