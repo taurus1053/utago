@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getSong } from '../api/songs'
 import TopBar from '../components/TopBar'
 import './SongLearn.css'
@@ -9,6 +10,7 @@ import './SongLearn.css'
 // 이미 grammarPoints를 포함해서 내려주므로 별도 API가 필요 없다 — SongLearn.css의 카드
 // 스타일(.song-learn-grammar-*)을 그대로 재사용한다.
 export default function SongGrammar() {
+  const { t } = useTranslation('song')
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -48,19 +50,19 @@ export default function SongGrammar() {
     <div className="song-learn-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={t('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">문법 공부</span>
+        <span className="app-subbar-title">{t('grammar.title')}</span>
       </div>
 
       {loading ? (
-        <div className="song-learn-status">불러오는 중...</div>
+        <div className="song-learn-status">{t('common:actions.loading')}</div>
       ) : error ? (
         <div className="song-learn-status song-learn-status--error">
-          곡을 불러오지 못했어요. 존재하지 않거나 아직 공개되지 않은 곡일 수 있어요.
+          {t('loadError')}
         </div>
       ) : !song ? null : (
         <div className="song-learn-content">
@@ -87,7 +89,7 @@ export default function SongGrammar() {
                 })}
               </div>
             ) : (
-              <div className="song-learn-status">아직 이 곡의 문법 포인트가 준비되지 않았어요.</div>
+              <div className="song-learn-status">{t('grammar.empty')}</div>
             )}
           </div>
         </div>

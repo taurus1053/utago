@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation, Trans } from 'react-i18next'
 import { getSong, updateSongProgress } from '../api/songs'
 import { addWordbookItem, createWordbook, getWordbookMembership, listWordbooks } from '../api/wordbook'
 import { isLoggedIn } from '../api/auth'
@@ -8,7 +9,6 @@ import TopBar from '../components/TopBar'
 import useYoutubeApiReady from '../hooks/useYoutubeApiReady'
 import './SongLearn.css'
 
-const LANG_LABEL = { JA: '일본어', KO: '한국어', EN: '영어' }
 
 // 소절 원문을 단어 단위(line.words, 서버에서 형태소 분석으로 만들어줌)로 쪼개서
 // 한자 위에 후리가나(ruby)를 보여줄 수 있게 조각낸다. (단어 탭 시 뜻 팝업은 더 이상 없음 —
@@ -141,6 +141,7 @@ function formatTime(ms) {
 // 진행도/복습 기록, 오디오 재생 동기화 등은 아직 백엔드에 없어서 다루지 않는다 — "한 줄씩
 // 보기"는 재생과 무관하게 소절 사이를 직접 넘기는(◀/▶) 탐색형 모드다.
 export default function SongLearn() {
+  const { t } = useTranslation('song')
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -390,7 +391,7 @@ export default function SongLearn() {
     const lemma = wordPicker.lemma
     const alreadyIn = (membershipByLemma[lemma] ?? []).includes(book.id)
     if (alreadyIn) {
-      const ok = window.confirm(`선택하신 단어장에 이미 단어가 있습니다. 한 번 더 추가할까요?`)
+      const ok = window.confirm(t('learn.alreadyConfirm'))
       if (!ok) return
     }
     setPickerBusyId(book.id)
@@ -437,19 +438,19 @@ export default function SongLearn() {
     <div className="song-learn-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={t('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">곡 학습</span>
+        <span className="app-subbar-title">{t('learn.title')}</span>
       </div>
 
       {loading ? (
-        <div className="song-learn-status">불러오는 중...</div>
+        <div className="song-learn-status">{t('common:actions.loading')}</div>
       ) : error ? (
         <div className="song-learn-status song-learn-status--error">
-          곡을 불러오지 못했어요. 존재하지 않거나 아직 공개되지 않은 곡일 수 있어요.
+          {t('loadError')}
         </div>
       ) : !song ? null : (
         <div className="song-learn-content">
@@ -465,13 +466,13 @@ export default function SongLearn() {
               </div>
             ) : (
               thumbnail && (
-                <img className="song-learn-hero-fallback" src={thumbnail} alt={`${song.title} 커버`} />
+                <img className="song-learn-hero-fallback" src={thumbnail} alt={t('learn.coverAlt', { title: song.title })} />
               )
             )}
 
             <div className="song-learn-hero-info">
               {song.sourceLang && (
-                <span className={`song-learn-lang-badge song-learn-lang-badge--${song.sourceLang}`}>{LANG_LABEL[song.sourceLang] ?? song.sourceLang}</span>
+                <span className={`song-learn-lang-badge song-learn-lang-badge--${song.sourceLang}`}>{t(`common:langName.${song.sourceLang}`, { defaultValue: song.sourceLang })}</span>
               )}
               <h1 className="song-learn-title">{song.title}</h1>
               <span className="song-learn-artist">{song.artist}</span>
@@ -483,7 +484,7 @@ export default function SongLearn() {
                   type="button"
                   className="song-learn-player-play"
                   onClick={handlePlayPause}
-                  aria-label={isPlaying ? '일시정지' : '재생'}
+                  aria-label={isPlaying ? t('learn.pause') : t('learn.play')}
                 >
                   {isPlaying ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -521,7 +522,7 @@ export default function SongLearn() {
                   style={{
                     background: `linear-gradient(to right, #5f26f3 0%, #8d47fa ${seekPercent}%, #ececec ${seekPercent}%, #ececec 100%)`,
                   }}
-                  aria-label="재생 위치"
+                  aria-label={t('learn.seekAria')}
                 />
                 <span className="song-learn-player-time">{formatTime(durationMs)}</span>
               </div>
@@ -532,7 +533,7 @@ export default function SongLearn() {
         <div className="song-learn-right">
           <section className="song-learn-section">
             <div className="song-learn-section-header">
-              <h2 className="song-learn-section-title">가사</h2>
+              <h2 className="song-learn-section-title">{t('learn.lyrics')}</h2>
               <div className="song-learn-section-actions">
                 {song.youtubeVideoId && (
                   <button
@@ -540,17 +541,17 @@ export default function SongLearn() {
                     className={`song-learn-autosync-btn${autoSync ? ' song-learn-autosync-btn--on' : ''}`}
                     onClick={() => setAutoSync((v) => !v)}
                   >
-                    🎵 자동 싱크 {autoSync ? 'ON' : 'OFF'}
+                    {t('learn.autoSync', { state: autoSync ? 'ON' : 'OFF' })}
                   </button>
                 )}
                 {song.youtubeVideoId && (
                   <Link to={`/songs/${song.id}/sync`} className="song-learn-toggle-all">
-                    가사 싱크 편집
+                    {t('learn.editSync')}
                   </Link>
                 )}
                 {lines.length > 0 && (
                   <Link to={`/songs/${song.id}/edit`} className="song-learn-toggle-all">
-                    가사 내용 편집
+                    {t('learn.editLyrics')}
                   </Link>
                 )}
                 {lines.length > 0 && (
@@ -559,14 +560,14 @@ export default function SongLearn() {
                     className="song-learn-toggle-all"
                     onClick={() => setExpandedAll((v) => !v)}
                   >
-                    {expandedAll ? '한 줄씩 보기' : '전체 가사 보기'}
+                    {expandedAll ? t('learn.oneByOne') : t('learn.showAll')}
                   </button>
                 )}
               </div>
             </div>
 
             {lines.length === 0 ? (
-              <div className="song-learn-status">아직 등록된 가사가 없어요.</div>
+              <div className="song-learn-status">{t('learn.noLyrics')}</div>
             ) : (
               <div className="song-learn-lyrics-viewport">
                 {expandedAll ? (
@@ -587,7 +588,7 @@ export default function SongLearn() {
                         </div>
                       ))}
                     </div>
-                    <p className="song-learn-word-hint">소절을 탭하면 영상이 그 지점으로 이동해요.</p>
+                    <p className="song-learn-word-hint">{t('learn.tapHint')}</p>
                   </>
                 ) : (
                   <div className="song-learn-focus">
@@ -609,7 +610,7 @@ export default function SongLearn() {
                             className="song-learn-focus-nav-btn"
                             onClick={() => goToLine(Math.max(0, clampedIndex - 1))}
                             disabled={clampedIndex === 0}
-                            aria-label="이전 소절"
+                            aria-label={t('learn.prevLine')}
                           >
                             ‹
                           </button>
@@ -619,7 +620,7 @@ export default function SongLearn() {
                             className="song-learn-focus-nav-btn"
                             onClick={() => goToLine(Math.min(lines.length - 1, clampedIndex + 1))}
                             disabled={clampedIndex === lines.length - 1}
-                            aria-label="다음 소절"
+                            aria-label={t('learn.nextLine')}
                           >
                             ›
                           </button>
@@ -627,7 +628,7 @@ export default function SongLearn() {
 
                         {activeWordList.length > 0 && (
                           <div className="song-learn-focus-words">
-                            <span className="song-learn-focus-words-title">이 소절의 단어</span>
+                            <span className="song-learn-focus-words-title">{t('learn.lineWords')}</span>
                             <div className="song-learn-word-table">
                               {activeWordList.map((w) => {
                                 const inWordbook = (membershipByLemma[w.surface] ?? []).length > 0
@@ -642,8 +643,8 @@ export default function SongLearn() {
                                     type="button"
                                     className={`song-learn-word-row-add${inWordbook ? ' song-learn-word-row-add--done' : ''}`}
                                     onClick={() => openWordPicker(w.key, w.surface)}
-                                    aria-label={inWordbook ? '단어장에 담김 — 다른 단어장에도 추가' : '단어장에 추가'}
-                                    title={inWordbook ? '단어장에 담김 — 다른 단어장에도 추가' : '단어장에 추가'}
+                                    aria-label={inWordbook ? t('learn.inWordbook') : t('learn.addToWordbook')}
+                                    title={inWordbook ? t('learn.inWordbook') : t('learn.addToWordbook')}
                                   >
                                     {inWordbook ? (
                                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -666,7 +667,7 @@ export default function SongLearn() {
 
                         {song.grammarPoints?.length > 0 && (
                           <Link to={`/songs/${song.id}/grammar`} className="song-learn-grammar-cta">
-                            📖 문법 보기
+                            {t('learn.grammarCta')}
                           </Link>
                         )}
                       </>
@@ -688,9 +689,9 @@ export default function SongLearn() {
           <div className="word-picker-modal" onClick={(e) => e.stopPropagation()}>
             <div className="word-picker-header">
               <span className="word-picker-title">
-                <strong>{wordPicker.lemma}</strong> 단어를 어느 단어장에 담을까요?
+                <Trans t={t} i18nKey="learn.pickerTitle" values={{ lemma: wordPicker.lemma }} components={{ b: <strong /> }} />
               </span>
-              <button type="button" className="word-picker-close" onClick={closeWordPicker} aria-label="닫기">
+              <button type="button" className="word-picker-close" onClick={closeWordPicker} aria-label={t('common:actions.close')}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -711,8 +712,8 @@ export default function SongLearn() {
                   >
                     <span className="word-picker-item-icon">{book.favoriteDefault ? '★' : '📁'}</span>
                     <span className="word-picker-item-name">{book.name}</span>
-                    <span className="word-picker-item-count">{book.itemCount}개</span>
-                    {already && <span className="word-picker-item-already">담김</span>}
+                    <span className="word-picker-item-count">{t('wordbook:countShort', { count: book.itemCount })}</span>
+                    {already && <span className="word-picker-item-already">{t('learn.already')}</span>}
                   </button>
                 )
               })}
@@ -723,14 +724,14 @@ export default function SongLearn() {
                 <input
                   type="text"
                   className="word-picker-create-input"
-                  placeholder="새 단어장 이름"
+                  placeholder={t('learn.newName')}
                   value={pickerNewName}
                   onChange={(e) => setPickerNewName(e.target.value)}
                   autoFocus
                   maxLength={60}
                 />
                 <button type="submit" className="word-picker-create-confirm" disabled={pickerSavingNew}>
-                  {pickerSavingNew ? '만드는 중...' : '만들기'}
+                  {pickerSavingNew ? t('learn.busy') : t('learn.create')}
                 </button>
               </form>
             ) : (
@@ -739,7 +740,7 @@ export default function SongLearn() {
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                새 단어장 만들기
+                {t('learn.newBook')}
               </button>
             )}
           </div>
