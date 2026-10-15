@@ -26,7 +26,11 @@
     "logout": "Log out"
   },
   "actions": {
-    "back": "Back"
+    "back": "Back",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "processing": "Processing...",
+    "loading": "Loading..."
   },
   "datePicker": {
     "placeholder": "Select date of birth",

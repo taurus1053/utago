@@ -1,0 +1,39 @@
+{
+  "title": "Friends",
+  "sub": "Search for friends by nickname and send a request",
+  "searchPlaceholder": "Search by nickname",
+  "results": "Search results",
+  "searching": "Searching...",
+  "searchError": "Something went wrong while searching.",
+  "noResults": "No matching users.",
+  "relation": {
+    "NONE": "Send request",
+    "PENDING_OUTGOING": "Request sent",
+    "PENDING_INCOMING": "View incoming request",
+    "FRIENDS": "Friends"
+  },
+  "relationSub": {
+    "FRIENDS": "Already friends",
+    "PENDING_OUTGOING": "Request sent",
+    "PENDING_INCOMING": "Sent you a request",
+    "NONE": "Not friends yet"
+  },
+  "sending": "Sending...",
+  "incoming": "Incoming requests",
+  "incomingEmpty": "No incoming requests.",
+  "decline": "Decline",
+  "accept": "Accept",
+  "outgoing": "Sent requests",
+  "outgoingEmpty": "No sent requests.",
+  "waiting": "Waiting for response",
+  "cancelRequest": "Cancel request",
+  "myFriends": "My friends",
+  "friendsEmpty": "No friends yet. Search by nickname and send a request.",
+  "noStatus": "No bio",
+  "removeAria": "Remove friend",
+  "removeConfirm": {
+    "title": "Remove this friend?",
+    "message": "{{nickname}} will be removed from your friends list.",
+    "confirm": "Remove"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "profile": {
+    "loadError": "프로필을 불러오지 못했어요.",
+    "learningJa": "일본어 학습 중",
+    "learning": "학습 중",
+    "statusPlaceholder": "한 줄 소개를 입력해주세요",
+    "saving": "저장 중...",
+    "save": "저장",
+    "addStatus": "한 줄 소개를 추가해보세요",
+    "edit": "프로필 수정"
+  },
+  "stats": {
+    "words": "학습한 단어",
+    "lines": "학습한 가사",
+    "songs": "학습한 곡",
+    "days": "학습일수",
+    "wordsValue": "{{count}}개",
+    "linesValue": "{{count}}줄",
+    "songsValue": "{{count}}곡",
+    "daysValue": "{{count}}일"
+  },
+  "wordbook": {
+    "title": "내 단어장",
+    "viewAll": "모두 보기",
+    "count_other": "{{count}}개 단어",
+    "new": "새 단어장 만들기"
+  },
+  "banner": {
+    "title": "단어장 둘러보기",
+    "sub": "다른 사람들이 공유한 단어장을 내 단어장에 추가해보세요"
+  },
+  "posts": {
+    "myTitle": "내가 올린 게시글",
+    "myEmpty": "아직 올린 게시글이 없어요.",
+    "savedTitle": "저장한 게시글",
+    "savedEmpty": "아직 저장한 게시글이 없어요."
+  },
+  "streak": {
+    "title": "학습 스트릭",
+    "active": "{{days}}일 연속 학습 중이에요",
+    "none": "아직 학습 기록이 없어요",
+    "cellTitle": "{{date}} · 단어 복습 {{n}}회"
+  },
+  "titlesCard": {
+    "title": "칭호",
+    "more": "더보기",
+    "empty": "아직 획득한 칭호가 없어요. 학습을 시작해보세요!"
+  },
+  "friendsCard": {
+    "title": "친구",
+    "add": "+ 추가",
+    "empty": "아직 친구가 없어요. \"+ 추가\"로 검색해보세요!"
+  },
+  "titles": {
+    "title": "칭호",
+    "current": "현재 대표 칭호",
+    "none": "아직 없어요",
+    "stat": "총 {{total}}개 중 {{achieved}}개 달성",
+    "change": "변경",
+    "hint": "칭호 카드에 마우스를 올리면 조건이 보여요.",
+    "loadError": "칭호 정보를 불러오지 못했어요.",
+    "locked": "미획득",
+    "remaining": "{{category}} {{remaining}}{{unit}} 남음",
+    "reached": "{{category}} {{threshold}}{{unit}} 달성",
+    "badge": "대표",
+    "applied": "적용중",
+    "applying": "적용 중...",
+    "tapToApply": "탭해서 적용",
+    "modalTitle": "대표 칭호 선택",
+    "close": "닫기",
+    "modalEmpty": "아직 달성한 칭호가 없어요.",
+    "currentlyApplied": "현재 적용 중"
+  }
+}

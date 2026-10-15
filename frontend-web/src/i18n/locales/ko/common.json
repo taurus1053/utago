@@ -26,7 +26,11 @@
     "logout": "로그아웃"
   },
   "actions": {
-    "back": "뒤로가기"
+    "back": "뒤로가기",
+    "confirm": "확인",
+    "cancel": "취소",
+    "processing": "처리 중...",
+    "loading": "불러오는 중..."
   },
   "datePicker": {
     "placeholder": "생년월일 선택",
