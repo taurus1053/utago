@@ -24,5 +24,18 @@
     "darkMode": "ダークモード",
     "support": "サポート",
     "logout": "ログアウト"
+  },
+  "actions": {
+    "back": "戻る"
+  },
+  "datePicker": {
+    "placeholder": "生年月日を選択",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "selectYear": "年を選択",
+    "reselectYear": "年を選び直す"
+  },
+  "errors": {
+    "generic": "リクエストの処理中に問題が発生しました。しばらくしてからもう一度お試しください。"
   }
 }

@@ -1,5 +1,6 @@
 // 백엔드 API 호출을 위한 아주 작은 공용 클라이언트.
 // 나중에 곡 목록, 단어장 등 실제 API가 늘어나면 이 파일에 함수를 추가하세요.
+import i18n from '../i18n'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
@@ -19,7 +20,7 @@ function getStoredToken() {
 // - @Valid 검증 실패: { 필드명: "에러메시지", ... } (message 키 없음)
 export class ApiError extends Error {
   constructor(status, body) {
-    const fallback = '요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+    const fallback = i18n.t('errors.generic')
     const message = body && typeof body === 'object' && body.message ? body.message : fallback
     super(message)
     this.status = status

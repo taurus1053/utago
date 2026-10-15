@@ -24,5 +24,18 @@
     "darkMode": "다크 모드",
     "support": "고객센터",
     "logout": "로그아웃"
+  },
+  "actions": {
+    "back": "뒤로가기"
+  },
+  "datePicker": {
+    "placeholder": "생년월일 선택",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "selectYear": "연도 선택",
+    "reselectYear": "연도 다시 선택"
+  },
+  "errors": {
+    "generic": "요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
   }
 }

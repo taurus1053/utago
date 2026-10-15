@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '../i18n/format'
 import './DatePicker.css'
 
 // 브랜드 스타일에 맞춘 커스텀 날짜 선택기.
@@ -11,8 +13,6 @@ import './DatePicker.css'
 // 팝업은 document.body에 포탈로 렌더링한다 (position: fixed).
 // 그렇지 않으면 일반 문서 흐름에 끼어들어서 부모 컬럼의 높이를 밀어내고,
 // 옆의 보라색 브랜드 패널보다 페이지가 더 길어져 그 아래 흰 여백이 생긴다.
-
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 function pad2(n) {
   return String(n).padStart(2, '0')
@@ -33,14 +33,26 @@ function daysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate()
 }
 
-function formatDisplay(value) {
+// 선택된 날짜를 보여주는 문구 — 언어별 표기는 Intl이 만든다(i18n/format.js)
+function formatDisplay(value, lang) {
   const parsed = parseIso(value)
   if (!parsed) return ''
-  return `${parsed.year}년 ${parsed.month + 1}월 ${parsed.day}일`
+  return formatDate(lang, new Date(parsed.year, parsed.month, parsed.day), { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-export default function DatePicker({ value, onChange, placeholder = '생년월일 선택', className = '' }) {
+export default function DatePicker({ value, onChange, placeholder, className = '' }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage || 'ko'
   const today = useMemo(() => new Date(), [])
+  // 요일/월 이름도 언어별로 Intl이 만든다 (2023-01-01은 일요일)
+  const weekdays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => formatDate(lang, new Date(2023, 0, 1 + i), { weekday: 'short' })),
+    [lang],
+  )
+  const monthLabels = useMemo(
+    () => Array.from({ length: 12 }, (_, m) => formatDate(lang, new Date(2023, m, 1), { month: 'short' })),
+    [lang],
+  )
   const selected = parseIso(value)
 
   const [open, setOpen] = useState(false)
@@ -176,8 +188,6 @@ export default function DatePicker({ value, onChange, placeholder = '생년월�
   const years = []
   for (let y = currentYear; y >= YEAR_RANGE_START; y--) years.push(y)
 
-  const MONTH_LABELS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-
   const popoverContent = open && coords && (
     <div
       className="dp-popover"
@@ -188,19 +198,19 @@ export default function DatePicker({ value, onChange, placeholder = '생년월�
       {mode === 'days' && (
         <>
           <div className="dp-header">
-            <button type="button" className="dp-nav-btn" onClick={prevMonth} aria-label="이전 달">
+            <button type="button" className="dp-nav-btn" onClick={prevMonth} aria-label={t('datePicker.prevMonth')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
             <button type="button" className="dp-header-label" onClick={() => setMode('years')}>
-              {viewYear}년 {viewMonth + 1}월
+              {formatDate(lang, new Date(viewYear, viewMonth, 1), { year: 'numeric', month: 'long' })}
             </button>
-            <button type="button" className="dp-nav-btn" onClick={nextMonth} aria-label="다음 달">
+            <button type="button" className="dp-nav-btn" onClick={nextMonth} aria-label={t('datePicker.nextMonth')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
           </div>
 
           <div className="dp-weekdays">
-            {WEEKDAYS.map((w) => (
+            {weekdays.map((w) => (
               <span key={w} className="dp-weekday">{w}</span>
             ))}
           </div>
@@ -227,7 +237,7 @@ export default function DatePicker({ value, onChange, placeholder = '생년월�
       {mode === 'years' && (
         <>
           <div className="dp-header">
-            <span className="dp-header-label dp-header-label--static">연도 선택</span>
+            <span className="dp-header-label dp-header-label--static">{t('datePicker.selectYear')}</span>
           </div>
           <div className="dp-years-grid">
             {years.map((y) => (
@@ -250,14 +260,14 @@ export default function DatePicker({ value, onChange, placeholder = '생년월�
       {mode === 'months' && (
         <>
           <div className="dp-header">
-            <button type="button" className="dp-nav-btn" onClick={() => setMode('years')} aria-label="연도 다시 선택">
+            <button type="button" className="dp-nav-btn" onClick={() => setMode('years')} aria-label={t('datePicker.reselectYear')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
-            <span className="dp-header-label dp-header-label--static">{viewYear}년</span>
+            <span className="dp-header-label dp-header-label--static">{formatDate(lang, new Date(viewYear, 0, 1), { year: 'numeric' })}</span>
             <span className="dp-nav-btn dp-nav-btn--spacer" />
           </div>
           <div className="dp-months-grid">
-            {MONTH_LABELS.map((label, m) => (
+            {monthLabels.map((label, m) => (
               <button
                 type="button"
                 key={label}
@@ -291,7 +301,7 @@ export default function DatePicker({ value, onChange, placeholder = '생년월�
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
         <span className={value ? 'dp-trigger-value' : 'dp-trigger-placeholder'}>
-          {value ? formatDisplay(value) : placeholder}
+          {value ? formatDisplay(value, lang) : (placeholder ?? t('datePicker.placeholder'))}
         </span>
       </button>
 

@@ -24,5 +24,18 @@
     "darkMode": "Dark mode",
     "support": "Support",
     "logout": "Log out"
+  },
+  "actions": {
+    "back": "Back"
+  },
+  "datePicker": {
+    "placeholder": "Select date of birth",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "selectYear": "Select year",
+    "reselectYear": "Choose year again"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again in a moment."
   }
 }
