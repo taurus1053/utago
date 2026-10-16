@@ -1,6 +1,7 @@
 // 백엔드 API 호출을 위한 아주 작은 공용 클라이언트.
 // 나중에 곡 목록, 단어장 등 실제 API가 늘어나면 이 파일에 함수를 추가하세요.
 import i18n from '../i18n'
+import { formatDate } from '../i18n/format'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
@@ -16,14 +17,31 @@ function getStoredToken() {
 }
 
 // 백엔드 GlobalExceptionHandler 가 내려주는 에러 모양을 감싸는 커스텀 에러.
-// - IllegalStateException 계열: { message: "..." }
+// - IllegalStateException 계열: { message: "..." }. 다국어용 ApiException이면 { message, code, params }가
+//   같이 와서, code로 현재 표시 언어의 문구(errors.json "api.<code>")를 찾아 쓴다. 번역이 없으면
+//   서버가 준 message(한국어)를 그대로 쓴다.
 // - @Valid 검증 실패: { 필드명: "에러메시지", ... } (message 키 없음)
+// 서버가 준 에러 코드를 현재 표시 언어의 문구로 바꾼다. params 중 이름이 "Date"로 끝나는 값은
+// 날짜(YYYY-MM-DD)라서 언어별 표기로 바꿔서 끼워 넣는다.
+function translateApiError(code, params, serverMessage) {
+  const lang = i18n.resolvedLanguage || 'ko'
+  const values = {}
+  for (const [key, value] of Object.entries(params || {})) {
+    values[key] = key.endsWith('Date') && !Number.isNaN(Date.parse(value))
+      ? formatDate(lang, new Date(`${value}T00:00:00`), { dateStyle: 'medium' })
+      : value
+  }
+  return i18n.t(`errors:api.${code}`, { ...values, defaultValue: serverMessage })
+}
+
 export class ApiError extends Error {
   constructor(status, body) {
     const fallback = i18n.t('errors.generic')
-    const message = body && typeof body === 'object' && body.message ? body.message : fallback
-    super(message)
+    const serverMessage = body && typeof body === 'object' && body.message ? body.message : null
+    const code = serverMessage && typeof body.code === 'string' ? body.code : null
+    super(code ? translateApiError(code, body.params, serverMessage) : serverMessage || fallback)
     this.status = status
+    this.code = code
     this.body = body
     // message 키가 없으면 필드별 검증 에러 맵으로 간주.
     this.fieldErrors = body && typeof body === 'object' && !body.message ? body : null

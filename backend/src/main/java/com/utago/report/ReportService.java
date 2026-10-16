@@ -1,5 +1,6 @@
 package com.utago.report;
 
+import com.utago.common.ApiException;
 import com.utago.board.WordbookPost;
 import com.utago.board.WordbookPostComment;
 import com.utago.board.WordbookPostCommentRepository;
@@ -40,13 +41,13 @@ public class ReportService {
     public void createReport(Long reporterId, ReportTargetType targetType, Long targetId,
                               ReportReason reason, String detail) {
         if (targetType == null || targetId == null) {
-            throw new IllegalStateException("신고 대상을 확인할 수 없어요.");
+            throw new ApiException("report.targetUnknown", "신고 대상을 확인할 수 없어요.");
         }
         if (reason == null) {
-            throw new IllegalStateException("신고 사유를 선택해주세요.");
+            throw new ApiException("report.reasonRequired", "신고 사유를 선택해주세요.");
         }
         User reporter = userRepository.findById(reporterId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
 
         Report.ReportBuilder builder = Report.builder()
                 .reporter(reporter)
@@ -56,22 +57,22 @@ public class ReportService {
 
         if (targetType == ReportTargetType.POST) {
             WordbookPost post = postRepository.findById(targetId)
-                    .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없어요."));
+                    .orElseThrow(() -> new ApiException("board.postNotFound", "게시글을 찾을 수 없어요."));
             if (post.getAuthor().getId().equals(reporterId)) {
-                throw new IllegalStateException("본인 게시글은 신고할 수 없어요.");
+                throw new ApiException("report.ownPost", "본인 게시글은 신고할 수 없어요.");
             }
             if (reportRepository.existsByReporterIdAndPostIdAndStatus(reporterId, targetId, ReportStatus.PENDING)) {
-                throw new IllegalStateException("이미 신고 접수된 게시글이에요.");
+                throw new ApiException("report.postDuplicate", "이미 신고 접수된 게시글이에요.");
             }
             builder.post(post).targetAuthor(post.getAuthor()).targetSnapshot(truncate(post.getTitle()));
         } else {
             WordbookPostComment comment = commentRepository.findById(targetId)
-                    .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+                    .orElseThrow(() -> new ApiException("board.commentNotFound", "댓글을 찾을 수 없어요."));
             if (comment.getAuthor().getId().equals(reporterId)) {
-                throw new IllegalStateException("본인 댓글은 신고할 수 없어요.");
+                throw new ApiException("report.ownComment", "본인 댓글은 신고할 수 없어요.");
             }
             if (reportRepository.existsByReporterIdAndCommentIdAndStatus(reporterId, targetId, ReportStatus.PENDING)) {
-                throw new IllegalStateException("이미 신고 접수된 댓글이에요.");
+                throw new ApiException("report.commentDuplicate", "이미 신고 접수된 댓글이에요.");
             }
             builder.comment(comment).targetAuthor(comment.getAuthor()).targetSnapshot(truncate(comment.getContent()));
         }
@@ -92,12 +93,12 @@ public class ReportService {
     @Transactional
     public ReportResponse resolveReport(Long adminUserId, Long reportId, ReportAction action, Integer suspendDays) {
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new IllegalStateException("신고를 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("report.notFound", "신고를 찾을 수 없어요."));
         if (report.getStatus() != ReportStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 신고예요.");
+            throw new ApiException("report.alreadyResolved", "이미 처리된 신고예요.");
         }
         User admin = userRepository.findById(adminUserId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
 
         ReportAction resolvedAction = action == null ? ReportAction.NONE : action;
         // CONTENT_DELETED면 콘텐츠가 사라지므로, 알림에 쓸 targetUrl은 삭제 전에 미리 뽑아둔다.

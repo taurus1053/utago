@@ -1,5 +1,6 @@
 package com.utago.user;
 
+import com.utago.common.ApiException;
 import com.utago.user.dto.UpdateProfileRequest;
 import com.utago.user.dto.UserProfileResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,6 @@ public class UserService {
 
     private User findUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
     }
 }

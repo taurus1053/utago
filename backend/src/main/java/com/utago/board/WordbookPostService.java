@@ -1,5 +1,6 @@
 package com.utago.board;
 
+import com.utago.common.ApiException;
 import com.utago.content.Visibility;
 import com.utago.notification.NotificationService;
 import com.utago.user.User;
@@ -121,20 +122,20 @@ public class WordbookPostService {
     @Transactional
     public PostDetailResponse createPost(Long userId, Long wordbookId, String title, String body) {
         if (title == null || title.isBlank()) {
-            throw new IllegalStateException("제목을 입력해주세요.");
+            throw new ApiException("board.titleRequired", "제목을 입력해주세요.");
         }
         if (body == null || body.isBlank()) {
-            throw new IllegalStateException("내용을 입력해주세요.");
+            throw new ApiException("board.bodyRequired", "내용을 입력해주세요.");
         }
         User author = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         Wordbook wordbook = wordbookRepository.findById(wordbookId)
-                .orElseThrow(() -> new IllegalStateException("단어장을 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("wordbook.notFound", "단어장을 찾을 수 없어요."));
         if (!wordbook.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("본인 단어장만 게시할 수 있어요.");
+            throw new ApiException("board.ownWordbookOnly", "본인 단어장만 게시할 수 있어요.");
         }
         if (wordbook.isFavoriteDefault()) {
-            throw new IllegalStateException("즐겨찾기 단어장은 게시할 수 없어요.");
+            throw new ApiException("board.favoriteNotPostable", "즐겨찾기 단어장은 게시할 수 없어요.");
         }
 
         wordbook.setVisibility(Visibility.PUBLIC);
@@ -154,7 +155,7 @@ public class WordbookPostService {
     public void deletePost(Long userId, Long postId) {
         WordbookPost post = requirePost(postId);
         if (!post.getAuthor().getId().equals(userId)) {
-            throw new IllegalStateException("본인 게시글만 삭제할 수 있어요.");
+            throw new ApiException("board.ownPostDeleteOnly", "본인 게시글만 삭제할 수 있어요.");
         }
         postRepository.delete(post); // ON DELETE CASCADE로 댓글/좋아요도 함께 삭제됨(V21)
     }
@@ -169,21 +170,21 @@ public class WordbookPostService {
     @Transactional
     public CommentResponse addComment(Long userId, Long postId, String content, Long parentCommentId) {
         if (content == null || content.isBlank()) {
-            throw new IllegalStateException("댓글 내용을 입력해주세요.");
+            throw new ApiException("board.commentRequired", "댓글 내용을 입력해주세요.");
         }
         WordbookPost post = requirePost(postId);
         User author = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
 
         WordbookPostComment parent = null;
         if (parentCommentId != null) {
             parent = commentRepository.findById(parentCommentId)
-                    .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+                    .orElseThrow(() -> new ApiException("board.commentNotFound", "댓글을 찾을 수 없어요."));
             if (!parent.getPost().getId().equals(postId)) {
-                throw new IllegalStateException("같은 게시글의 댓글에만 답글을 달 수 있어요.");
+                throw new ApiException("board.replySamePost", "같은 게시글의 댓글에만 답글을 달 수 있어요.");
             }
             if (parent.getParent() != null) {
-                throw new IllegalStateException("답글에는 답글을 달 수 없어요.");
+                throw new ApiException("board.replyDepth", "답글에는 답글을 달 수 없어요.");
             }
         }
 
@@ -208,9 +209,9 @@ public class WordbookPostService {
     @Transactional
     public void deleteComment(Long userId, Long commentId) {
         WordbookPostComment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("board.commentNotFound", "댓글을 찾을 수 없어요."));
         if (!comment.getAuthor().getId().equals(userId)) {
-            throw new IllegalStateException("본인 댓글만 삭제할 수 있어요.");
+            throw new ApiException("board.ownCommentDeleteOnly", "본인 댓글만 삭제할 수 있어요.");
         }
         WordbookPost post = comment.getPost();
         long deletedCount = 1 + commentRepository.countByParentId(commentId);
@@ -223,7 +224,7 @@ public class WordbookPostService {
     public boolean toggleLike(Long userId, Long postId) {
         WordbookPost post = requirePost(postId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         var existing = likeRepository.findByPostIdAndUserId(postId, userId);
         if (existing.isPresent()) {
             likeRepository.delete(existing.get());
@@ -241,7 +242,7 @@ public class WordbookPostService {
     public boolean toggleSave(Long userId, Long postId) {
         WordbookPost post = requirePost(postId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         var existing = saveRepository.findByPostIdAndUserId(postId, userId);
         if (existing.isPresent()) {
             saveRepository.delete(existing.get());
@@ -266,7 +267,7 @@ public class WordbookPostService {
     @Transactional
     public void adminDeleteComment(Long commentId) {
         WordbookPostComment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalStateException("댓글을 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("board.commentNotFound", "댓글을 찾을 수 없어요."));
         WordbookPost post = comment.getPost();
         long deletedCount = 1 + commentRepository.countByParentId(commentId);
         commentRepository.delete(comment);
@@ -275,7 +276,7 @@ public class WordbookPostService {
 
     private WordbookPost requirePost(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalStateException("게시글을 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("board.postNotFound", "게시글을 찾을 수 없어요."));
     }
 
     private PostSummaryResponse toSummary(WordbookPost post, boolean likedByMe) {

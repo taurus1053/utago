@@ -1,5 +1,6 @@
 package com.utago.content;
 
+import com.utago.common.ApiException;
 import com.utago.common.Lang;
 import com.utago.content.dto.CreateSongRequest;
 import com.utago.content.dto.SongDetailResponse;
@@ -126,7 +127,7 @@ public class SongService {
     public SongDetailResponse getSongDetail(Long songId, Long userId) {
         Song song = songRepository.findById(songId)
                 .filter(s -> isViewable(s, userId))
-                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
 
         List<SongLine> lines = songLineRepository.findBySongIdOrderByLineOrderAsc(songId);
         List<Long> lineIds = lines.stream().map(SongLine::getId).toList();
@@ -180,7 +181,7 @@ public class SongService {
     @Transactional
     public SongDetailResponse createSong(CreateSongRequest request, Long ownerUserId) {
         if (ownerUserId == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
+            throw new ApiException("auth.loginRequired", "로그인이 필요합니다.");
         }
         return buildAndSaveSong(request, ownerUserId, Visibility.PRIVATE, Provenance.SELF_TYPED);
     }
@@ -269,9 +270,9 @@ public class SongService {
     @Transactional
     public SongDetailResponse updateLineTimings(Long songId, Long userId, List<UpdateSyncRequest.LineTiming> timings) {
         Song song = songRepository.findById(songId)
-                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
         if (userId == null || !userId.equals(song.getOwnerUserId())) {
-            throw new IllegalStateException("본인이 등록한 곡만 싱크를 수정할 수 있습니다.");
+            throw new ApiException("song.ownSyncOnly", "본인이 등록한 곡만 싱크를 수정할 수 있습니다.");
         }
 
         Map<Long, SongLine> lineById = songLineRepository.findBySongIdOrderByLineOrderAsc(songId).stream()
@@ -306,9 +307,9 @@ public class SongService {
     @Transactional
     public SongDetailResponse updateLineContent(Long songId, Long userId, List<UpdateLinesRequest.LineEdit> edits) {
         Song song = songRepository.findById(songId)
-                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
         if (userId == null || !userId.equals(song.getOwnerUserId())) {
-            throw new IllegalStateException("본인이 등록한 곡만 가사를 수정할 수 있습니다.");
+            throw new ApiException("song.ownLyricsOnly", "본인이 등록한 곡만 가사를 수정할 수 있습니다.");
         }
 
         Map<Long, SongLine> lineById = songLineRepository.findBySongIdOrderByLineOrderAsc(songId).stream()
@@ -527,9 +528,9 @@ public class SongService {
     @Transactional
     public AdminSongSummaryResponse setFeatured(Long songId, boolean featured) {
         Song song = songRepository.findById(songId)
-                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
         if (featured && (song.getYoutubeVideoId() == null || song.getYoutubeVideoId().isBlank())) {
-            throw new IllegalStateException("유튜브 영상이 연결된 곡만 추천곡으로 지정할 수 있습니다.");
+            throw new ApiException("song.featuredNeedsVideo", "유튜브 영상이 연결된 곡만 추천곡으로 지정할 수 있습니다.");
         }
         song.setFeatured(featured);
         return AdminSongSummaryResponse.from(song);
@@ -553,7 +554,7 @@ public class SongService {
     @Transactional
     public AdminSongSummaryResponse setGenre(Long songId, SongGenre genre) {
         Song song = songRepository.findById(songId)
-                .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
         song.setGenre(genre);
         return AdminSongSummaryResponse.from(song);
     }
@@ -574,9 +575,9 @@ public class SongService {
         UserSongProgress progress = userSongProgressRepository.findByUserIdAndSongId(userId, songId)
                 .orElseGet(() -> {
                     User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
                     Song song = songRepository.findById(songId)
-                            .orElseThrow(() -> new IllegalStateException("곡을 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ApiException("song.notFound", "곡을 찾을 수 없습니다."));
                     return UserSongProgress.builder().user(user).song(song).lastLineOrder(0).build();
                 });
         if (lineOrder > progress.getLastLineOrder()) {

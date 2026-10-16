@@ -1,5 +1,6 @@
 package com.utago.wordbook;
 
+import com.utago.common.ApiException;
 import com.utago.common.Lang;
 import com.utago.content.Visibility;
 import com.utago.dictionary.JMdictLookupService;
@@ -61,7 +62,7 @@ public class WordbookService {
         return wordbookRepository.findByUserIdAndFavoriteDefaultTrue(userId).stream().findFirst()
                 .orElseGet(() -> {
                     User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
                     return wordbookRepository.save(Wordbook.builder()
                             .user(user)
                             .name(DEFAULT_WORDBOOK_NAME)
@@ -84,7 +85,7 @@ public class WordbookService {
     @Transactional
     public WordbookResponse createWordbook(Long userId, String name, Long folderId, String emoji) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         WordbookFolder folder = folderId != null ? requireOwnedFolder(userId, folderId) : null;
         Wordbook.WordbookBuilder builder = Wordbook.builder()
                 .user(user)
@@ -107,7 +108,7 @@ public class WordbookService {
     public WordbookResponse setVisibility(Long userId, Long wordbookId, boolean makePublic) {
         Wordbook book = requireOwnedWordbook(userId, wordbookId);
         if (book.isFavoriteDefault() && makePublic) {
-            throw new IllegalStateException("즐겨찾기 단어장은 공개할 수 없습니다.");
+            throw new ApiException("wordbook.favoriteNotPublic", "즐겨찾기 단어장은 공개할 수 없습니다.");
         }
         book.setVisibility(makePublic ? Visibility.PUBLIC : Visibility.PRIVATE);
         return WordbookResponse.of(book, wordbookItemRepository.findByWordbookId(book.getId()).size());
@@ -117,7 +118,7 @@ public class WordbookService {
     @Transactional
     public WordbookResponse updateEmoji(Long userId, Long wordbookId, String emoji) {
         if (emoji == null || emoji.isBlank()) {
-            throw new IllegalStateException("이모티콘을 입력해주세요.");
+            throw new ApiException("wordbook.emojiRequired", "이모티콘을 입력해주세요.");
         }
         Wordbook book = requireOwnedWordbook(userId, wordbookId);
         book.setEmoji(emoji.trim());
@@ -133,12 +134,12 @@ public class WordbookService {
     @Transactional
     public WordbookResponse downloadWordbook(Long userId, Long sourceWordbookId) {
         Wordbook source = wordbookRepository.findById(sourceWordbookId)
-                .orElseThrow(() -> new IllegalStateException("단어장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("wordbook.notFound", "단어장을 찾을 수 없습니다."));
         if (!source.isOfficial() && source.getVisibility() != Visibility.PUBLIC) {
-            throw new IllegalStateException("공개된 단어장만 내 단어장에 추가할 수 있습니다.");
+            throw new ApiException("wordbook.publicOnly", "공개된 단어장만 내 단어장에 추가할 수 있습니다.");
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
 
         Wordbook copy = wordbookRepository.save(Wordbook.builder()
                 .user(user)
@@ -169,7 +170,7 @@ public class WordbookService {
     public void deleteWordbook(Long userId, Long wordbookId) {
         Wordbook book = requireOwnedWordbook(userId, wordbookId);
         if (book.isFavoriteDefault()) {
-            throw new IllegalStateException("기본 단어장은 삭제할 수 없습니다.");
+            throw new ApiException("wordbook.defaultNotDeletable", "기본 단어장은 삭제할 수 없습니다.");
         }
         wordbookRepository.delete(book);
     }
@@ -187,7 +188,7 @@ public class WordbookService {
     public WordbookResponse moveWordbookToFolder(Long userId, Long wordbookId, Long folderId) {
         Wordbook book = requireOwnedWordbook(userId, wordbookId);
         if (book.isFavoriteDefault()) {
-            throw new IllegalStateException("기본 단어장은 폴더로 옮길 수 없습니다.");
+            throw new ApiException("wordbook.defaultNotMovable", "기본 단어장은 폴더로 옮길 수 없습니다.");
         }
         WordbookFolder folder = folderId != null ? requireOwnedFolder(userId, folderId) : null;
         book.setFolder(folder);
@@ -204,7 +205,7 @@ public class WordbookService {
     @Transactional
     public WordbookFolderResponse createFolder(Long userId, String name) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         WordbookFolder saved = wordbookFolderRepository.save(WordbookFolder.builder()
                 .user(user)
                 .name(name)
@@ -230,9 +231,9 @@ public class WordbookService {
 
     private WordbookFolder requireOwnedFolder(Long userId, Long folderId) {
         WordbookFolder folder = wordbookFolderRepository.findById(folderId)
-                .orElseThrow(() -> new IllegalStateException("폴더를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("wordbook.folderNotFound", "폴더를 찾을 수 없습니다."));
         if (!folder.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("본인의 폴더만 이용할 수 있습니다.");
+            throw new ApiException("wordbook.ownFolderOnly", "본인의 폴더만 이용할 수 있습니다.");
         }
         return folder;
     }
@@ -253,7 +254,7 @@ public class WordbookService {
     @Transactional
     public WordbookItemResponse addItem(Long userId, String lemma, Lang lang, Long wordbookId) {
         Word word = wordRepository.findByLemmaAndLang(lemma, lang)
-                .orElseThrow(() -> new IllegalStateException("단어를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("wordbook.wordNotFound", "단어를 찾을 수 없습니다."));
         Wordbook book = wordbookId != null
                 ? requireOwnedWordbook(userId, wordbookId)
                 : getOrCreateFavoriteWordbook(userId);
@@ -322,10 +323,10 @@ public class WordbookService {
     ) {
         String lemma = lemmaInput == null ? "" : lemmaInput.trim();
         if (lemma.isEmpty()) {
-            throw new IllegalStateException("추가할 단어를 입력해주세요.");
+            throw new ApiException("wordbook.wordRequired", "추가할 단어를 입력해주세요.");
         }
         if (lemma.length() > 120) {
-            throw new IllegalStateException("단어가 너무 길어요.");
+            throw new ApiException("wordbook.wordTooLong", "단어가 너무 길어요.");
         }
         // 새 단어를 만들기 전에 단어장 소유부터 확인 — 남의 단어장이면 아무것도 만들지 않는다.
         Wordbook book = wordbookId != null
@@ -334,7 +335,7 @@ public class WordbookService {
         // 즐겨찾기는 "단어장에 담긴 단어 중 별표 누른 것"만 모이는 뷰라, 여기에 직접 단어를
         // 추가하는 건 허용하지 않는다(프론트에서 버튼 자체를 숨기지만, 서버에서도 한 번 더 막는다).
         if (book.isFavoriteDefault()) {
-            throw new IllegalStateException("즐겨찾기에는 단어를 직접 추가할 수 없어요. 단어장에 추가한 뒤 별표를 눌러주세요.");
+            throw new ApiException("wordbook.favoriteNoDirectAdd", "즐겨찾기에는 단어를 직접 추가할 수 없어요. 단어장에 추가한 뒤 별표를 눌러주세요.");
         }
 
         Word word = resolveOrCreateWord(lemma, lang, readingInput, meaningsInput);
@@ -361,7 +362,7 @@ public class WordbookService {
             return existing.get();
         }
         if (lang != Lang.JA) {
-            throw new IllegalStateException("지금은 일본어 단어만 직접 추가할 수 있어요.");
+            throw new ApiException("wordbook.jaOnly", "지금은 일본어 단어만 직접 추가할 수 있어요.");
         }
         Optional<JMdictLookupService.Entry> entryOpt = jmdictLookupService.lookup(lemma, null);
         if (entryOpt.isPresent()) {
@@ -406,7 +407,7 @@ public class WordbookService {
         boolean hasReading = explicitReading != null && !explicitReading.isBlank();
         boolean hasMeanings = explicitMeanings != null && !explicitMeanings.isEmpty();
         if (!hasReading || !hasMeanings) {
-            throw new IllegalStateException("사전에서 찾을 수 없는 단어예요. 발음과 뜻을 직접 입력해주세요.");
+            throw new ApiException("wordbook.notInDictionary", "사전에서 찾을 수 없는 단어예요. 발음과 뜻을 직접 입력해주세요.");
         }
         Word created = wordRepository.save(Word.builder()
                 .lemma(lemma)
@@ -598,7 +599,7 @@ public class WordbookService {
         return userWordProgressRepository.findByUser_IdAndWord_Id(userId, word.getId())
                 .orElseGet(() -> {
                     User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
                     return UserWordProgress.builder()
                             .user(user)
                             .word(word)
@@ -608,18 +609,18 @@ public class WordbookService {
 
     private Wordbook requireOwnedWordbook(Long userId, Long wordbookId) {
         Wordbook book = wordbookRepository.findById(wordbookId)
-                .orElseThrow(() -> new IllegalStateException("단어장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("wordbook.notFound", "단어장을 찾을 수 없습니다."));
         if (!book.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("본인의 단어장만 이용할 수 있습니다.");
+            throw new ApiException("wordbook.ownOnly", "본인의 단어장만 이용할 수 있습니다.");
         }
         return book;
     }
 
     private WordbookItem requireOwnedItem(Long userId, Long itemId) {
         WordbookItem item = wordbookItemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalStateException("항목을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("wordbook.itemNotFound", "항목을 찾을 수 없습니다."));
         if (!item.getWordbook().getUser().getId().equals(userId)) {
-            throw new IllegalStateException("본인의 단어장만 수정할 수 있습니다.");
+            throw new ApiException("wordbook.ownEditOnly", "본인의 단어장만 수정할 수 있습니다.");
         }
         return item;
     }
@@ -635,12 +636,12 @@ public class WordbookService {
         WordbookItem item = requireOwnedItem(userId, itemId);
         String reading = readingInput == null ? "" : readingInput.trim();
         if (reading.isEmpty()) {
-            throw new IllegalStateException("발음을 입력해주세요.");
+            throw new ApiException("wordbook.readingRequired", "발음을 입력해주세요.");
         }
         List<String> cleanedMeanings = meaningsInput == null ? List.of()
                 : meaningsInput.stream().filter(m -> m != null && !m.isBlank()).toList();
         if (cleanedMeanings.isEmpty()) {
-            throw new IllegalStateException("뜻을 입력해주세요.");
+            throw new ApiException("wordbook.meaningRequired", "뜻을 입력해주세요.");
         }
         Word word = item.getWord();
         word.setReading(reading);

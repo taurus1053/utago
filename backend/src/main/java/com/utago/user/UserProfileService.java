@@ -1,5 +1,6 @@
 package com.utago.user;
 
+import com.utago.common.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +55,7 @@ public class UserProfileService {
         User user = requireUser(userId);
         String trimmed = statusMessage == null ? null : statusMessage.trim();
         if (trimmed != null && trimmed.length() > 80) {
-            throw new IllegalStateException("상태 메시지는 80자 이내로 입력해주세요.");
+            throw new ApiException("profile.statusTooLong", "상태 메시지는 80자 이내로 입력해주세요.");
         }
         user.setStatusMessage(trimmed == null || trimmed.isBlank() ? null : trimmed);
         return toResponse(user);
@@ -71,7 +72,7 @@ public class UserProfileService {
 
     private User requireUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
     }
 
     private MyPageResponse toResponse(User user) {
