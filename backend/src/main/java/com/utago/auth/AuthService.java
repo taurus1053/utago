@@ -1,5 +1,6 @@
 package com.utago.auth;
 
+import com.utago.common.ApiException;
 import com.utago.auth.dto.AuthResponse;
 import com.utago.auth.dto.LoginRequest;
 import com.utago.auth.dto.NicknameAvailabilityResponse;
@@ -47,7 +48,7 @@ public class AuthService {
     @Transactional
     public void requestSignupCode(RequestSignupCodeRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalStateException("이미 가입된 이메일입니다.");
+            throw new ApiException("auth.emailTaken", "이미 가입된 이메일입니다.");
         }
 
         String code = generateVerificationCode();
@@ -68,13 +69,13 @@ public class AuthService {
     @Transactional
     public void verifySignupCode(VerifySignupCodeRequest request) {
         SignupVerification verification = signupVerificationRepository.findById(request.email())
-                .orElseThrow(() -> new IllegalStateException("인증코드를 먼저 요청해주세요."));
+                .orElseThrow(() -> new ApiException("auth.codeNotRequested", "인증코드를 먼저 요청해주세요."));
 
         boolean codeMismatch = !verification.getCode().equals(request.code());
         boolean expired = verification.getExpiresAt().isBefore(LocalDateTime.now());
 
         if (codeMismatch || expired) {
-            throw new IllegalStateException("인증 코드가 올바르지 않거나 만료되었습니다.");
+            throw new ApiException("auth.codeInvalid", "인증 코드가 올바르지 않거나 만료되었습니다.");
         }
 
         verification.setVerified(true);
@@ -86,13 +87,13 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request) {
         SignupVerification verification = signupVerificationRepository.findById(request.email())
                 .filter(SignupVerification::isVerified)
-                .orElseThrow(() -> new IllegalStateException("이메일 인증을 먼저 완료해주세요."));
+                .orElseThrow(() -> new ApiException("auth.emailNotVerified", "이메일 인증을 먼저 완료해주세요."));
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalStateException("이미 가입된 이메일입니다.");
+            throw new ApiException("auth.emailTaken", "이미 가입된 이메일입니다.");
         }
         if (userRepository.existsByNickname(request.nickname())) {
-            throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
+            throw new ApiException("auth.nicknameTaken", "이미 사용 중인 닉네임입니다.");
         }
 
         User user = User.builder()
@@ -120,7 +121,7 @@ public class AuthService {
     @Transactional
     public void verifyEmail(VerifyEmailRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new ApiException("auth.emailNotFound", "존재하지 않는 이메일입니다."));
 
         if (user.isEmailVerified()) {
             return;
@@ -132,7 +133,7 @@ public class AuthService {
                 || user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now());
 
         if (codeMissing || codeMismatch || expired) {
-            throw new IllegalStateException("인증 코드가 올바르지 않거나 만료되었습니다.");
+            throw new ApiException("auth.codeInvalid", "인증 코드가 올바르지 않거나 만료되었습니다.");
         }
 
         user.setEmailVerified(true);
@@ -144,10 +145,10 @@ public class AuthService {
     @Transactional
     public void resendVerification(ResendVerificationRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new ApiException("auth.emailNotFound", "존재하지 않는 이메일입니다."));
 
         if (user.isEmailVerified()) {
-            throw new IllegalStateException("이미 인증이 완료된 계정입니다.");
+            throw new ApiException("auth.alreadyVerified", "이미 인증이 완료된 계정입니다.");
         }
 
         String code = generateVerificationCode();
@@ -160,22 +161,22 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> new ApiException("auth.badCredentials", "이메일 또는 비밀번호가 올바르지 않습니다."));
 
         if (user.getPasswordHash() == null
                 || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다.");
+            throw new ApiException("auth.badCredentials", "이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
         if (!user.isEmailVerified()) {
-            throw new IllegalStateException("이메일 인증이 필요합니다.");
+            throw new ApiException("auth.verificationRequired", "이메일 인증이 필요합니다.");
         }
 
         // 게시판 신고 처리(claude/소셜_마이페이지_기획.md 23번)로 정지된 계정은 해제 시각이
         // 지나기 전까지 로그인 자체를 막는다.
         if (user.getSuspendedUntil() != null && user.getSuspendedUntil().isAfter(LocalDateTime.now())) {
             String until = user.getSuspendedUntil().toLocalDate().toString();
-            throw new IllegalStateException(until + "까지 이용이 제한된 계정이에요.");
+            throw new ApiException("auth.suspended", until + "까지 이용이 제한된 계정이에요.", java.util.Map.of("untilDate", until));
         }
 
         String token = jwtProvider.generateToken(user.getId(), user.getEmail());

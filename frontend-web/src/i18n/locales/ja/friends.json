@@ -1,0 +1,39 @@
+{
+  "title": "友達",
+  "sub": "ニックネームで友達を検索してリクエストを送りましょう",
+  "searchPlaceholder": "ニックネームで検索",
+  "results": "検索結果",
+  "searching": "検索中...",
+  "searchError": "検索中に問題が発生しました。",
+  "noResults": "一致するユーザーがいません。",
+  "relation": {
+    "NONE": "リクエストを送る",
+    "PENDING_OUTGOING": "リクエスト済み",
+    "PENDING_INCOMING": "届いたリクエストを確認",
+    "FRIENDS": "友達"
+  },
+  "relationSub": {
+    "FRIENDS": "すでに友達です",
+    "PENDING_OUTGOING": "リクエストを送りました",
+    "PENDING_INCOMING": "あなたにリクエストが届いています",
+    "NONE": "まだ友達ではありません"
+  },
+  "sending": "送信中...",
+  "incoming": "届いたリクエスト",
+  "incomingEmpty": "届いたリクエストはありません。",
+  "decline": "拒否",
+  "accept": "承認",
+  "outgoing": "送ったリクエスト",
+  "outgoingEmpty": "送ったリクエストはありません。",
+  "waiting": "承認待ち",
+  "cancelRequest": "リクエストを取り消す",
+  "myFriends": "マイ友達",
+  "friendsEmpty": "まだ友達がいません。ニックネームで検索してリクエストを送ってみましょう。",
+  "noStatus": "ひとこと紹介なし",
+  "removeAria": "友達を削除",
+  "removeConfirm": {
+    "title": "友達を削除しますか？",
+    "message": "{{nickname}}さんを友達リストから削除します。",
+    "confirm": "削除"
+  }
+}

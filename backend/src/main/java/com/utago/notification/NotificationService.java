@@ -1,5 +1,6 @@
 package com.utago.notification;
 
+import com.utago.common.ApiException;
 import com.utago.board.WordbookPost;
 import com.utago.board.WordbookPostComment;
 import com.utago.user.User;
@@ -77,7 +78,7 @@ public class NotificationService {
     @Transactional
     public void broadcastAnnouncement(Long adminUserId, String message) {
         User admin = userRepository.findById(adminUserId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         List<User> allUsers = userRepository.findAll();
         List<Notification> notifications = allUsers.stream()
                 .map(recipient -> Notification.builder()
@@ -120,9 +121,9 @@ public class NotificationService {
     @Transactional
     public void markRead(Long userId, Long notificationId) {
         Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new IllegalStateException("알림을 찾을 수 없어요."));
+                .orElseThrow(() -> new ApiException("notification.notFound", "알림을 찾을 수 없어요."));
         if (!n.getRecipient().getId().equals(userId)) {
-            throw new IllegalStateException("본인 알림만 읽음 처리할 수 있어요.");
+            throw new ApiException("notification.ownOnly", "본인 알림만 읽음 처리할 수 있어요.");
         }
         n.setRead(true);
     }

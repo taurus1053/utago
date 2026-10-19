@@ -4,7 +4,9 @@ import { getCurrentUser, isLoggedIn, logout } from '../api/auth'
 import { getMyRole } from '../api/admin'
 import { startPageTransition } from '../utils/pageTransition'
 import { getLastKnownLandingHeroRect } from '../utils/landingHeroRect'
-import LangSwitcher from './LangSwitcher'
+import { useTranslation } from 'react-i18next'
+import { useDisplayLang } from '../i18n/useDisplayLang'
+import LangSwitcher, { DISPLAY_LANGS } from './LangSwitcher'
 import NotificationBell from './NotificationBell'
 import './TopBar.css'
 
@@ -20,6 +22,7 @@ const TOPBAR_HEIGHT = 64
 // 로그인 안 한 사용자도 곡 학습 화면(공개 곡)에는 들어올 수 있어서, 그 경우 알림/프로필
 // 대신 "로그인" 링크만 보여준다.
 export default function TopBar({ showSearch = true, searchValue = '', onSearchChange }) {
+  const { t } = useTranslation()
   const loggedIn = isLoggedIn()
   const user = getCurrentUser()
   const displayName = user?.nickname ?? user?.email ?? ''
@@ -40,22 +43,9 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 페이지 표시 언어(모국어 설정과는 별개) — 비로그인 랜딩 페이지의 언어 선택과
-  // 동일한 저장 방식을 쓰되 키만 다르게 둬서 서로 영향을 주지 않게 한다.
-  const [displayLang, setDisplayLang] = useState(() => {
-    try {
-      return localStorage.getItem('utago_display_lang') || 'ko'
-    } catch {
-      return 'ko'
-    }
-  })
-  useEffect(() => {
-    try {
-      localStorage.setItem('utago_display_lang', displayLang)
-    } catch {
-      // localStorage를 못 쓰는 환경이면 그냥 무시
-    }
-  }, [displayLang])
+  // 페이지 표시 언어(모국어 설정과는 별개). 랜딩 페이지와 같은 저장소를 쓰는
+  // i18n(src/i18n)이 선택/저장/적용을 전담한다.
+  const [displayLang, setDisplayLang] = useDisplayLang()
 
   const sidebarRef = useRef(null)
   const menuBtnRef = useRef(null)
@@ -81,11 +71,11 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
   useEffect(() => {
     if (!sidebarOpen && !profileOpen) return
     function handleClickOutside(e) {
-      const t = e.target
-      const insideSidebar = sidebarRef.current && sidebarRef.current.contains(t)
-      const insideMenuBtn = menuBtnRef.current && menuBtnRef.current.contains(t)
-      const insideProfile = profileRef.current && profileRef.current.contains(t)
-      const insideAvatarBtn = avatarBtnRef.current && avatarBtnRef.current.contains(t)
+      const target = e.target
+      const insideSidebar = sidebarRef.current && sidebarRef.current.contains(target)
+      const insideMenuBtn = menuBtnRef.current && menuBtnRef.current.contains(target)
+      const insideProfile = profileRef.current && profileRef.current.contains(target)
+      const insideAvatarBtn = avatarBtnRef.current && avatarBtnRef.current.contains(target)
       if (!insideSidebar && !insideMenuBtn && !insideProfile && !insideAvatarBtn) {
         closeAll()
       }
@@ -131,7 +121,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
     <>
       <div className="home-topbar" ref={topbarRef}>
         <div className="home-topbar-left">
-          <button aria-label="메뉴 열기" onClick={toggleSidebar} className="home-icon-btn" ref={menuBtnRef}>
+          <button aria-label={t('topbar.openMenu')} onClick={toggleSidebar} className="home-icon-btn" ref={menuBtnRef}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -153,7 +143,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
             </span>
             <input
               type="text"
-              placeholder="곡, 아티스트 검색"
+              placeholder={t('topbar.searchPlaceholder')}
               value={searchValue}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
@@ -161,16 +151,16 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
         )}
 
         <div className="home-topbar-right">
+          <LangSwitcher lang={displayLang} setLang={setDisplayLang} />
           {loggedIn ? (
             <>
-              <LangSwitcher lang={displayLang} setLang={setDisplayLang} />
               <NotificationBell />
-              <button aria-label="프로필 메뉴 열기" onClick={toggleProfile} className="home-avatar-btn" ref={avatarBtnRef}>
+              <button aria-label={t('topbar.openProfileMenu')} onClick={toggleProfile} className="home-avatar-btn" ref={avatarBtnRef}>
                 {avatarInitial}
               </button>
             </>
           ) : (
-            <Link to="/login" className="home-topbar-login">로그인</Link>
+            <Link to="/login" className="home-topbar-login">{t('topbar.login')}</Link>
           )}
         </div>
       </div>
@@ -178,40 +168,40 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
       {/* 좌측 사이드바 드로어 - 항상 마운트해두고 transform으로만 여닫아야
           왼쪽에서 부드럽게 슬라이드되는 애니메이션이 가능하다. */}
       <div className={`home-sidebar${sidebarOpen ? ' home-sidebar--open' : ''}`} ref={sidebarRef} aria-hidden={!sidebarOpen}>
-        <nav aria-label="주요 메뉴" className="home-sidebar-nav">
+        <nav aria-label={t('topbar.mainMenu')} className="home-sidebar-nav">
           <a href="/" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9.5 12 3l9 6.5"></path>
               <path d="M5 10v10h14V10"></path>
             </svg>
-            <span>홈</span>
+            <span>{t('nav.home')}</span>
           </a>
           <Link to="/wordbook" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path>
             </svg>
-            <span>단어장</span>
+            <span>{t('nav.wordbook')}</span>
           </Link>
           <Link to="/grammar" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6h16M4 12h10M4 18h7"></path>
             </svg>
-            <span>문법</span>
+            <span>{t('nav.grammar')}</span>
           </Link>
           <Link to="/mypage" className="home-sidebar-link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4"></circle>
               <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
             </svg>
-            <span>마이페이지</span>
+            <span>{t('nav.mypage')}</span>
           </Link>
           {isAdmin && (
             <Link to="/admin/featured-songs" className="home-sidebar-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b5c46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"></path>
               </svg>
-              <span>관리자 페이지</span>
+              <span>{t('nav.admin')}</span>
             </Link>
           )}
           {isAdmin && (
@@ -220,7 +210,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M12 9v4M12 17h.01"></path>
                 <path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path>
               </svg>
-              <span>신고 관리</span>
+              <span>{t('nav.reports')}</span>
             </Link>
           )}
           {isAdmin && (
@@ -230,7 +220,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M15 8a4 4 0 0 1 0 8"></path>
                 <path d="M18 5a8 8 0 0 1 0 14"></path>
               </svg>
-              <span>운영진 공지</span>
+              <span>{t('nav.announcements')}</span>
             </Link>
           )}
         </nav>
@@ -249,7 +239,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <polyline points="10 17 15 12 10 7"></polyline>
                 <line x1="15" y1="12" x2="3" y2="12"></line>
               </svg>
-              <span>로그인</span>
+              <span>{t('topbar.login')}</span>
             </Link>
           </>
         )}
@@ -272,14 +262,14 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
               <circle cx="12" cy="8" r="4"></circle>
               <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
             </svg>
-            <span>마이페이지</span>
+            <span>{t('nav.mypage')}</span>
           </Link>
           {isAdmin && (
             <Link to="/admin/featured-songs" onClick={closeAll} className="home-profile-item">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"></path>
               </svg>
-              <span>관리자 페이지</span>
+              <span>{t('nav.admin')}</span>
             </Link>
           )}
           {isAdmin && (
@@ -288,7 +278,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M12 9v4M12 17h.01"></path>
                 <path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path>
               </svg>
-              <span>신고 관리</span>
+              <span>{t('nav.reports')}</span>
             </Link>
           )}
           {isAdmin && (
@@ -298,14 +288,14 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M15 8a4 4 0 0 1 0 8"></path>
                 <path d="M18 5a8 8 0 0 1 0 14"></path>
               </svg>
-              <span>운영진 공지</span>
+              <span>{t('nav.announcements')}</span>
             </Link>
           )}
           <a href="#profile-settings" className="home-profile-item">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 5h16M4 12h16M4 19h9"></path>
             </svg>
-            <span>프로필 설정</span>
+            <span>{t('profileMenu.profileSettings')}</span>
           </a>
           <a href="#display-lang" className="home-profile-item home-profile-item--between">
             <div className="home-profile-item-left">
@@ -314,16 +304,16 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
                 <path d="M2 12h20"></path>
                 <path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"></path>
               </svg>
-              <span>표시 언어</span>
+              <span>{t('profileMenu.displayLanguage')}</span>
             </div>
-            <span className="home-profile-item-value">한국어</span>
+            <span className="home-profile-item-value">{(DISPLAY_LANGS.find((l) => l.code === displayLang) ?? DISPLAY_LANGS[0]).label}</span>
           </a>
           <div className="home-profile-toggle-row">
             <div className="home-profile-item-left">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b5346" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
               </svg>
-              <span>다크 모드</span>
+              <span>{t('profileMenu.darkMode')}</span>
             </div>
             <div className="home-toggle-track">
               <div className="home-toggle-knob" />
@@ -335,7 +325,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
-            <span>고객센터</span>
+            <span>{t('profileMenu.support')}</span>
           </a>
 
           <div className="home-profile-divider" />
@@ -345,7 +335,7 @@ export default function TopBar({ showSearch = true, searchValue = '', onSearchCh
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
             </svg>
-            <span>로그아웃</span>
+            <span>{t('profileMenu.logout')}</span>
           </a>
         </div>
       )}

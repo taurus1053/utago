@@ -1,0 +1,11 @@
+{
+  "back": "← 戻る",
+  "title": "クレジット · Credits",
+  "lead": "Utago(歌語)は、以下のオープンデータとオープンソースソフトウェアの力を借りて作られています。",
+  "jmdictTitle": "JMdict(日本語辞書データ)",
+  "jmdictDesc": "単語の意味の入力には、EDRDG(Electronic Dictionary Research and Development Group)のJMdict辞書データの一部を使用しています。このデータをもとに韓国語の意味を作成しました。",
+  "kuromojiTitle": "Kuromoji(日本語形態素解析)",
+  "kuromojiDesc": "歌詞のふりがなと単語の抽出には、オープンソースの形態素解析器Kuromoji(Atilika、Apache License 2.0)を使用しています。",
+  "audioTitle": "音源の再生",
+  "audioDesc": "音源はYouTubeプレーヤーで再生されます。"
+}

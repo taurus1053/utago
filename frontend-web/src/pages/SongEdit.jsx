@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getSong, updateSongLines } from '../api/songs'
 import TopBar from '../components/TopBar'
 import './SongEdit.css'
@@ -10,6 +11,7 @@ import './SongEdit.css'
 // 곡을 등록한 본인만 저장할 수 있다(서버가 확인, 아니면 403). 원문을 실제로 고친 줄은
 // 저장 시 서버가 후리가나/단어장 연결/발음 표기를 자동으로 다시 만든다.
 export default function SongEdit() {
+  const { t } = useTranslation('song')
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -103,18 +105,18 @@ export default function SongEdit() {
     <div className="song-edit-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={t('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">가사 내용 편집</span>
+        <span className="app-subbar-title">{t('edit.title')}</span>
       </div>
 
       {loading ? (
-        <div className="song-edit-status">불러오는 중...</div>
+        <div className="song-edit-status">{t('common:actions.loading')}</div>
       ) : loadError ? (
-        <div className="song-edit-status song-edit-status--error">곡을 불러오지 못했어요.</div>
+        <div className="song-edit-status song-edit-status--error">{t('edit.loadError')}</div>
       ) : !song ? null : (
         <div className="song-edit-content">
           <div className="song-edit-header">
@@ -122,11 +124,11 @@ export default function SongEdit() {
             <span className="song-edit-artist">{song.artist}</span>
           </div>
           <p className="song-edit-hint">
-            원문을 고치면 후리가나·단어 정보·발음 표기가 저장할 때 자동으로 다시 만들어져요.
+            {t('edit.hint')}
           </p>
 
           {lines.length === 0 ? (
-            <div className="song-edit-status">아직 등록된 가사가 없어요.</div>
+            <div className="song-edit-status">{t('learn.noLyrics')}</div>
           ) : (
             <div className="song-edit-list">
               {lines.map((line) => (
@@ -134,7 +136,7 @@ export default function SongEdit() {
                   <span className="song-edit-row-order">{line.lineOrder}</span>
                   <div className="song-edit-row-fields">
                     <label className="song-edit-field">
-                      <span className="song-edit-field-label">원문</span>
+                      <span className="song-edit-field-label">{t('edit.original')}</span>
                       <input
                         type="text"
                         className="song-edit-input"
@@ -143,7 +145,7 @@ export default function SongEdit() {
                       />
                     </label>
                     <label className="song-edit-field">
-                      <span className="song-edit-field-label">의역</span>
+                      <span className="song-edit-field-label">{t('edit.translation')}</span>
                       <input
                         type="text"
                         className="song-edit-input"
@@ -160,17 +162,17 @@ export default function SongEdit() {
           <div className="song-edit-save-row">
             {saveError && (
               <span className="song-edit-save-error">
-                저장하지 못했어요. {saveError.status === 403 ? '본인이 등록한 곡만 가사를 수정할 수 있어요.' : saveError.message}
+                {t('edit.saveFailed', { reason: saveError.status === 403 ? t('edit.forbidden') : saveError.message })}
               </span>
             )}
-            {saveSuccess && !saveError && <span className="song-edit-save-success">저장했어요!</span>}
+            {saveSuccess && !saveError && <span className="song-edit-save-success">{t('edit.saved')}</span>}
             <button
               type="button"
               className="song-edit-save-btn"
               onClick={handleSave}
               disabled={saving || dirtyCount === 0}
             >
-              {saving ? '저장 중...' : dirtyCount > 0 ? `${dirtyCount}줄 저장` : '변경 사항 없음'}
+              {saving ? t('edit.saving') : dirtyCount > 0 ? t('edit.saveCount', { count: dirtyCount }) : t('edit.noChanges')}
             </button>
           </div>
         </div>

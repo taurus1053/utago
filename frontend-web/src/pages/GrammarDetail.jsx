@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getGrammarDetail, setGrammarLearned } from '../api/grammar'
 import { isLoggedIn } from '../api/auth'
 import TopBar from '../components/TopBar'
@@ -8,6 +9,7 @@ import './Grammar.css'
 // 문법 항목 하나의 상세 화면 — claude/기획_정리.md 2026-10-08 신규. 설명/접속 형태/예문 +
 // "이 문법이 쓰인 노래"(있으면, 곡별 GrammarPoint와 연결된 것만) + 학습 완료 체크(로그인 필요).
 export default function GrammarDetail() {
+  const { t } = useTranslation('grammar')
   const { id } = useParams()
   const navigate = useNavigate()
   const loggedIn = isLoggedIn()
@@ -55,18 +57,18 @@ export default function GrammarDetail() {
     <div className="grammar-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={t('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">문법 상세</span>
+        <span className="app-subbar-title">{t('detail.title')}</span>
       </div>
 
       {loading ? (
-        <div className="grammar-status">불러오는 중...</div>
+        <div className="grammar-status">{t('common:actions.loading')}</div>
       ) : error ? (
-        <div className="grammar-status grammar-status--error">문법 항목을 불러오지 못했어요.</div>
+        <div className="grammar-status grammar-status--error">{t('detail.loadError')}</div>
       ) : !entry ? null : (
         <div className="grammar-shell">
           <span className="grammar-detail-level">{entry.level}</span>
@@ -94,15 +96,15 @@ export default function GrammarDetail() {
               onClick={toggleLearned}
               disabled={toggling}
             >
-              {entry.learned ? '✓ 학습 완료' : '학습 완료로 표시'}
+              {entry.learned ? t('detail.learned') : t('detail.markLearned')}
             </button>
           ) : (
-            <p className="grammar-detail-login-hint">로그인하면 학습 완료 체크를 할 수 있어요.</p>
+            <p className="grammar-detail-login-hint">{t('detail.loginHint')}</p>
           )}
 
           {entry.songs?.length > 0 && (
             <div className="grammar-detail-songs">
-              <h2 className="grammar-detail-songs-title">이 문법이 쓰인 노래</h2>
+              <h2 className="grammar-detail-songs-title">{t('detail.songs')}</h2>
               <div className="grammar-detail-songs-list">
                 {entry.songs.map((s) => (
                   <Link key={s.songId} to={`/songs/${s.songId}`} className="grammar-detail-song-item">

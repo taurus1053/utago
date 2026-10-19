@@ -1,0 +1,106 @@
+{
+  "countShort_other": "{{count}}語",
+  "wordCount_other": "{{count}}語",
+  "moveModal": {
+    "title": "別の単語帳へ移動",
+    "sub": "選択した単語の移動先の単語帳を選んでください。",
+    "empty": "移動できる他の単語帳がありません。左側で先に新しい単語帳を作ってください。"
+  },
+  "folderSelect": {
+    "none": "フォルダを選択しない",
+    "empty": "作成したフォルダがありません"
+  },
+  "create": {
+    "titleFolder": "📁 新しいフォルダを作る",
+    "titleBook": "📖 新しい単語帳を作る",
+    "folderPh": "フォルダ名",
+    "bookPh": "単語帳名",
+    "busy": "作成中...",
+    "submit": "作成",
+    "failed": "作成できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "addWord": {
+    "title": "単語を追加",
+    "sub": "「{{name}}」に追加する日本語の単語を入力してください。読み方と意味は自動で入力され、間違いは自分で直せます。",
+    "word": "単語",
+    "wordPh": "例: 食べる, たべる",
+    "pronunciation": "読み方",
+    "looking": "検索中...",
+    "pronunciationPh": "例: たべる",
+    "meaning": "意味（1行に1つ）",
+    "meaningPh": "例: 食事をする",
+    "notFound": "辞書にない単語です。読み方と意味を直接入力してください。",
+    "busy": "追加中...",
+    "submit": "追加",
+    "failed": "追加できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "editWord": {
+    "title": "単語を編集",
+    "sub": "「{{lemma}}」の読み方と意味を直します。単語の表記自体が間違っている場合は、削除してから追加し直してください。",
+    "busy": "保存中...",
+    "submit": "保存",
+    "failed": "編集できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "moveFolder": {
+    "title": "単語帳を移動",
+    "sub": "「{{name}}」の移動先フォルダを選んでください。",
+    "busy": "移動中...",
+    "failed": "移動できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "sidebar": {
+    "privateAria": "非公開の単語帳",
+    "menuAria": "{{name}}のメニュー",
+    "makePrivate": "非公開にする",
+    "makePublic": "公開にする",
+    "title": "マイ単語帳",
+    "newAria": "新規作成",
+    "createFolder": "📁 フォルダを作る",
+    "createBook": "📖 単語帳を作る",
+    "loadError": "読み込めませんでした。",
+    "folderDeleteAria": "{{name}}フォルダを削除",
+    "folderEmpty": "空です",
+    "browse": "単語帳を探す"
+  },
+  "main": {
+    "pick": "左側で単語帳を選ぶか、新しく作ってみましょう。",
+    "renameAria": "単語帳名を編集",
+    "renameTitle": "名前を編集",
+    "selectCancel": "選択をやめる",
+    "select": "選択する",
+    "addWord": "+ 単語を追加",
+    "study": "学習する",
+    "toList": "一覧へ",
+    "loadError": "単語を読み込めませんでした。",
+    "empty": "まだ単語がありません。上の「+ 単語を追加」で直接入れるか、曲の学習画面で単語帳アイコンのボタンから追加してみましょう。",
+    "selectAria": "{{lemma}}を選択",
+    "unstar": "お気に入り解除",
+    "star": "お気に入り",
+    "meaningPending": "意味を準備中",
+    "studyCount": "学習{{count}}回",
+    "editAria": "読み方・意味を編集",
+    "removeAria": "単語帳から削除",
+    "selectedCount": "{{count}}個選択中"
+  },
+  "confirm": {
+    "deleteFolder": "フォルダを本当に削除しますか？中の単語帳は削除されず、フォルダの外に出ます。",
+    "removeWord": "この単語を単語帳から削除しますか？",
+    "removeWordFavorite": "この単語を単語帳から削除しますか？\nOKを押すと元の単語帳からも削除されます。",
+    "removeSelected_other": "選択した単語{{count}}個を単語帳から削除しますか？",
+    "visibilityFailed": "公開設定を変更できませんでした。しばらくしてからもう一度お試しください。"
+  },
+  "deleteBook": {
+    "title": "単語帳を削除しますか？",
+    "message": "「{{name}}」の単語帳を本当に削除しますか？削除すると元に戻せません。"
+  },
+  "detail": {
+    "defaultName": "単語帳",
+    "loadError": "単語帳を読み込めませんでした。",
+    "empty": "まだ単語がありません。曲の学習画面の「＋ 単語帳」ボタンから単語を追加してみましょう。",
+    "studyBtn": "🎴 フラッシュカードで復習する",
+    "reviewCount": "復習{{count}}回",
+    "done_other": "{{count}}語の復習が終わりました！",
+    "tapToReveal": "タップして意味を見る",
+    "dontKnow": "わからない",
+    "know": "わかる"
+  }
+}

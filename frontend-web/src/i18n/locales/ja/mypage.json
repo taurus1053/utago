@@ -1,0 +1,74 @@
+{
+  "profile": {
+    "loadError": "プロフィールを読み込めませんでした。",
+    "learningJa": "日本語を学習中",
+    "learning": "学習中",
+    "statusPlaceholder": "ひとこと紹介を入力してください",
+    "saving": "保存中...",
+    "save": "保存",
+    "addStatus": "ひとこと紹介を追加しましょう",
+    "edit": "プロフィールを編集"
+  },
+  "stats": {
+    "words": "学習した単語",
+    "lines": "学習した歌詞",
+    "songs": "学習した曲",
+    "days": "学習日数",
+    "wordsValue": "{{count}}語",
+    "linesValue": "{{count}}行",
+    "songsValue": "{{count}}曲",
+    "daysValue": "{{count}}日"
+  },
+  "wordbook": {
+    "title": "マイ単語帳",
+    "viewAll": "すべて見る",
+    "count_other": "{{count}}語",
+    "new": "新しい単語帳を作る"
+  },
+  "banner": {
+    "title": "単語帳を探す",
+    "sub": "他のユーザーが共有した単語帳を自分の単語帳に追加してみましょう"
+  },
+  "posts": {
+    "myTitle": "自分の投稿",
+    "myEmpty": "まだ投稿がありません。",
+    "savedTitle": "保存した投稿",
+    "savedEmpty": "まだ保存した投稿がありません。"
+  },
+  "streak": {
+    "title": "学習ストリーク",
+    "active": "{{days}}日連続で学習中です",
+    "none": "まだ学習記録がありません",
+    "cellTitle": "{{date}} · 単語復習 {{n}}回"
+  },
+  "titlesCard": {
+    "title": "称号",
+    "more": "もっと見る",
+    "empty": "まだ獲得した称号がありません。学習を始めましょう！"
+  },
+  "friendsCard": {
+    "title": "友達",
+    "add": "+ 追加",
+    "empty": "まだ友達がいません。「+ 追加」で検索してみましょう！"
+  },
+  "titles": {
+    "title": "称号",
+    "current": "現在の代表称号",
+    "none": "まだありません",
+    "stat": "全{{total}}個中{{achieved}}個達成",
+    "change": "変更",
+    "hint": "称号カードにマウスを乗せると条件が表示されます。",
+    "loadError": "称号情報を読み込めませんでした。",
+    "locked": "未獲得",
+    "remaining": "{{category}} 残り{{remaining}}{{unit}}",
+    "reached": "{{category}} {{threshold}}{{unit}}達成",
+    "badge": "代表",
+    "applied": "適用中",
+    "applying": "適用中...",
+    "tapToApply": "タップして適用",
+    "modalTitle": "代表称号を選択",
+    "close": "閉じる",
+    "modalEmpty": "まだ達成した称号がありません。",
+    "currentlyApplied": "現在適用中"
+  }
+}

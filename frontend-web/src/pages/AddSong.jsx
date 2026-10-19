@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { createSong, extractYoutubeVideoId, lookupSongByYoutube, translateLines } from '../api/songs'
 import { isLoggedIn } from '../api/auth'
 import TopBar from '../components/TopBar'
@@ -18,11 +19,7 @@ import './AddSong.css'
 // 등록된 곡은 항상 등록한 본인만 볼 수 있는 PRIVATE 곡이 된다 — 다른 사용자에게 공개되지
 // 않는다(운영진이 저작권 문제를 해결한 곡만 별도로 공개 카탈로그로 승격). 로그인이 필요하다.
 
-const LANG_OPTIONS = [
-  { value: 'JA', label: '일본어' },
-  { value: 'KO', label: '한국어' },
-  { value: 'EN', label: '영어' },
-]
+const LANG_CODES = ['JA', 'KO', 'EN']
 
 function splitLines(text) {
   return text.split('\n').map((l) => l.trim())
@@ -38,6 +35,7 @@ function splitLinesRaw(text) {
 
 export default function AddSong() {
   const navigate = useNavigate()
+  const { t: tr } = useTranslation('song')
   const loggedIn = isLoggedIn()
 
   const [title, setTitle] = useState('')
@@ -65,7 +63,7 @@ export default function AddSong() {
       .map((text, i) => ({ i, text }))
       .filter((t) => t.text)
     if (targets.length === 0) {
-      setTranslateNotice({ type: 'error', text: '먼저 가사 원문을 입력해주세요.' })
+      setTranslateNotice({ type: 'error', text: tr('add.needOriginal') })
       return
     }
     setTranslating(true)
@@ -75,7 +73,7 @@ export default function AddSong() {
       if (!result.available || result.translations.length !== targets.length) {
         setTranslateNotice({
           type: 'error',
-          text: 'AI 번역을 지금은 사용할 수 없어요. 직접 입력해주세요.',
+          text: tr('add.aiUnavailable'),
         })
         return
       }
@@ -86,7 +84,7 @@ export default function AddSong() {
         }
       })
       setTranslationText(nextTranslationLines.join('\n'))
-      setTranslateNotice({ type: 'success', text: 'AI가 번역 초안을 채웠어요. 소절별로 어색한 부분은 바로 밑칸에서 고쳐주세요.' })
+      setTranslateNotice({ type: 'success', text: tr('add.aiDone') })
     } catch (err) {
       setTranslateNotice({ type: 'error', text: err.message })
     } finally {
@@ -108,17 +106,17 @@ export default function AddSong() {
       .filter((t) => t.text)
     const pastedLines = bulkPasteText.split('\n').map((l) => l.trim()).filter(Boolean)
     if (targets.length === 0) {
-      setBulkPasteNotice({ type: 'error', text: '먼저 위에 가사 원문을 입력해주세요.' })
+      setBulkPasteNotice({ type: 'error', text: tr('add.needOriginalAbove') })
       return
     }
     if (pastedLines.length === 0) {
-      setBulkPasteNotice({ type: 'error', text: '번역을 붙여넣어주세요.' })
+      setBulkPasteNotice({ type: 'error', text: tr('add.needPaste') })
       return
     }
     if (pastedLines.length !== targets.length) {
       setBulkPasteNotice({
         type: 'error',
-        text: `줄 개수가 달라요 — 원문은 ${targets.length}줄인데 붙여넣은 번역은 ${pastedLines.length}줄이에요. 빈 줄 없이 원문과 똑같은 줄 수로 맞춰서 다시 붙여넣어주세요.`,
+        text: tr('add.countMismatch', { original: targets.length, pasted: pastedLines.length }),
       })
       return
     }
@@ -130,7 +128,7 @@ export default function AddSong() {
     setBulkPasteText('')
     setBulkPasteOpen(false)
     setBulkPasteNotice(null)
-    setTranslateNotice({ type: 'success', text: `${pastedLines.length}줄을 자동으로 매칭해서 채웠어요. 혹시 밀린 줄이 없는지 한 번 확인해주세요.` })
+    setTranslateNotice({ type: 'success', text: tr('add.bulkDone', { count: pastedLines.length }) })
   }
 
   // 번역 칸은 소절(원문 줄)마다 하나씩 — 원문 줄 바로 밑에서 그 줄의 번역만 고칠 수 있게
@@ -154,7 +152,7 @@ export default function AddSong() {
   async function handleLookup() {
     const videoId = extractYoutubeVideoId(youtubeLinkInput)
     if (!videoId) {
-      setLookupError('유튜브 링크에서 영상 ID를 찾지 못했어요. youtu.be/... 또는 youtube.com/watch?v=... 형식으로 넣어주세요.')
+      setLookupError(tr('add.ytParseFail'))
       return
     }
     setLookupLoading(true)
@@ -169,7 +167,7 @@ export default function AddSong() {
         if (result.suggestedTitle) setTitle(result.suggestedTitle)
         if (result.suggestedArtist) setArtist(result.suggestedArtist)
         if (!result.suggestedTitle && !result.suggestedArtist) {
-          setLookupError('영상 정보를 가져오지 못했어요 — 제목/아티스트를 직접 입력해주세요. 영상은 연결해뒀어요.')
+          setLookupError(tr('add.ytInfoFail'))
         }
       }
     } catch (err) {
@@ -216,70 +214,67 @@ export default function AddSong() {
     <div className="add-song-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={tr('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">곡 추가</span>
+        <span className="app-subbar-title">{tr('add.title')}</span>
       </div>
 
       <form className="add-song-content" onSubmit={handleSubmit}>
         <p className="add-song-notice">
-          가사 원문은 직접 입력해주세요 — 저작권이 있는 가사를 자동으로 채워드릴 수는 없어요.
-          본인이 작성했거나 사용 권리가 있는 텍스트만 입력해주세요. 등록한 곡은 본인만 볼 수 있는
-          나만의 곡으로 저장돼요(다른 사용자에게 공개되지 않아요).
+          {tr('add.copyright')}
         </p>
 
         {!loggedIn && (
           <p className="add-song-notice add-song-notice--warn">
-            로그인 후에 곡을 등록할 수 있어요.{' '}
-            <Link to="/login">로그인하러 가기 →</Link>
+            {tr('add.loginWarn')}{' '}
+            <Link to="/login">{tr('add.loginLink')}</Link>
           </p>
         )}
 
         <section className="add-song-section">
-          <span className="add-song-label">유튜브 링크로 시작하기 (선택)</span>
+          <span className="add-song-label">{tr('add.ytLabel')}</span>
           <p className="add-song-lookup-desc">
-            이미 등록된 곡이면 바로 그 곡으로 안내해드리고, 아니면 영상 제목/채널명을 참고해서
-            제목·아티스트를 미리 채우고 영상도 자동으로 연결해드려요. 가사는 여전히 직접 입력해야 해요.
+            {tr('add.ytDesc')}
           </p>
           <div className="add-song-lookup-row">
             <input
               value={youtubeLinkInput}
               onChange={(e) => setYoutubeLinkInput(e.target.value)}
-              placeholder="youtu.be/... 또는 youtube.com/watch?v=..."
+              placeholder={tr('add.ytPlaceholder')}
             />
             <button type="button" className="add-song-lookup-btn" onClick={handleLookup} disabled={lookupLoading}>
-              {lookupLoading ? '확인 중...' : '가져오기'}
+              {lookupLoading ? tr('add.ytChecking') : tr('add.ytFetch')}
             </button>
           </div>
           {lookupError && <div className="add-song-error">{lookupError}</div>}
           {existingMatch && (
             <div className="add-song-existing-match">
-              이미 등록된 곡이에요!{' '}
-              <Link to={`/songs/${existingMatch.songId}`}>바로 학습하러 가기 →</Link>
+              {tr('add.existing')}{' '}
+              <Link to={`/songs/${existingMatch.songId}`}>{tr('add.existingGo')}</Link>
             </div>
           )}
           {youtubeVideoId && !existingMatch && (
-            <div className="add-song-lookup-linked">✓ 영상이 연결됐어요 ({youtubeVideoId})</div>
+            <div className="add-song-lookup-linked">{tr('add.linked', { id: youtubeVideoId })}</div>
           )}
         </section>
 
         <section className="add-song-section">
           <label className="add-song-field">
-            <span className="add-song-label">곡 제목</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 踊り子" />
+            <span className="add-song-label">{tr('add.songTitle')}</span>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr('add.titlePh')} />
           </label>
           <label className="add-song-field">
-            <span className="add-song-label">아티스트</span>
-            <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="예: Vaundy" />
+            <span className="add-song-label">{tr('add.artist')}</span>
+            <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder={tr('add.artistPh')} />
           </label>
           <label className="add-song-field">
-            <span className="add-song-label">원어</span>
+            <span className="add-song-label">{tr('add.sourceLang')}</span>
             <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-              {LANG_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {LANG_CODES.map((code) => (
+                <option key={code} value={code}>{tr(`common:langName.${code}`)}</option>
               ))}
             </select>
           </label>
@@ -287,21 +282,21 @@ export default function AddSong() {
 
         <section className="add-song-section">
           <div className="add-song-section-header">
-            <span className="add-song-label">가사 원문</span>
+            <span className="add-song-label">{tr('add.origLabel')}</span>
           </div>
-          <p className="add-song-lookup-desc">한 줄에 한 소절씩, 통째로 붙여넣으세요.</p>
+          <p className="add-song-lookup-desc">{tr('add.origHint')}</p>
           <textarea
             className="add-song-lyrics-textarea"
             value={originalText}
             onChange={(e) => setOriginalText(e.target.value)}
-            placeholder={'가사 원문을 한 줄에 한 소절씩 붙여넣으세요\n예)\n첫 번째 소절\n두 번째 소절'}
+            placeholder={tr('add.origPh')}
             rows={10}
           />
         </section>
 
         <section className="add-song-section">
           <div className="add-song-section-header">
-            <span className="add-song-label">번역 (소절별로)</span>
+            <span className="add-song-label">{tr('add.transLabel')}</span>
             <div className="add-song-section-header-actions">
               <button
                 type="button"
@@ -312,7 +307,7 @@ export default function AddSong() {
                 }}
                 disabled={nonEmptyCount === 0}
               >
-                번역 붙여넣고 자동매칭
+                {tr('add.bulkBtn')}
               </button>
               <button
                 type="button"
@@ -320,15 +315,12 @@ export default function AddSong() {
                 onClick={handleTranslate}
                 disabled={translating || nonEmptyCount === 0}
               >
-                {translating ? 'AI 번역 중...' : 'AI 번역 초안 받기'}
+                {translating ? tr('add.aiBusy') : tr('add.aiBtn')}
               </button>
             </div>
           </div>
           <p className="add-song-lookup-desc">
-            원문 소절 바로 밑에 그 줄의 번역을 입력하세요 — 어디가 맞고 틀렸는지 한눈에 확인할 수 있어요.
-            AI 번역 초안은 비어있는 칸만 채워요(이미 적어둔 번역은 덮어쓰지 않아요). 이미 번역을 다
-            준비해왔다면 "번역 붙여넣고 자동매칭"으로 통째로 붙여넣어도 돼요 — 원문과 줄 개수가
-            똑같을 때만 순서대로 채워줘요.
+            {tr('add.transDesc')}
           </p>
           {bulkPasteOpen && (
             <div className="add-song-bulk-paste">
@@ -336,7 +328,7 @@ export default function AddSong() {
                 className="add-song-lyrics-textarea"
                 value={bulkPasteText}
                 onChange={(e) => setBulkPasteText(e.target.value)}
-                placeholder={'준비해온 번역을 한 줄에 한 소절씩, 원문과 같은 줄 수로 붙여넣으세요'}
+                placeholder={tr('add.bulkPh')}
                 rows={8}
               />
               {bulkPasteNotice && (
@@ -345,7 +337,7 @@ export default function AddSong() {
                 </div>
               )}
               <button type="button" className="add-song-lookup-btn" onClick={handleBulkPasteApply}>
-                자동으로 채우기
+                {tr('add.bulkApply')}
               </button>
             </div>
           )}
@@ -356,7 +348,7 @@ export default function AddSong() {
           )}
           {nonEmptyCount === 0 ? (
             <p className="add-song-lyrics-empty-hint">
-              먼저 위에 가사 원문을 입력하면 여기에 소절별 번역 칸이 하나씩 생겨요.
+              {tr('add.emptyHint')}
             </p>
           ) : (
             <div className="add-song-lyric-rows">
@@ -371,7 +363,7 @@ export default function AddSong() {
                       className="add-song-lyric-row-translation"
                       value={translationLines[i] ?? ''}
                       onChange={(e) => handleTranslationLineChange(i, e.target.value)}
-                      placeholder="이 소절의 번역을 입력하세요"
+                      placeholder={tr('add.linePh')}
                     />
                   </div>
                 ) : (
@@ -382,7 +374,7 @@ export default function AddSong() {
           )}
           {lineCountMismatch && (
             <div className="add-song-error">
-              {missingTranslationLine + 1}번째 줄의 번역이 비어있어요.
+              {tr('add.missingLine', { n: missingTranslationLine + 1 })}
             </div>
           )}
         </section>
@@ -390,7 +382,7 @@ export default function AddSong() {
         {error && <div className="add-song-error">{error.message}</div>}
 
         <button type="submit" className="add-song-submit" disabled={!canSubmit}>
-          {submitting ? '등록 중...' : '곡 등록하고 학습 화면으로'}
+          {submitting ? tr('add.submitting') : tr('add.submit')}
         </button>
       </form>
     </div>

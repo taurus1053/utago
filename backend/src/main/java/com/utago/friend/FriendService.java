@@ -1,5 +1,6 @@
 package com.utago.friend;
 
+import com.utago.common.ApiException;
 import com.utago.notification.NotificationService;
 import com.utago.user.User;
 import com.utago.user.UserRepository;
@@ -53,13 +54,13 @@ public class FriendService {
     @Transactional
     public void sendRequest(Long myUserId, Long addresseeUserId) {
         if (myUserId.equals(addresseeUserId)) {
-            throw new IllegalStateException("자기 자신에게는 친구 요청을 보낼 수 없습니다.");
+            throw new ApiException("friend.selfRequest", "자기 자신에게는 친구 요청을 보낼 수 없습니다.");
         }
         userRepository.findById(addresseeUserId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         Optional<Friendship> existing = friendshipRepository.findBetween(myUserId, addresseeUserId);
         if (existing.isPresent()) {
-            throw new IllegalStateException("이미 친구 관계이거나 요청이 진행 중입니다.");
+            throw new ApiException("friend.alreadyOrPending", "이미 친구 관계이거나 요청이 진행 중입니다.");
         }
         friendshipRepository.save(Friendship.builder()
                 .requesterId(myUserId)
@@ -100,10 +101,10 @@ public class FriendService {
     public void accept(Long myUserId, Long requestId) {
         Friendship f = requireRequest(requestId);
         if (!f.getAddresseeId().equals(myUserId)) {
-            throw new IllegalStateException("본인에게 온 요청만 수락할 수 있습니다.");
+            throw new ApiException("friend.acceptOwnOnly", "본인에게 온 요청만 수락할 수 있습니다.");
         }
         if (f.getStatus() != FriendshipStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 요청입니다.");
+            throw new ApiException("friend.alreadyHandled", "이미 처리된 요청입니다.");
         }
         f.setStatus(FriendshipStatus.ACCEPTED);
         f.setRespondedAt(java.time.LocalDateTime.now());
@@ -115,7 +116,7 @@ public class FriendService {
     public void decline(Long myUserId, Long requestId) {
         Friendship f = requireRequest(requestId);
         if (!f.getAddresseeId().equals(myUserId)) {
-            throw new IllegalStateException("본인에게 온 요청만 거절할 수 있습니다.");
+            throw new ApiException("friend.declineOwnOnly", "본인에게 온 요청만 거절할 수 있습니다.");
         }
         friendshipRepository.delete(f);
     }
@@ -125,14 +126,14 @@ public class FriendService {
     public void cancel(Long myUserId, Long requestId) {
         Friendship f = requireRequest(requestId);
         if (!f.getRequesterId().equals(myUserId)) {
-            throw new IllegalStateException("본인이 보낸 요청만 취소할 수 있습니다.");
+            throw new ApiException("friend.cancelOwnOnly", "본인이 보낸 요청만 취소할 수 있습니다.");
         }
         friendshipRepository.delete(f);
     }
 
     private Friendship requireRequest(Long requestId) {
         return friendshipRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalStateException("요청을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("friend.requestNotFound", "요청을 찾을 수 없습니다."));
     }
 
     @Transactional(readOnly = true)
@@ -153,7 +154,7 @@ public class FriendService {
     public void removeFriend(Long myUserId, Long friendUserId) {
         Friendship f = friendshipRepository.findBetween(myUserId, friendUserId)
                 .filter(x -> x.getStatus() == FriendshipStatus.ACCEPTED)
-                .orElseThrow(() -> new IllegalStateException("친구 관계가 아닙니다."));
+                .orElseThrow(() -> new ApiException("friend.notFriends", "친구 관계가 아닙니다."));
         friendshipRepository.delete(f);
     }
 

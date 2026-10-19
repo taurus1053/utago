@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import TopBar from '../components/TopBar'
 import { equipTitle, getMyTitles } from '../api/users'
 import './MyPage.css'
@@ -50,6 +51,8 @@ function metaFor(category) {
 }
 
 export default function TitlesPage() {
+  // 아래 칭호 목록 람다들이 인자 이름으로 t를 쓰고 있어서, 번역 함수는 tr로 받는다.
+  const { t: tr } = useTranslation('mypage')
   const navigate = useNavigate()
   const [titles, setTitles] = useState(EMPTY_TITLES)
   const [loading, setLoading] = useState(true)
@@ -103,18 +106,18 @@ export default function TitlesPage() {
       <TopBar showSearch={false} />
       <div className="mypage-shell titles-page-body">
         <div className="titles-page-header">
-          <button type="button" className="titles-page-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+          <button type="button" className="titles-page-back" onClick={() => navigate(-1)} aria-label={tr('common:actions.back')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#201a14" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
-          <h1 className="titles-page-title">칭호</h1>
+          <h1 className="titles-page-title">{tr('titles.title')}</h1>
         </div>
 
         {loading ? (
-          <div className="mypage-status">불러오는 중...</div>
+          <div className="mypage-status">{tr('common:actions.loading')}</div>
         ) : titles.categories.length === 0 ? (
-          <div className="mypage-status">칭호 정보를 불러오지 못했어요.</div>
+          <div className="mypage-status">{tr('titles.loadError')}</div>
         ) : (
           <>
             <div className="titles-hero">
@@ -122,16 +125,16 @@ export default function TitlesPage() {
                 <span>{heroMeta.icon}</span>
               </div>
               <div className="titles-hero-body">
-                <div className="titles-hero-label">현재 대표 칭호</div>
-                <div className="titles-hero-name">{titles.equippedTitleName || '아직 없어요'}</div>
-                <div className="titles-hero-stat">총 {totalCount}개 중 {totalAchieved}개 달성</div>
+                <div className="titles-hero-label">{tr('titles.current')}</div>
+                <div className="titles-hero-name">{titles.equippedTitleName || tr('titles.none')}</div>
+                <div className="titles-hero-stat">{tr('titles.stat', { total: totalCount, achieved: totalAchieved })}</div>
               </div>
               <button type="button" className="titles-hero-edit-btn" onClick={() => setShowEquipModal(true)}>
-                변경
+                {tr('titles.change')}
               </button>
             </div>
 
-            <div className="titles-page-hint">칭호 카드에 마우스를 올리면 조건이 보여요.</div>
+            <div className="titles-page-hint">{tr('titles.hint')}</div>
 
             <div className="titles-page-categories">
               {titles.categories.map((group) => {
@@ -154,9 +157,9 @@ export default function TitlesPage() {
                             <div key={t.code} className="titles-card titles-card--locked">
                               <span className="titles-card-lock" aria-hidden="true">🔒</span>
                               <span className="titles-card-name">{t.name}</span>
-                              <span className="titles-card-status">미획득</span>
+                              <span className="titles-card-status">{tr('titles.locked')}</span>
                               <span className="titles-card-reveal">
-                                {group.categoryLabel} {remaining}{t.unit} 남음
+                                {tr('titles.remaining', { category: group.categoryLabel, remaining, unit: t.unit })}
                               </span>
                             </div>
                           )
@@ -171,14 +174,14 @@ export default function TitlesPage() {
                             onClick={() => !isEquipped && handleEquip(t.code)}
                             disabled={isEquipped || equipping !== null}
                           >
-                            {isEquipped && <span className="titles-card-badge">대표</span>}
+                            {isEquipped && <span className="titles-card-badge">{tr('titles.badge')}</span>}
                             <span className="titles-card-icon">{meta.icon}</span>
                             <span className="titles-card-name">{t.name}</span>
                             <span className="titles-card-equip-hint">
-                              {isEquipped ? '적용중' : (equipping === t.code ? '적용 중...' : '탭해서 적용')}
+                              {isEquipped ? tr('titles.applied') : (equipping === t.code ? tr('titles.applying') : tr('titles.tapToApply'))}
                             </span>
                             <span className="titles-card-reveal">
-                              {group.categoryLabel} {t.threshold}{t.unit} 달성
+                              {tr('titles.reached', { category: group.categoryLabel, threshold: t.threshold, unit: t.unit })}
                             </span>
                           </button>
                         )
@@ -196,19 +199,19 @@ export default function TitlesPage() {
         <div className="titles-equip-modal-backdrop" onClick={() => setShowEquipModal(false)}>
           <div className="titles-equip-modal" onClick={(e) => e.stopPropagation()}>
             <div className="titles-equip-modal-head">
-              <h2 className="titles-equip-modal-title">대표 칭호 선택</h2>
+              <h2 className="titles-equip-modal-title">{tr('titles.modalTitle')}</h2>
               <button
                 type="button"
                 className="titles-equip-modal-close"
                 onClick={() => setShowEquipModal(false)}
-                aria-label="닫기"
+                aria-label={tr('titles.close')}
               >
                 ✕
               </button>
             </div>
             <div className="titles-equip-modal-body">
               {achievableGroups.length === 0 ? (
-                <div className="mypage-status">아직 달성한 칭호가 없어요.</div>
+                <div className="mypage-status">{tr('titles.modalEmpty')}</div>
               ) : (
                 achievableGroups.map((group) => {
                   const meta = metaFor(group.category)
@@ -231,9 +234,9 @@ export default function TitlesPage() {
                             >
                               <span>{t.name}</span>
                               {isEquipped ? (
-                                <span className="titles-equip-modal-current">현재 적용 중</span>
+                                <span className="titles-equip-modal-current">{tr('titles.currentlyApplied')}</span>
                               ) : (
-                                equipping === t.code && <span className="titles-equip-modal-current">적용 중...</span>
+                                equipping === t.code && <span className="titles-equip-modal-current">{tr('titles.applying')}</span>
                               )}
                             </button>
                           )

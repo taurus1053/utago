@@ -1,0 +1,39 @@
+{
+  "title": "친구",
+  "sub": "닉네임으로 친구를 검색하고 요청을 보내보세요",
+  "searchPlaceholder": "닉네임으로 검색",
+  "results": "검색 결과",
+  "searching": "검색 중...",
+  "searchError": "검색 중 문제가 발생했어요.",
+  "noResults": "일치하는 사용자가 없어요.",
+  "relation": {
+    "NONE": "요청 보내기",
+    "PENDING_OUTGOING": "요청 보냄",
+    "PENDING_INCOMING": "받은 요청 확인",
+    "FRIENDS": "친구"
+  },
+  "relationSub": {
+    "FRIENDS": "이미 친구예요",
+    "PENDING_OUTGOING": "요청을 보냈어요",
+    "PENDING_INCOMING": "나에게 요청을 보냈어요",
+    "NONE": "아직 친구가 아니에요"
+  },
+  "sending": "보내는 중...",
+  "incoming": "받은 요청",
+  "incomingEmpty": "받은 요청이 없어요.",
+  "decline": "거절",
+  "accept": "수락",
+  "outgoing": "보낸 요청",
+  "outgoingEmpty": "보낸 요청이 없어요.",
+  "waiting": "수락 대기 중",
+  "cancelRequest": "요청 취소",
+  "myFriends": "내 친구",
+  "friendsEmpty": "아직 친구가 없어요. 닉네임으로 검색해서 요청을 보내보세요.",
+  "noStatus": "한 줄 소개 없음",
+  "removeAria": "친구 삭제",
+  "removeConfirm": {
+    "title": "친구를 삭제할까요?",
+    "message": "{{nickname}}님을 친구 목록에서 삭제합니다.",
+    "confirm": "삭제"
+  }
+}

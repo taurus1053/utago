@@ -1,0 +1,75 @@
+{
+  "profile": {
+    "loadError": "Couldn't load your profile.",
+    "learningJa": "Learning Japanese",
+    "learning": "Learning",
+    "statusPlaceholder": "Write a short bio",
+    "saving": "Saving...",
+    "save": "Save",
+    "addStatus": "Add a short bio",
+    "edit": "Edit profile"
+  },
+  "stats": {
+    "words": "Words learned",
+    "lines": "Lyrics learned",
+    "songs": "Songs learned",
+    "days": "Days studied",
+    "wordsValue": "{{count}}",
+    "linesValue": "{{count}}",
+    "songsValue": "{{count}}",
+    "daysValue": "{{count}}"
+  },
+  "wordbook": {
+    "title": "My wordbooks",
+    "viewAll": "View all",
+    "count_one": "{{count}} word",
+    "count_other": "{{count}} words",
+    "new": "Create new wordbook"
+  },
+  "banner": {
+    "title": "Browse wordbooks",
+    "sub": "Add wordbooks shared by other people to your own"
+  },
+  "posts": {
+    "myTitle": "My posts",
+    "myEmpty": "You haven't posted anything yet.",
+    "savedTitle": "Saved posts",
+    "savedEmpty": "You haven't saved any posts yet."
+  },
+  "streak": {
+    "title": "Study streak",
+    "active": "You're on a {{days}}-day streak",
+    "none": "No study activity yet",
+    "cellTitle": "{{date}} · {{n}} word reviews"
+  },
+  "titlesCard": {
+    "title": "Titles",
+    "more": "See all",
+    "empty": "You haven't earned any titles yet. Start studying!"
+  },
+  "friendsCard": {
+    "title": "Friends",
+    "add": "+ Add",
+    "empty": "No friends yet. Use \"+ Add\" to search!"
+  },
+  "titles": {
+    "title": "Titles",
+    "current": "Current featured title",
+    "none": "None yet",
+    "stat": "{{achieved}} of {{total}} earned",
+    "change": "Change",
+    "hint": "Hover over a title card to see its requirement.",
+    "loadError": "Couldn't load titles.",
+    "locked": "Locked",
+    "remaining": "{{category}} {{remaining}}{{unit}} to go",
+    "reached": "{{category}} {{threshold}}{{unit}} reached",
+    "badge": "Featured",
+    "applied": "In use",
+    "applying": "Applying...",
+    "tapToApply": "Tap to apply",
+    "modalTitle": "Choose featured title",
+    "close": "Close",
+    "modalEmpty": "You haven't earned any titles yet.",
+    "currentlyApplied": "Currently in use"
+  }
+}

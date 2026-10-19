@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   addCustomWordbookItem,
   addWordbookItem,
@@ -55,14 +56,15 @@ function TrashIcon() {
 // 선택한 단어들을 다른 단어장으로 옮길 때 뜨는 작은 창. 옮길 수 있는 단어장이 없으면
 // (단어장이 지금 것 하나뿐이면) 안내만 보여준다.
 function WordbookMoveModal({ books, currentId, busy, onMove, onClose }) {
+  const { t } = useTranslation('wordbook')
   const options = books.filter((b) => String(b.id) !== String(currentId))
   return (
     <div className="wordbook-modal-backdrop" onClick={onClose}>
       <div className="wordbook-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="wordbook-modal-title">다른 단어장으로 이동</h3>
-        <p className="wordbook-modal-sub">선택한 단어를 옮길 단어장을 골라주세요.</p>
+        <h3 className="wordbook-modal-title">{t('moveModal.title')}</h3>
+        <p className="wordbook-modal-sub">{t('moveModal.sub')}</p>
         {options.length === 0 ? (
-          <p className="wordbook-modal-empty">이동할 수 있는 다른 단어장이 없어요. 왼쪽에서 새 단어장을 먼저 만들어보세요.</p>
+          <p className="wordbook-modal-empty">{t('moveModal.empty')}</p>
         ) : (
           <div className="wordbook-modal-list">
             {options.map((b) => (
@@ -74,12 +76,12 @@ function WordbookMoveModal({ books, currentId, busy, onMove, onClose }) {
                 onClick={() => onMove(b.id)}
               >
                 <span>{b.favoriteDefault ? '★ ' : '📁 '}{b.name}</span>
-                <span>{b.itemCount}개</span>
+                <span>{t('countShort', { count: b.itemCount })}</span>
               </button>
             ))}
           </div>
         )}
-        <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>닫기</button>
+        <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>{t('common:actions.close')}</button>
       </div>
     </div>
   )
@@ -88,6 +90,7 @@ function WordbookMoveModal({ books, currentId, busy, onMove, onClose }) {
 // 네이티브 <select>는 옵션 목록이 브라우저(OS) 기본 스타일로 떠서 디자인을 맞출 수 없으니,
 // 버튼 + 드롭다운 패널로 직접 만든 폴더 선택기. 바깥을 클릭하면 닫힌다.
 function FolderSelect({ folders, value, onChange }) {
+  const { t } = useTranslation('wordbook')
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
   const selected = folders.find((f) => String(f.id) === String(value))
@@ -108,7 +111,7 @@ function FolderSelect({ folders, value, onChange }) {
         className="wordbook-folder-select-trigger"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="wordbook-folder-select-value">{selected ? `📁 ${selected.name}` : '폴더 선택 안함'}</span>
+        <span className="wordbook-folder-select-value">{selected ? `📁 ${selected.name}` : t('folderSelect.none')}</span>
         <svg
           className={`wordbook-folder-select-chevron${open ? ' wordbook-folder-select-chevron--open' : ''}`}
           width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
@@ -123,10 +126,10 @@ function FolderSelect({ folders, value, onChange }) {
             className={`wordbook-folder-select-option${!value ? ' wordbook-folder-select-option--active' : ''}`}
             onClick={() => { onChange(''); setOpen(false) }}
           >
-            폴더 선택 안함
+            {t('folderSelect.none')}
           </button>
           {folders.length === 0 ? (
-            <div className="wordbook-folder-select-empty">만든 폴더가 없어요</div>
+            <div className="wordbook-folder-select-empty">{t('folderSelect.empty')}</div>
           ) : (
             folders.map((f) => (
               <button
@@ -148,16 +151,17 @@ function FolderSelect({ folders, value, onChange }) {
 // "+" 버튼 → 폴더/단어장 고르면 뜨는 새로 만들기 창. 사이드바에 바로 인라인으로 폼을
 // 넣는 대신 별도 창으로 띄워서, 이름(+ 단어장이면 넣을 폴더)을 여유 있게 입력하게 한다.
 function WordbookCreateModal({ type, name, onNameChange, folders, folderId, onFolderChange, busy, error, onSubmit, onClose, inputRef }) {
+  const { t } = useTranslation('wordbook')
   return (
     <div className="wordbook-modal-backdrop" onClick={onClose}>
       <div className="wordbook-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="wordbook-modal-title">{type === 'folder' ? '📁 새 폴더 만들기' : '📖 새 단어장 만들기'}</h3>
+        <h3 className="wordbook-modal-title">{type === 'folder' ? t('create.titleFolder') : t('create.titleBook')}</h3>
         <form onSubmit={onSubmit}>
           <input
             ref={inputRef}
             type="text"
             className="wordbook-create-modal-input"
-            placeholder={type === 'folder' ? '폴더 이름' : '단어장 이름'}
+            placeholder={type === 'folder' ? t('create.folderPh') : t('create.bookPh')}
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
             onKeyDown={(e) => {
@@ -171,9 +175,9 @@ function WordbookCreateModal({ type, name, onNameChange, folders, folderId, onFo
           )}
           {error && <p className="wordbook-create-modal-error">{error}</p>}
           <div className="wordbook-create-modal-actions">
-            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>{t('common:actions.cancel')}</button>
             <button type="submit" className="wordbook-create-modal-submit" disabled={busy || !name.trim()}>
-              {busy ? '만드는 중...' : '만들기'}
+              {busy ? t('create.busy') : t('create.submit')}
             </button>
           </div>
         </form>
@@ -190,6 +194,7 @@ function WordbookCreateModal({ type, name, onNameChange, folders, folderId, onFo
 // 처음 조회하는 단어는 서버가 JMdict+AI 번역을 돌리느라 몇 초 걸릴 수 있지만, 한 번
 // 조회되면 마스터 사전에 캐시돼서 다음부터는(이 사용자든 다른 사용자든) 즉시 채워진다.
 function AddWordModal({ bookName, busy, error, onSubmit, onClose }) {
+  const { t } = useTranslation('wordbook')
   const [lemma, setLemma] = useState('')
   const [reading, setReading] = useState('')
   const [meaningsText, setMeaningsText] = useState('')
@@ -240,15 +245,15 @@ function AddWordModal({ bookName, busy, error, onSubmit, onClose }) {
   return (
     <div className="wordbook-modal-backdrop" onClick={onClose}>
       <div className="wordbook-modal wordbook-modal--wide" onClick={(e) => e.stopPropagation()}>
-        <h3 className="wordbook-modal-title">단어 추가</h3>
-        <p className="wordbook-modal-sub">"{bookName}"에 담을 일본어 단어를 입력해주세요. 발음·뜻은 자동으로 채워지고, 틀린 부분은 직접 고칠 수 있어요.</p>
+        <h3 className="wordbook-modal-title">{t('addWord.title')}</h3>
+        <p className="wordbook-modal-sub">{t('addWord.sub', { name: bookName })}</p>
         <form onSubmit={handleSubmit}>
           <label className="wordbook-add-word-field">
-            <span className="wordbook-add-word-label">단어</span>
+            <span className="wordbook-add-word-label">{t('addWord.word')}</span>
             <input
               type="text"
               className="wordbook-create-modal-input"
-              placeholder="예: 食べる, たべる"
+              placeholder={t('addWord.wordPh')}
               value={lemma}
               onChange={(e) => setLemma(e.target.value)}
               onKeyDown={(e) => {
@@ -260,22 +265,22 @@ function AddWordModal({ bookName, busy, error, onSubmit, onClose }) {
           </label>
           <label className="wordbook-add-word-field">
             <span className="wordbook-add-word-label">
-              발음{looking && <span className="wordbook-add-word-looking"> · 찾는 중...</span>}
+              {t('addWord.pronunciation')}{looking && <span className="wordbook-add-word-looking"> · {t('addWord.looking')}</span>}
             </span>
             <input
               type="text"
               className="wordbook-create-modal-input"
-              placeholder="예: たべる"
+              placeholder={t('addWord.pronunciationPh')}
               value={reading}
               onChange={(e) => { setReading(e.target.value); setReadingTouched(true) }}
               maxLength={120}
             />
           </label>
           <label className="wordbook-add-word-field">
-            <span className="wordbook-add-word-label">의미 (한 줄에 하나씩)</span>
+            <span className="wordbook-add-word-label">{t('addWord.meaning')}</span>
             <textarea
               className="wordbook-create-modal-input wordbook-add-word-textarea"
-              placeholder={'예: 먹다'}
+              placeholder={t('addWord.meaningPh')}
               value={meaningsText}
               onChange={(e) => { setMeaningsText(e.target.value); setMeaningsTouched(true) }}
               rows={3}
@@ -283,13 +288,13 @@ function AddWordModal({ bookName, busy, error, onSubmit, onClose }) {
             />
           </label>
           {notFound && !looking && (
-            <p className="wordbook-add-word-hint">사전에 없는 단어예요. 발음과 뜻을 직접 입력해주세요.</p>
+            <p className="wordbook-add-word-hint">{t('addWord.notFound')}</p>
           )}
           {error && <p className="wordbook-create-modal-error">{error}</p>}
           <div className="wordbook-create-modal-actions">
-            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>{t('common:actions.cancel')}</button>
             <button type="submit" className="wordbook-create-modal-submit" disabled={busy || !lemma.trim()}>
-              {busy ? '추가하는 중...' : '추가'}
+              {busy ? t('addWord.busy') : t('addWord.submit')}
             </button>
           </div>
         </form>
@@ -311,6 +316,7 @@ function PencilIcon() {
 // 단어장 목록 행 "수정" 창 — 오타/잘못 입력한 발음·뜻을 고친다. 단어(lemma)는 모든 단어장이
 // 같이 쓰는 마스터 데이터라 여기서는 고치지 못한다(표기 자체가 틀렸으면 삭제 후 다시 추가).
 function EditWordModal({ item, busy, error, onSubmit, onClose }) {
+  const { t } = useTranslation('wordbook')
   const [reading, setReading] = useState(item.reading ?? '')
   const [meaningsText, setMeaningsText] = useState((item.meanings ?? []).join('\n'))
 
@@ -323,11 +329,11 @@ function EditWordModal({ item, busy, error, onSubmit, onClose }) {
   return (
     <div className="wordbook-modal-backdrop" onClick={onClose}>
       <div className="wordbook-modal wordbook-modal--wide" onClick={(e) => e.stopPropagation()}>
-        <h3 className="wordbook-modal-title">단어 수정</h3>
-        <p className="wordbook-modal-sub">"{item.lemma}"의 발음·뜻을 고쳐요. 단어 표기 자체가 틀렸다면 삭제 후 다시 추가해주세요.</p>
+        <h3 className="wordbook-modal-title">{t('editWord.title')}</h3>
+        <p className="wordbook-modal-sub">{t('editWord.sub', { lemma: item.lemma })}</p>
         <form onSubmit={handleSubmit}>
           <label className="wordbook-add-word-field">
-            <span className="wordbook-add-word-label">발음</span>
+            <span className="wordbook-add-word-label">{t('addWord.pronunciation')}</span>
             <input
               type="text"
               className="wordbook-create-modal-input"
@@ -341,7 +347,7 @@ function EditWordModal({ item, busy, error, onSubmit, onClose }) {
             />
           </label>
           <label className="wordbook-add-word-field">
-            <span className="wordbook-add-word-label">의미 (한 줄에 하나씩)</span>
+            <span className="wordbook-add-word-label">{t('addWord.meaning')}</span>
             <textarea
               className="wordbook-create-modal-input wordbook-add-word-textarea"
               value={meaningsText}
@@ -352,9 +358,9 @@ function EditWordModal({ item, busy, error, onSubmit, onClose }) {
           </label>
           {error && <p className="wordbook-create-modal-error">{error}</p>}
           <div className="wordbook-create-modal-actions">
-            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+            <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>{t('common:actions.cancel')}</button>
             <button type="submit" className="wordbook-create-modal-submit" disabled={busy || !reading.trim()}>
-              {busy ? '저장하는 중...' : '저장'}
+              {busy ? t('editWord.busy') : t('editWord.submit')}
             </button>
           </div>
         </form>
@@ -365,17 +371,18 @@ function EditWordModal({ item, busy, error, onSubmit, onClose }) {
 
 // 단어장을 다른 폴더로 옮기는 창 — 사이드바 각 줄의 ⋮ 메뉴 "이동"에서 뜬다.
 function WordbookMoveFolderModal({ book, folders, folderId, onFolderChange, busy, error, onSubmit, onClose }) {
+  const { t } = useTranslation('wordbook')
   return (
     <div className="wordbook-modal-backdrop" onClick={onClose}>
       <div className="wordbook-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="wordbook-modal-title">단어장 이동</h3>
-        <p className="wordbook-modal-sub">"{book.name}"을(를) 옮길 폴더를 골라주세요.</p>
+        <h3 className="wordbook-modal-title">{t('moveFolder.title')}</h3>
+        <p className="wordbook-modal-sub">{t('moveFolder.sub', { name: book.name })}</p>
         <FolderSelect folders={folders} value={folderId} onChange={onFolderChange} />
         {error && <p className="wordbook-create-modal-error">{error}</p>}
         <div className="wordbook-create-modal-actions">
-          <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>취소</button>
+          <button type="button" className="wordbook-modal-close-btn" onClick={onClose}>{t('common:actions.cancel')}</button>
           <button type="button" className="wordbook-create-modal-submit" disabled={busy} onClick={onSubmit}>
-            {busy ? '이동 중...' : '이동'}
+            {busy ? t('moveFolder.busy') : t('common:actions.move')}
           </button>
         </div>
       </div>
@@ -388,6 +395,7 @@ function WordbookMoveFolderModal({ book, folders, folderId, onFolderChange, busy
 // 오른쪽까지 밀려나지 않게 한다. 마우스를 올리면 맨 오른쪽에 점 세개(⋮) 메뉴 버튼이
 // 나타나고, 거기서 수정/이동/삭제를 고를 수 있다(즐겨찾기 단어장은 뺄 수 없어서 메뉴 없음).
 function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, onRenameChange, onRenameCommit, onRenameCancel, menuOpen, onToggleMenu, onCloseMenu, onStartRename, onStartMove, onDelete, onToggleVisibility }) {
+  const { t } = useTranslation('wordbook')
   return (
     <div
       className={`wordbook-sidebar-item${active ? ' wordbook-sidebar-item--active' : ''}`}
@@ -420,12 +428,12 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
       ) : (
         <span className="wordbook-sidebar-item-name">{book.name}</span>
       )}
-      <span className="wordbook-sidebar-item-count">{book.itemCount}개</span>
+      <span className="wordbook-sidebar-item-count">{t('countShort', { count: book.itemCount })}</span>
       <span className="wordbook-sidebar-item-spacer" />
       {!book.favoriteDefault && (
         <span className="wordbook-sidebar-item-menu-wrap" onClick={(e) => e.stopPropagation()}>
           {!book.isPublic && (
-            <span className="wordbook-sidebar-item-lock" aria-label="비공개 단어장">
+            <span className="wordbook-sidebar-item-lock" aria-label={t('sidebar.privateAria')}>
               <svg width="13" height="13" viewBox="0 0 20 20" fill="#FFC53D">
                 <path d="M10 1.5a4 4 0 0 0-4 4v2.25H5a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 5 17.75h10a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 15 7.75h-1V5.5a4 4 0 0 0-4-4Zm0 2a2 2 0 0 1 2 2v2.25H8V5.5a2 2 0 0 1 2-2Z" />
               </svg>
@@ -436,7 +444,7 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
             tabIndex={0}
             className="wordbook-sidebar-item-menu-btn"
             onClick={onToggleMenu}
-            aria-label={`${book.name} 메뉴`}
+            aria-label={t('sidebar.menuAria', { name: book.name })}
           >
             ⋮
           </span>
@@ -444,10 +452,10 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
             <>
               <div className="wordbook-sidebar-item-menu-backdrop" onClick={onCloseMenu} />
               <div className="wordbook-sidebar-item-menu-panel">
-                <button type="button" onClick={onStartRename}>수정</button>
-                <button type="button" onClick={onStartMove}>이동</button>
-                <button type="button" onClick={onToggleVisibility}>{book.isPublic ? '비공개로 전환' : '공개 전환'}</button>
-                <button type="button" className="wordbook-sidebar-item-menu-option--danger" onClick={(e) => onDelete(e, book)}>삭제</button>
+                <button type="button" onClick={onStartRename}>{t('common:actions.edit')}</button>
+                <button type="button" onClick={onStartMove}>{t('common:actions.move')}</button>
+                <button type="button" onClick={onToggleVisibility}>{book.isPublic ? t('sidebar.makePrivate') : t('sidebar.makePublic')}</button>
+                <button type="button" className="wordbook-sidebar-item-menu-option--danger" onClick={(e) => onDelete(e, book)}>{t('common:actions.delete')}</button>
               </div>
             </>
           )}
@@ -464,6 +472,7 @@ function WordbookSidebarItem({ book, active, onSelect, renaming, renameValue, on
 // 이 컴포넌트를 그린다(App.jsx).
 // 로그인 필수 — App.jsx의 RequireAuth가 비로그인 접근을 막는다.
 export default function Wordbook() {
+  const { t } = useTranslation('wordbook')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
 
@@ -618,7 +627,7 @@ export default function Wordbook() {
     } catch (err) {
       // 실패해도 입력값은 남겨서 다시 시도할 수 있게 한다. 창에는 실패했다는 걸 보여준다.
       console.error('단어장/폴더 만들기 실패:', err)
-      setCreateError(err?.message || '만들지 못했어요. 잠시 후 다시 시도해주세요.')
+      setCreateError(err?.message || t('create.failed'))
     } finally {
       setSavingNew(false)
     }
@@ -658,7 +667,7 @@ export default function Wordbook() {
       refreshBooks(selectedId)
     } catch (err) {
       console.error('단어 직접 추가 실패:', err)
-      setAddWordError(err?.message || '추가하지 못했어요. 잠시 후 다시 시도해주세요.')
+      setAddWordError(err?.message || t('addWord.failed'))
     } finally {
       setAddWordBusy(false)
     }
@@ -681,7 +690,7 @@ export default function Wordbook() {
       await refreshItems(selectedId)
     } catch (err) {
       console.error('단어 수정 실패:', err)
-      setEditWordError(err?.message || '수정하지 못했어요. 잠시 후 다시 시도해주세요.')
+      setEditWordError(err?.message || t('editWord.failed'))
     } finally {
       setEditWordBusy(false)
     }
@@ -749,7 +758,7 @@ export default function Wordbook() {
 
   async function handleDeleteFolder(e, folder) {
     e.stopPropagation()
-    if (!window.confirm('폴더를 정말로 삭제할까요? 안의 단어장은 지워지지 않고 폴더 밖으로 나가요.')) return
+    if (!window.confirm(t('confirm.deleteFolder'))) return
     try {
       await deleteWordbookFolder(folder.id)
       await Promise.all([refreshFolders(), refreshBooks()])
@@ -826,7 +835,7 @@ export default function Wordbook() {
       await setWordbookVisibility(book.id, nextPublic)
       setBooks((prev) => prev.map((b) => (String(b.id) === String(book.id) ? { ...b, isPublic: nextPublic } : b)))
     } catch (err) {
-      alert(err?.message || '공개 설정을 바꾸지 못했어요. 잠시 후 다시 시도해주세요.')
+      alert(err?.message || t('confirm.visibilityFailed'))
     }
   }
   async function handleMoveSubmit() {
@@ -839,7 +848,7 @@ export default function Wordbook() {
       await refreshBooks()
     } catch (err) {
       console.error('단어장 이동 실패:', err)
-      setMoveError(err?.message || '이동하지 못했어요. 잠시 후 다시 시도해주세요.')
+      setMoveError(err?.message || t('moveFolder.failed'))
     } finally {
       setMoveBusy(false)
     }
@@ -850,8 +859,8 @@ export default function Wordbook() {
     // 이 단어의 모든 항목(원래 단어장 + 즐겨찾기)을 함께 지운다 — 즐겨찾기에서 지울 땐 그
     // 사실을 미리 알려준다.
     const confirmMessage = selectedBook?.favoriteDefault
-      ? '이 단어를 단어장에서 지울까요?\n확인을 누르면 원래 단어장에서도 삭제됩니다.'
-      : '이 단어를 단어장에서 지울까요?'
+      ? t('confirm.removeWordFavorite')
+      : t('confirm.removeWord')
     if (!window.confirm(confirmMessage)) return
     try {
       await removeWordbookItem(itemId)
@@ -880,7 +889,7 @@ export default function Wordbook() {
   }
   async function handleBulkDelete() {
     if (selectedIds.size === 0 || bulkBusy) return
-    if (!window.confirm(`선택한 단어 ${selectedIds.size}개를 단어장에서 지울까요?`)) return
+    if (!window.confirm(t('confirm.removeSelected', { count: selectedIds.size }))) return
     setBulkBusy(true)
     const ids = [...selectedIds]
     try {
@@ -1000,14 +1009,14 @@ export default function Wordbook() {
         {/* 왼쪽 사이드바 — 단어장을 디렉토리 목록처럼 보여준다 */}
         <aside className="wordbook-sidebar">
           <div className="wordbook-sidebar-header">
-            <span className="wordbook-sidebar-title">내 단어장</span>
+            <span className="wordbook-sidebar-title">{t('sidebar.title')}</span>
             <div className="wordbook-sidebar-add-wrap">
               <button
                 type="button"
                 className="wordbook-sidebar-add-btn"
                 onClick={() => setAddMenuOpen((v) => !v)}
-                aria-label="새로 만들기"
-                title="새로 만들기"
+                aria-label={t('sidebar.newAria')}
+                title={t('sidebar.newAria')}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -1018,8 +1027,8 @@ export default function Wordbook() {
                 <>
                   <div className="wordbook-add-menu-backdrop" onClick={() => setAddMenuOpen(false)} />
                   <div className="wordbook-add-menu">
-                    <button type="button" onClick={() => openCreate('folder')}>📁 폴더 만들기</button>
-                    <button type="button" onClick={() => openCreate('wordbook')}>📖 단어장 만들기</button>
+                    <button type="button" onClick={() => openCreate('folder')}>{t('sidebar.createFolder')}</button>
+                    <button type="button" onClick={() => openCreate('wordbook')}>{t('sidebar.createBook')}</button>
                   </div>
                 </>
               )}
@@ -1027,9 +1036,9 @@ export default function Wordbook() {
           </div>
 
           {booksLoading ? (
-            <div className="wordbook-sidebar-status">불러오는 중...</div>
+            <div className="wordbook-sidebar-status">{t('common:actions.loading')}</div>
           ) : booksError ? (
-            <div className="wordbook-sidebar-status wordbook-sidebar-status--error">불러오지 못했어요.</div>
+            <div className="wordbook-sidebar-status wordbook-sidebar-status--error">{t('sidebar.loadError')}</div>
           ) : (
             <nav className="wordbook-sidebar-list">
               {/* 즐겨찾기는 폴더에 넣을 수 없는 기본 단어장 — 항상 맨 위에 고정해서 보여준다. */}
@@ -1074,7 +1083,7 @@ export default function Wordbook() {
                       )}
                       {/* 폴더 옆 숫자는 폴더 안 단어장 개수가 아니라, 그 안의 모든 단어장에 든 단어 수를 합한 값이어야 한다. */}
                       <span className="wordbook-sidebar-item-count">
-                        {folderBooks.reduce((sum, b) => sum + (b.itemCount || 0), 0)}개
+                        {t('countShort', { count: folderBooks.reduce((sum, b) => sum + (b.itemCount || 0), 0) })}
                       </span>
                       <span className="wordbook-sidebar-item-spacer" />
                       <span
@@ -1082,7 +1091,7 @@ export default function Wordbook() {
                         tabIndex={0}
                         className="wordbook-sidebar-item-delete"
                         onClick={(e) => handleDeleteFolder(e, folder)}
-                        aria-label={`${folder.name} 폴더 삭제`}
+                        aria-label={t('sidebar.folderDeleteAria', { name: folder.name })}
                       >
                         ×
                       </span>
@@ -1093,7 +1102,7 @@ export default function Wordbook() {
                           <WordbookSidebarItem key={book.id} book={book} {...sidebarItemProps(book)} />
                         ))}
                         {folderBooks.length === 0 && (
-                          <div className="wordbook-sidebar-folder-empty">비어 있어요</div>
+                          <div className="wordbook-sidebar-folder-empty">{t('sidebar.folderEmpty')}</div>
                         )}
                       </div>
                     )}
@@ -1112,7 +1121,7 @@ export default function Wordbook() {
             className="wordbook-sidebar-browse-btn"
             onClick={() => navigate('/board')}
           >
-            단어장 둘러보기
+            {t('sidebar.browse')}
           </button>
         </aside>
 
@@ -1120,7 +1129,7 @@ export default function Wordbook() {
         <main className="wordbook-main">
           {!selectedBook ? (
             <div className="wordbook-main-status">
-              왼쪽에서 단어장을 선택하거나 새로 만들어보세요.
+              {t('main.pick')}
             </div>
           ) : (
             <>
@@ -1148,8 +1157,8 @@ export default function Wordbook() {
                         type="button"
                         className="wordbook-main-title-edit-btn"
                         onClick={startRenameBook}
-                        aria-label="단어장 이름 편집"
-                        title="이름 편집"
+                        aria-label={t('main.renameAria')}
+                        title={t('main.renameTitle')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -1168,36 +1177,36 @@ export default function Wordbook() {
                         className={`wordbook-select-toggle-btn${selectMode ? ' wordbook-select-toggle-btn--active' : ''}`}
                         onClick={toggleSelectMode}
                       >
-                        {selectMode ? '선택 취소' : '선택하기'}
+                        {selectMode ? t('main.selectCancel') : t('main.select')}
                       </button>
                     )}
                     {!selectedBook.favoriteDefault && (
                       <button type="button" className="wordbook-add-word-btn" onClick={openAddWord}>
-                        + 단어 추가
+                        {t('main.addWord')}
                       </button>
                     )}
                     {items.length > 0 && (
                       <button type="button" className="wordbook-detail-study-btn" onClick={startStudy}>
-                        학습하기
+                        {t('main.study')}
                       </button>
                     )}
                   </div>
                 )}
                 {mode === 'study' && (
                   <button type="button" className="wordbook-main-back-btn" onClick={() => setMode('list')}>
-                    목록으로
+                    {t('main.toList')}
                   </button>
                 )}
               </div>
 
               {itemsLoading ? (
-                <div className="wordbook-main-status">불러오는 중...</div>
+                <div className="wordbook-main-status">{t('common:actions.loading')}</div>
               ) : itemsError ? (
-                <div className="wordbook-main-status wordbook-main-status--error">단어를 불러오지 못했어요.</div>
+                <div className="wordbook-main-status wordbook-main-status--error">{t('main.loadError')}</div>
               ) : mode === 'list' ? (
                 items.length === 0 ? (
                   <div className="wordbook-main-status">
-                    아직 담긴 단어가 없어요. 위의 "+ 단어 추가"로 직접 넣거나, 곡 학습 화면에서 단어장 아이콘 버튼으로 추가해보세요.
+                    {t('main.empty')}
                   </div>
                 ) : (
                   <>
@@ -1215,14 +1224,14 @@ export default function Wordbook() {
                               checked={selectedIds.has(item.id)}
                               onChange={() => toggleSelectItem(item.id)}
                               onClick={(e) => e.stopPropagation()}
-                              aria-label={`${item.lemma} 선택`}
+                              aria-label={t('main.selectAria', { lemma: item.lemma })}
                             />
                           ) : (
                             <button
                               type="button"
                               className={`wordbook-detail-star${item.starred ? ' wordbook-detail-star--on' : ''}`}
                               onClick={() => handleToggleStar(item.id)}
-                              aria-label={item.starred ? '즐겨찾기 해제' : '즐겨찾기'}
+                              aria-label={item.starred ? t('main.unstar') : t('main.star')}
                             >
                               {item.starred ? '★' : '☆'}
                             </button>
@@ -1233,19 +1242,19 @@ export default function Wordbook() {
                               {item.reading && <span className="wordbook-detail-row-reading">{item.reading}</span>}
                             </span>
                             <span className="wordbook-detail-row-meaning">
-                              {item.meanings && item.meanings.length > 0 ? item.meanings.join(', ') : '뜻 준비 중'}
+                              {item.meanings && item.meanings.length > 0 ? item.meanings.join(', ') : t('main.meaningPending')}
                             </span>
                           </div>
                           <span className={`wordbook-detail-badge ${repetitionTierClass(item.repetitionCount)}`}>
-                            {`학습 ${item.repetitionCount}회`}
+                            {t('main.studyCount', { count: item.repetitionCount })}
                           </span>
                           {!selectMode && (
                             <button
                               type="button"
                               className="wordbook-detail-edit"
                               onClick={() => openEditWord(item)}
-                              aria-label="발음·뜻 수정"
-                              title="발음·뜻 수정"
+                              aria-label={t('main.editAria')}
+                              title={t('main.editAria')}
                             >
                               <PencilIcon />
                             </button>
@@ -1255,7 +1264,7 @@ export default function Wordbook() {
                               type="button"
                               className="wordbook-detail-remove"
                               onClick={() => handleRemoveItem(item.id)}
-                              aria-label="단어장에서 삭제"
+                              aria-label={t('main.removeAria')}
                             >
                               <TrashIcon />
                             </button>
@@ -1267,14 +1276,14 @@ export default function Wordbook() {
                     {selectMode && (
                       <div className="wordbook-select-bar">
                         <div className="wordbook-select-bar-actions">
-                          <span className="wordbook-select-bar-count">{selectedIds.size}개 선택됨</span>
+                          <span className="wordbook-select-bar-count">{t('main.selectedCount', { count: selectedIds.size })}</span>
                           <button
                             type="button"
                             className="wordbook-select-bar-btn wordbook-select-bar-btn--move"
                             disabled={bulkBusy || selectedIds.size === 0}
                             onClick={() => setMoveModalOpen(true)}
                           >
-                            이동
+                            {t('common:actions.move')}
                           </button>
                           <button
                             type="button"
@@ -1282,7 +1291,7 @@ export default function Wordbook() {
                             disabled={bulkBusy || selectedIds.size === 0}
                             onClick={handleBulkDelete}
                           >
-                            삭제
+                            {t('common:actions.delete')}
                           </button>
                         </div>
                       </div>
@@ -1369,9 +1378,9 @@ export default function Wordbook() {
 
       {deleteBookTarget && (
         <ConfirmModal
-          title="단어장을 삭제할까요?"
-          message={`"${deleteBookTarget.name}" 단어장을 정말로 삭제할까요? 삭제하면 되돌릴 수 없어요.`}
-          confirmLabel="삭제"
+          title={t('deleteBook.title')}
+          message={t('deleteBook.message', { name: deleteBookTarget.name })}
+          confirmLabel={t('common:actions.delete')}
           danger
           busy={deleteBookBusy}
           onConfirm={confirmDeleteBook}

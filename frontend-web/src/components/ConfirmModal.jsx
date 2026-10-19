@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import './ConfirmModal.css'
 
 // 네이티브 window.confirm() 대신 쓰는 공용 확인 창 — 단어장(Wordbook.jsx)의
@@ -8,13 +9,14 @@ import './ConfirmModal.css'
 export default function ConfirmModal({
   title,
   message,
-  confirmLabel = '확인',
-  cancelLabel = '취소',
+  confirmLabel,
+  cancelLabel,
   danger = false,
   busy = false,
   onConfirm,
   onCancel,
 }) {
+  const { t } = useTranslation()
   return (
     <div className="confirm-modal-backdrop" onClick={onCancel}>
       <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
@@ -22,7 +24,7 @@ export default function ConfirmModal({
         {message && <p className="confirm-modal-sub">{message}</p>}
         <div className="confirm-modal-actions">
           <button type="button" className="confirm-modal-cancel-btn" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
+            {cancelLabel ?? t('actions.cancel')}
           </button>
           <button
             type="button"
@@ -30,7 +32,7 @@ export default function ConfirmModal({
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? '처리 중...' : confirmLabel}
+            {busy ? t('actions.processing') : (confirmLabel ?? t('actions.confirm'))}
           </button>
         </div>
       </div>

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   listNotifications,
   getUnreadNotificationCount,
   markNotificationRead,
   markAllNotificationsRead,
 } from '../api/notifications'
+import { formatDate, formatRelative } from '../i18n/format'
 import './NotificationBell.css'
 
 // 알림 종 아이콘 + 드롭다운 — claude/소셜_마이페이지_기획.md 21번. TopBar.jsx에 있던
@@ -14,21 +16,24 @@ import './NotificationBell.css'
 // 인프라가 없어서 가장 단순한 방식을 택함), 목록은 드롭다운을 열 때만 불러온다.
 const POLL_INTERVAL_MS = 30000
 
-function formatRelativeTime(iso) {
+// "방금 전 / 5분 전 / 3시간 전 / 2일 전" — 일주일이 넘으면 날짜로. 표기는 언어별 Intl이 만든다.
+function formatRelativeTime(iso, lang, justNowText) {
   if (!iso) return ''
   const diffMs = Date.now() - new Date(iso).getTime()
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return '방금 전'
-  if (diffMin < 60) return `${diffMin}분 전`
+  if (diffMin < 1) return justNowText
+  if (diffMin < 60) return formatRelative(lang, -diffMin, 'minute')
   const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour}시간 전`
+  if (diffHour < 24) return formatRelative(lang, -diffHour, 'hour')
   const diffDay = Math.floor(diffHour / 24)
-  if (diffDay < 7) return `${diffDay}일 전`
-  return iso.slice(0, 10).replaceAll('-', '.')
+  if (diffDay < 7) return formatRelative(lang, -diffDay, 'day')
+  return formatDate(lang, new Date(iso), { dateStyle: 'medium' })
 }
 
 export default function NotificationBell() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation('common')
+  const lang = i18n.resolvedLanguage || 'ko'
   const [open, setOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [items, setItems] = useState([])
@@ -52,8 +57,8 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) return
     function handleClickOutside(e) {
-      const t = e.target
-      if (panelRef.current?.contains(t) || btnRef.current?.contains(t)) return
+      const target = e.target
+      if (panelRef.current?.contains(target) || btnRef.current?.contains(target)) return
       setOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -98,7 +103,7 @@ export default function NotificationBell() {
 
   return (
     <>
-      <button aria-label="알림" onClick={toggleOpen} className="home-icon-btn home-bell-btn" ref={btnRef}>
+      <button aria-label={t('notifications.aria')} onClick={toggleOpen} className="home-icon-btn home-bell-btn" ref={btnRef}>
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -111,18 +116,18 @@ export default function NotificationBell() {
       {open && (
         <div className="notif-dropdown" ref={panelRef}>
           <div className="notif-dropdown-header">
-            <span>알림</span>
+            <span>{t('notifications.title')}</span>
             {items.some((n) => !n.read) && (
               <button type="button" className="notif-mark-all-btn" onClick={handleMarkAllRead}>
-                모두 읽음
+                {t('notifications.markAll')}
               </button>
             )}
           </div>
           <div className="notif-dropdown-list">
             {loading ? (
-              <div className="notif-empty">불러오는 중...</div>
+              <div className="notif-empty">{t('actions.loading')}</div>
             ) : items.length === 0 ? (
-              <div className="notif-empty">아직 알림이 없어요.</div>
+              <div className="notif-empty">{t('notifications.empty')}</div>
             ) : (
               items.map((n) => (
                 <button
@@ -136,7 +141,7 @@ export default function NotificationBell() {
                   </div>
                   <div className="notif-item-body">
                     <div className="notif-item-message">{n.message}</div>
-                    <div className="notif-item-time">{formatRelativeTime(n.createdAt)}</div>
+                    <div className="notif-item-time">{formatRelativeTime(n.createdAt, lang, t('notifications.justNow'))}</div>
                   </div>
                   {!n.read && <span className="notif-item-dot" />}
                 </button>

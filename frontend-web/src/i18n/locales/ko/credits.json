@@ -1,0 +1,11 @@
+{
+  "back": "← 돌아가기",
+  "title": "크레딧 · Credits",
+  "lead": "우타고(Utago)는 아래의 오픈 데이터와 오픈소스 소프트웨어의 도움을 받아 만들어졌어요.",
+  "jmdictTitle": "JMdict (일본어 사전 데이터)",
+  "jmdictDesc": "단어 뜻 채우기에는 EDRDG(Electronic Dictionary Research and Development Group)의 JMdict 사전 데이터 중 일부를 사용해요. 이 데이터를 바탕으로 한국어 뜻을 만들었어요.",
+  "kuromojiTitle": "Kuromoji (일본어 형태소 분석)",
+  "kuromojiDesc": "가사의 후리가나와 단어 추출에는 오픈소스 형태소 분석기 Kuromoji(Atilika, Apache License 2.0)를 사용해요.",
+  "audioTitle": "음원 재생",
+  "audioDesc": "음원은 YouTube 플레이어를 통해 재생돼요."
+}

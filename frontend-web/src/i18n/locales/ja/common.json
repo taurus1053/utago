@@ -1,0 +1,61 @@
+{
+  "langSwitcher": {
+    "ariaLabel": "表示言語を選択"
+  },
+  "topbar": {
+    "openMenu": "メニューを開く",
+    "searchPlaceholder": "曲・アーティストを検索",
+    "openProfileMenu": "プロフィールメニューを開く",
+    "mainMenu": "メインメニュー",
+    "login": "ログイン"
+  },
+  "nav": {
+    "home": "ホーム",
+    "wordbook": "単語帳",
+    "grammar": "文法",
+    "mypage": "マイページ",
+    "admin": "管理者ページ",
+    "reports": "通報管理",
+    "announcements": "運営からのお知らせ"
+  },
+  "profileMenu": {
+    "profileSettings": "プロフィール設定",
+    "displayLanguage": "表示言語",
+    "darkMode": "ダークモード",
+    "support": "サポート",
+    "logout": "ログアウト"
+  },
+  "actions": {
+    "back": "戻る",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "processing": "処理中...",
+    "loading": "読み込み中...",
+    "close": "閉じる",
+    "delete": "削除",
+    "edit": "編集",
+    "move": "移動"
+  },
+  "datePicker": {
+    "placeholder": "生年月日を選択",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "selectYear": "年を選択",
+    "reselectYear": "年を選び直す"
+  },
+  "errors": {
+    "generic": "リクエストの処理中に問題が発生しました。しばらくしてからもう一度お試しください。"
+  },
+  "langName": {
+    "JA": "日本語",
+    "KO": "韓国語",
+    "EN": "英語"
+  },
+  "notifications": {
+    "aria": "通知",
+    "title": "通知",
+    "markAll": "すべて既読にする",
+    "empty": "まだ通知はありません。",
+    "justNow": "たった今"
+  }
+}

@@ -1,31 +1,33 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { formatDate, formatRelative } from '../i18n/format'
 import TopBar from '../components/TopBar'
 import { listPosts } from '../api/board'
 import './BoardList.css'
 
-const SORT_TABS = [
-  { key: 'popular', label: '인기순' },
-  { key: 'latest', label: '최신순' },
-  { key: 'downloads', label: '다운로드순' },
-]
+// 탭 이름은 화면에서 t(`sort.${key}`)로 번역한다
+const SORT_TABS = [{ key: 'popular' }, { key: 'latest' }, { key: 'downloads' }]
 
-function timeAgo(isoString) {
+// "방금 전 / 5분 전 / 3시간 전 / 2일 전" — 한 달이 넘으면 날짜로. 표기는 언어별 Intl이 만든다.
+function timeAgo(isoString, lang, justNowText) {
   if (!isoString) return ''
   const diffMs = Date.now() - new Date(isoString).getTime()
   const minutes = Math.floor(diffMs / 60000)
-  if (minutes < 1) return '방금 전'
-  if (minutes < 60) return `${minutes}분 전`
+  if (minutes < 1) return justNowText
+  if (minutes < 60) return formatRelative(lang, -minutes, 'minute')
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}시간 전`
+  if (hours < 24) return formatRelative(lang, -hours, 'hour')
   const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}일 전`
-  return new Date(isoString).toLocaleDateString('ko-KR')
+  if (days < 30) return formatRelative(lang, -days, 'day')
+  return formatDate(lang, new Date(isoString), { dateStyle: 'medium' })
 }
 
 // "단어장 둘러보기" 게시판 목록 — 다른 사람이 공개로 올린 단어장을 카드로 둘러보고,
 // 마음에 들면 상세로 들어가 "내 단어장에 추가"(다운로드)할 수 있다.
 export default function BoardList() {
+  const { t, i18n } = useTranslation('board')
+  const lang = i18n.resolvedLanguage || 'ko'
   const navigate = useNavigate()
   const [sort, setSort] = useState('popular')
   const [posts, setPosts] = useState([])
@@ -42,7 +44,7 @@ export default function BoardList() {
         if (!cancelled) setPosts(data)
       })
       .catch(() => {
-        if (!cancelled) setError('게시글을 불러오지 못했어요.')
+        if (!cancelled) setError(true)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -64,9 +66,9 @@ export default function BoardList() {
 
       <div className="board-shell">
         <div className="board-header">
-          <h1 className="board-title">단어장 둘러보기</h1>
+          <h1 className="board-title">{t('title')}</h1>
           <button type="button" className="board-write-btn" onClick={() => navigate('/board/new')}>
-            + 글쓰기
+            {t('writeBtn')}
           </button>
         </div>
 
@@ -79,7 +81,7 @@ export default function BoardList() {
                 className={`board-sort-tab${sort === tab.key ? ' board-sort-tab--active' : ''}`}
                 onClick={() => setSort(tab.key)}
               >
-                {tab.label}
+                {t(`sort.${tab.key}`)}
               </button>
             ))}
           </nav>
@@ -90,7 +92,7 @@ export default function BoardList() {
             </svg>
             <input
               type="text"
-              placeholder="제목 검색"
+              placeholder={t('searchPlaceholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -98,11 +100,11 @@ export default function BoardList() {
         </div>
 
         {loading ? (
-          <div className="board-status">불러오는 중...</div>
+          <div className="board-status">{t('common:actions.loading')}</div>
         ) : error ? (
-          <div className="board-status board-status--error">{error}</div>
+          <div className="board-status board-status--error">{t('loadError')}</div>
         ) : filteredPosts.length === 0 ? (
-          <div className="board-status">아직 올라온 단어장이 없어요. 첫 게시글을 올려보세요!</div>
+          <div className="board-status">{t('empty')}</div>
         ) : (
           <div className="board-card-list">
             {filteredPosts.map((post) => (
@@ -112,10 +114,10 @@ export default function BoardList() {
                 onClick={() => navigate(`/board/${post.id}`)}
               >
                 <div className="board-card-top">
-                  {post.official && <span className="board-card-badge">공식</span>}
+                  {post.official && <span className="board-card-badge">{t('official')}</span>}
                   <span className="board-card-author">{post.authorNickname}</span>
                   <span className="board-card-dot">·</span>
-                  <span className="board-card-date">{timeAgo(post.createdAt)}</span>
+                  <span className="board-card-date">{timeAgo(post.createdAt, lang, t('justNow'))}</span>
                 </div>
                 <h2 className="board-card-title">{post.title}</h2>
                 <p className="board-card-summary">{post.body}</p>
@@ -123,7 +125,7 @@ export default function BoardList() {
                   <span className="board-card-wordbook-emoji">{post.wordbookEmoji || '📘'}</span>
                   <span className="board-card-wordbook-text">
                     <span className="board-card-wordbook-name">{post.wordbookName}</span>
-                    <span className="board-card-wordbook-count">{post.wordbookItemCount}개 단어</span>
+                    <span className="board-card-wordbook-count">{t('wordCount', { count: post.wordbookItemCount })}</span>
                   </span>
                 </div>
                 <div className="board-card-stats">

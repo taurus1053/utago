@@ -1,0 +1,61 @@
+{
+  "langSwitcher": {
+    "ariaLabel": "Choose display language"
+  },
+  "topbar": {
+    "openMenu": "Open menu",
+    "searchPlaceholder": "Search songs or artists",
+    "openProfileMenu": "Open profile menu",
+    "mainMenu": "Main menu",
+    "login": "Log in"
+  },
+  "nav": {
+    "home": "Home",
+    "wordbook": "Wordbook",
+    "grammar": "Grammar",
+    "mypage": "My page",
+    "admin": "Admin",
+    "reports": "Reports",
+    "announcements": "Announcements"
+  },
+  "profileMenu": {
+    "profileSettings": "Profile settings",
+    "displayLanguage": "Display language",
+    "darkMode": "Dark mode",
+    "support": "Support",
+    "logout": "Log out"
+  },
+  "actions": {
+    "back": "Back",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "processing": "Processing...",
+    "loading": "Loading...",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "move": "Move"
+  },
+  "datePicker": {
+    "placeholder": "Select date of birth",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "selectYear": "Select year",
+    "reselectYear": "Choose year again"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again in a moment."
+  },
+  "langName": {
+    "JA": "Japanese",
+    "KO": "Korean",
+    "EN": "English"
+  },
+  "notifications": {
+    "aria": "Notifications",
+    "title": "Notifications",
+    "markAll": "Mark all as read",
+    "empty": "No notifications yet.",
+    "justNow": "Just now"
+  }
+}

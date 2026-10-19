@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getSong, updateSongSync } from '../api/songs'
 import TopBar from '../components/TopBar'
 import useYoutubeApiReady from '../hooks/useYoutubeApiReady'
@@ -72,6 +73,7 @@ const CONTEXT_AFTER = 1
 export default function SongSync() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t: tr } = useTranslation('song')
 
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -267,20 +269,20 @@ export default function SongSync() {
     <div className="song-sync-page">
       <TopBar showSearch={false} />
       <div className="app-subbar">
-        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label="뒤로 가기">
+        <button className="app-subbar-back" onClick={() => navigate(-1)} aria-label={tr('common:actions.back')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
-        <span className="app-subbar-title">가사 싱크 편집</span>
+        <span className="app-subbar-title">{tr('sync.title')}</span>
       </div>
 
       {loading ? (
-        <div className="song-sync-status">불러오는 중...</div>
+        <div className="song-sync-status">{tr('common:actions.loading')}</div>
       ) : loadError ? (
-        <div className="song-sync-status song-sync-status--error">곡을 불러오지 못했어요.</div>
+        <div className="song-sync-status song-sync-status--error">{tr('loadError')}</div>
       ) : !song ? null : !song.youtubeVideoId ? (
-        <div className="song-sync-status">이 곡은 등록된 유튜브 영상이 없어서 싱크를 맞출 수 없어요.</div>
+        <div className="song-sync-status">{tr('sync.noVideo')}</div>
       ) : (
         <div className="song-sync-content">
           <div className="song-sync-layout">
@@ -290,7 +292,7 @@ export default function SongSync() {
               </div>
 
               <div className="song-sync-status-row">
-                <span className="song-sync-progress">{doneCount} / {lines.length} 줄 완료</span>
+                <span className="song-sync-progress">{tr('sync.progress', { done: doneCount, total: lines.length })}</span>
                 <div className="song-sync-controls">
                   {/* 재생/일시정지는 글자 수가 달라 버튼 폭이 들쭉날쭉했던 문제를 없애려고
                       항상 같은 크기의 아이콘 버튼으로 표시한다. */}
@@ -299,8 +301,8 @@ export default function SongSync() {
                     className="song-sync-icon-btn"
                     onClick={handlePlayPause}
                     disabled={!apiReady}
-                    aria-label={isPlaying ? '일시정지' : '재생'}
-                    title={isPlaying ? '일시정지' : '재생'}
+                    aria-label={isPlaying ? tr('sync.pause') : tr('sync.play')}
+                    title={isPlaying ? tr('sync.pause') : tr('sync.play')}
                   >
                     {isPlaying ? (
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1"></rect><rect x="14" y="4" width="5" height="16" rx="1"></rect></svg>
@@ -309,7 +311,7 @@ export default function SongSync() {
                     )}
                   </button>
                   <button type="button" className="song-sync-ctrl-btn" onClick={handleUndo} disabled={tapIndex === 0}>
-                    이전 줄 다시
+                    {tr('sync.undo')}
                   </button>
                   <button
                     type="button"
@@ -317,10 +319,10 @@ export default function SongSync() {
                     onClick={handleSkipNext}
                     disabled={tapIndex >= lines.length - 1}
                   >
-                    다음 줄 이동
+                    {tr('sync.skip')}
                   </button>
                   <button type="button" className="song-sync-ctrl-btn" onClick={handleReset} disabled={!apiReady}>
-                    처음부터 다시
+                    {tr('sync.reset')}
                   </button>
                   <button
                     type="button"
@@ -328,7 +330,7 @@ export default function SongSync() {
                     onClick={handleSave}
                     disabled={saving || doneCount === 0}
                   >
-                    {saving ? '저장 중...' : allDone ? '싱크 저장' : `${doneCount}줄만 저장`}
+                    {saving ? tr('sync.saving') : allDone ? tr('sync.save') : tr('sync.savePartial', { count: doneCount })}
                   </button>
                 </div>
               </div>
@@ -336,16 +338,16 @@ export default function SongSync() {
                 <div className="song-sync-save-msg-row">
                   {saveError && (
                     <span className="song-sync-save-error">
-                      저장하지 못했어요. {saveError.status === 403 ? '본인이 등록한 곡만 싱크를 수정할 수 있어요.' : saveError.message}
+                      {tr('sync.saveFailed', { reason: saveError.status === 403 ? tr('sync.forbidden') : saveError.message })}
                     </span>
                   )}
-                  {saveSuccess && !saveError && <span className="song-sync-save-success">저장했어요!</span>}
+                  {saveSuccess && !saveError && <span className="song-sync-save-success">{tr('sync.saved')}</span>}
                 </div>
               )}
 
               {nextLine ? (
                 <div className="song-sync-context">
-                  <span className="song-sync-current-label">이 소절이 나오는 순간 탭하세요</span>
+                  <span className="song-sync-current-label">{tr('sync.tapNow')}</span>
                   {contextItems.map(({ key, line, role }) => (
                     <div
                       key={key}
@@ -368,12 +370,12 @@ export default function SongSync() {
               ) : lines.length > 0 ? (
                 <div className="song-sync-current">
                   <p className="song-sync-current-done">
-                    모든 소절의 타이밍을 기록했어요. 저장하거나, 다시 맞추려면 "처음부터 다시"를 눌러주세요.
+                    {tr('sync.allDone')}
                   </p>
                 </div>
               ) : (
                 <div className="song-sync-current">
-                  <p className="song-sync-current-done">이 곡에는 아직 가사가 없어요.</p>
+                  <p className="song-sync-current-done">{tr('sync.noLyrics')}</p>
                 </div>
               )}
 
@@ -383,7 +385,7 @@ export default function SongSync() {
                 onClick={handleTap}
                 disabled={!apiReady || tapIndex >= lines.length}
               >
-                탭! <span className="song-sync-tap-hint">(스페이스바로도 가능)</span>
+                {tr('sync.tap')} <span className="song-sync-tap-hint">{tr('sync.tapKey')}</span>
               </button>
             </div>
 
@@ -397,11 +399,11 @@ export default function SongSync() {
                       key={line.id}
                       className={`song-sync-row${isNext ? ' song-sync-row--next' : ''}${tapped ? ' song-sync-row--done' : ''}`}
                       onClick={() => handleJumpTo(idx)}
-                      title="클릭하면 이 소절부터 다시 싱크를 맞출 수 있어요"
+                      title={tr('sync.rowTitle')}
                     >
                       <span className="song-sync-row-time">
                         {tapped ? formatMs(tapped.startMs) : formatMs(line.startMs)}
-                        {!tapped && <span className="song-sync-row-time-old">기존</span>}
+                        {!tapped && <span className="song-sync-row-time-old">{tr('sync.old')}</span>}
                       </span>
                       <div className="song-sync-row-text-col">
                         <span className="song-sync-row-text">{renderOriginalWithWords(line)}</span>

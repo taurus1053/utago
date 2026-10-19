@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '../i18n/format'
 import TopBar from '../components/TopBar'
 import { getMyPage, getMyStats, getMyTitles, updateStatusMessage } from '../api/users'
 import { listWordbooks } from '../api/wordbook'
@@ -39,8 +41,7 @@ function pickHighestAchievedPerCategory(categories) {
 }
 
 // 스트릭 캘린더 요일 헤더 — 백엔드(LearningStatsService.buildCalendar)가 일요일 시작
-// 5주로 정렬해서 내려주므로 그에 맞춘다.
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+// 5주로 정렬해서 내려주므로 그에 맞춘다. 요일 글자는 컴포넌트 안에서 언어별로 Intl이 만든다.
 
 function todayIso() {
   const now = new Date()
@@ -88,7 +89,8 @@ function streakCellTextColor(day, today) {
 // 그대로, PLACEHOLDER_FRIENDS 더미 시절의 레이아웃을 실제 데이터로 유지).
 const FRIEND_AVATAR_DISPLAY_LIMIT = 4
 
-const LEARNING_LANG_LABELS = { ja: '일본어 학습 중' }
+// 학습 언어 코드 → 번역 키 (없으면 일반 "학습 중")
+const LEARNING_LANG_KEYS = { ja: 'profile.learningJa' }
 
 // 일본어 국기를 흉내낸 원형 배지 — 와이어프레임 그대로(흰 바탕 + 빨간 점 + 얇은 테두리).
 // 학습 언어가 늘어나면 깃발 색상표를 따로 두고 분기하면 된다.
@@ -130,6 +132,10 @@ function SavedPostRow({ post, onClick }) {
 // 와이어프레임(Main.dc.html)과 동일하게 맞췄다. 학습 통계/스트릭/칭호/친구는 계측·설계가
 // 아직 없어 더미 데이터로 자리만 채워둔 상태(위 PLACEHOLDER_* 참고).
 export default function MyPage() {
+  const { t, i18n } = useTranslation(['mypage', 'common'])
+  const lang = i18n.resolvedLanguage || 'ko'
+  // 요일 헤더 — 2023-01-01은 일요일
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) => formatDate(lang, new Date(2023, 0, 1 + i), { weekday: 'narrow' }))
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -226,9 +232,9 @@ export default function MyPage() {
       <div className="mypage-shell">
         {/* 프로필 카드 */}
         {profileLoading ? (
-          <div className="mypage-status">불러오는 중...</div>
+          <div className="mypage-status">{t('common:actions.loading')}</div>
         ) : !profile ? (
-          <div className="mypage-status mypage-status--error">프로필을 불러오지 못했어요.</div>
+          <div className="mypage-status mypage-status--error">{t('profile.loadError')}</div>
         ) : (
           <section className="mypage-profile-card">
             <div className="mypage-profile-left">
@@ -243,7 +249,7 @@ export default function MyPage() {
                 <div className="mypage-profile-flag-row">
                   <LearningLangBadge flag={profile.learningLangFlag} />
                   <span className="mypage-profile-flag-label">
-                    {LEARNING_LANG_LABELS[profile.learningLangFlag] || '학습 중'}
+                    {t(LEARNING_LANG_KEYS[profile.learningLangFlag] || 'profile.learning')}
                   </span>
                 </div>
                 {editingStatus ? (
@@ -252,12 +258,12 @@ export default function MyPage() {
                       type="text"
                       value={statusDraft}
                       onChange={(e) => setStatusDraft(e.target.value)}
-                      placeholder="한 줄 소개를 입력해주세요"
+                      placeholder={t('profile.statusPlaceholder')}
                       maxLength={80}
                       autoFocus
                     />
                     <button type="button" onClick={handleSaveStatus} disabled={statusSaving}>
-                      {statusSaving ? '저장 중...' : '저장'}
+                      {statusSaving ? t('profile.saving') : t('profile.save')}
                     </button>
                     <button
                       type="button"
@@ -267,19 +273,19 @@ export default function MyPage() {
                         setStatusDraft(profile.statusMessage || '')
                       }}
                     >
-                      취소
+                      {t('common:actions.cancel')}
                     </button>
                   </div>
                 ) : (
                   <div className="mypage-profile-status">
-                    {profile.statusMessage || '한 줄 소개를 추가해보세요'}
+                    {profile.statusMessage || t('profile.addStatus')}
                   </div>
                 )}
               </div>
             </div>
             {!editingStatus && (
               <button type="button" className="mypage-profile-edit-btn" onClick={() => setEditingStatus(true)}>
-                프로필 수정
+                {t('profile.edit')}
               </button>
             )}
           </section>
@@ -288,23 +294,23 @@ export default function MyPage() {
         {/* 학습 통계 — GET /api/users/me/stats (10번 참고) */}
         <div className="mypage-stats-grid">
           <div className="mypage-stat-tile">
-            <div className="mypage-stat-label">학습한 단어</div>
-            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.wordsLearned}개`}</div>
+            <div className="mypage-stat-label">{t('stats.words')}</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : t('stats.wordsValue', { count: stats.wordsLearned })}</div>
           </div>
           <div className="mypage-stat-tile">
-            <div className="mypage-stat-label">학습한 가사</div>
-            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.linesCompleted}줄`}</div>
+            <div className="mypage-stat-label">{t('stats.lines')}</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : t('stats.linesValue', { count: stats.linesCompleted })}</div>
           </div>
           <div className="mypage-stat-tile">
-            <div className="mypage-stat-label">학습한 곡</div>
-            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.songsCompleted}곡`}</div>
+            <div className="mypage-stat-label">{t('stats.songs')}</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : t('stats.songsValue', { count: stats.songsCompleted })}</div>
           </div>
           <div className="mypage-stat-tile">
             <div className="mypage-stat-label">
-              학습일수
+              {t('stats.days')}
               {stats.currentStreakDays >= 3 && ' 🔥'}
             </div>
-            <div className="mypage-stat-value">{statsLoading ? '-' : `${stats.totalActiveDays}일`}</div>
+            <div className="mypage-stat-value">{statsLoading ? '-' : t('stats.daysValue', { count: stats.totalActiveDays })}</div>
           </div>
         </div>
 
@@ -316,13 +322,13 @@ export default function MyPage() {
             {/* 내 단어장 */}
             <section className="mypage-card">
               <div className="mypage-card-head">
-                <h2>내 단어장</h2>
+                <h2>{t('wordbook.title')}</h2>
                 <button type="button" className="mypage-card-link" onClick={() => navigate('/wordbook')}>
-                  모두 보기
+                  {t('wordbook.viewAll')}
                 </button>
               </div>
               {booksLoading ? (
-                <div className="mypage-status">불러오는 중...</div>
+                <div className="mypage-status">{t('common:actions.loading')}</div>
               ) : (
                 <div className="mypage-wordbook-grid">
                   {books.map((book) => (
@@ -348,12 +354,12 @@ export default function MyPage() {
                       </div>
                       <span className="mypage-wordbook-emoji">{book.emoji || '📘'}</span>
                       <span className="mypage-wordbook-name">{book.name}</span>
-                      <span className="mypage-wordbook-count">{book.itemCount}개 단어</span>
+                      <span className="mypage-wordbook-count">{t('wordbook.count', { count: book.itemCount })}</span>
                     </button>
                   ))}
                   <button type="button" className="mypage-wordbook-card mypage-wordbook-card--new" onClick={() => navigate('/wordbook')}>
                     <span className="mypage-wordbook-new-icon">+</span>
-                    <span className="mypage-wordbook-name">새 단어장 만들기</span>
+                    <span className="mypage-wordbook-name">{t('wordbook.new')}</span>
                   </button>
                 </div>
               )}
@@ -364,8 +370,8 @@ export default function MyPage() {
               <div className="mypage-board-banner-left">
                 <div className="mypage-board-banner-icon">📖</div>
                 <div>
-                  <div className="mypage-board-banner-title">단어장 둘러보기</div>
-                  <div className="mypage-board-banner-sub">다른 사람들이 공유한 단어장을 내 단어장에 추가해보세요</div>
+                  <div className="mypage-board-banner-title">{t('banner.title')}</div>
+                  <div className="mypage-board-banner-sub">{t('banner.sub')}</div>
                 </div>
               </div>
               <div className="mypage-board-banner-arrow">&rarr;</div>
@@ -374,15 +380,15 @@ export default function MyPage() {
             {/* 내가 올린 게시글 */}
             <section className="mypage-card">
               <div className="mypage-card-head">
-                <h2>내가 올린 게시글</h2>
+                <h2>{t('posts.myTitle')}</h2>
                 <button type="button" className="mypage-card-link" onClick={() => navigate('/board')}>
-                  모두 보기
+                  {t('wordbook.viewAll')}
                 </button>
               </div>
               {myPostsLoading ? (
-                <div className="mypage-status">불러오는 중...</div>
+                <div className="mypage-status">{t('common:actions.loading')}</div>
               ) : myPosts.length === 0 ? (
-                <div className="mypage-status">아직 올린 게시글이 없어요.</div>
+                <div className="mypage-status">{t('posts.myEmpty')}</div>
               ) : (
                 <div className="mypage-list">
                   {myPosts.map((post) => (
@@ -395,15 +401,15 @@ export default function MyPage() {
             {/* 저장한 게시글 */}
             <section className="mypage-card">
               <div className="mypage-card-head">
-                <h2>저장한 게시글</h2>
+                <h2>{t('posts.savedTitle')}</h2>
                 <button type="button" className="mypage-card-link" onClick={() => navigate('/board')}>
-                  모두 보기
+                  {t('wordbook.viewAll')}
                 </button>
               </div>
               {savedPostsLoading ? (
-                <div className="mypage-status">불러오는 중...</div>
+                <div className="mypage-status">{t('common:actions.loading')}</div>
               ) : savedPosts.length === 0 ? (
-                <div className="mypage-status">아직 저장한 게시글이 없어요.</div>
+                <div className="mypage-status">{t('posts.savedEmpty')}</div>
               ) : (
                 <div className="mypage-list">
                   {savedPosts.map((post) => (
@@ -420,20 +426,20 @@ export default function MyPage() {
             {/* 학습 스트릭 캘린더 — GET /api/users/me/stats (10번 참고) */}
             <section className="mypage-card mypage-card--side">
               <div className="mypage-side-head">
-                <span>학습 스트릭</span>
+                <span>{t('streak.title')}</span>
                 <span>🔥</span>
               </div>
               <div className="mypage-side-sub">
                 {statsLoading
-                  ? '불러오는 중...'
+                  ? t('common:actions.loading')
                   : stats.currentStreakDays > 0
-                    ? `${stats.currentStreakDays}일 연속 학습 중이에요`
-                    : '아직 학습 기록이 없어요'}
+                    ? t('streak.active', { days: stats.currentStreakDays })
+                    : t('streak.none')}
               </div>
               {/* 요일 헤더 — 백엔드가 일요일 시작 5주로 정렬해서 내려주므로 그대로 맞춘다. */}
               <div className="mypage-streak-weekdays">
-                {WEEKDAY_LABELS.map((label) => (
-                  <span key={label}>{label}</span>
+                {weekdayLabels.map((label, i) => (
+                  <span key={i}>{label}</span>
                 ))}
               </div>
               <div className="mypage-streak-grid">
@@ -446,7 +452,7 @@ export default function MyPage() {
                         key={d.date || i}
                         className={`mypage-streak-cell${d.date === today ? ' mypage-streak-cell--today' : ''}`}
                         style={{ background: streakCellColor(d, today) }}
-                        title={d.date ? `${d.date} · 단어 복습 ${d.wordReviewCount ?? 0}회` : undefined}
+                        title={d.date ? t('streak.cellTitle', { date: d.date, n: d.wordReviewCount ?? 0 }) : undefined}
                       >
                         {dayOfMonth !== null && (
                           <span
@@ -467,19 +473,19 @@ export default function MyPage() {
                 들어가는 칭호 전체 페이지(TitlesPage.jsx)에서만 할 수 있다. */}
             <section className="mypage-card mypage-card--side">
               <div className="mypage-side-head">
-                <span>칭호</span>
-                <Link to="/mypage/titles" className="mypage-side-add">더보기</Link>
+                <span>{t('titlesCard.title')}</span>
+                <Link to="/mypage/titles" className="mypage-side-add">{t('titlesCard.more')}</Link>
               </div>
               {titlesLoading ? (
-                <div className="mypage-status">불러오는 중...</div>
+                <div className="mypage-status">{t('common:actions.loading')}</div>
               ) : (
                 <div className="mypage-title-chips">
                   {pickHighestAchievedPerCategory(titles.categories).length === 0 ? (
-                    <div className="mypage-status">아직 획득한 칭호가 없어요. 학습을 시작해보세요!</div>
+                    <div className="mypage-status">{t('titlesCard.empty')}</div>
                   ) : (
-                    pickHighestAchievedPerCategory(titles.categories).map((t) => (
-                      <span key={t.code} className="mypage-title-chip" title={t.categoryLabel}>
-                        {t.name}
+                    pickHighestAchievedPerCategory(titles.categories).map((title) => (
+                      <span key={title.code} className="mypage-title-chip" title={title.categoryLabel}>
+                        {title.name}
                       </span>
                     ))
                   )}
@@ -492,13 +498,13 @@ export default function MyPage() {
                 아바타 몇 개만 요약해서 보여준다. */}
             <section className="mypage-card mypage-card--side">
               <div className="mypage-side-head">
-                <span>친구 {friendsLoading ? '' : friends.length}</span>
-                <Link to="/friends" className="mypage-side-add">+ 추가</Link>
+                <span>{t('friendsCard.title')} {friendsLoading ? '' : friends.length}</span>
+                <Link to="/friends" className="mypage-side-add">{t('friendsCard.add')}</Link>
               </div>
               {friendsLoading ? (
-                <div className="mypage-status">불러오는 중...</div>
+                <div className="mypage-status">{t('common:actions.loading')}</div>
               ) : friends.length === 0 ? (
-                <div className="mypage-status">아직 친구가 없어요. "+ 추가"로 검색해보세요!</div>
+                <div className="mypage-status">{t('friendsCard.empty')}</div>
               ) : (
                 <div className="mypage-friends-row">
                   {friends.slice(0, FRIEND_AVATAR_DISPLAY_LIMIT).map((f) => (

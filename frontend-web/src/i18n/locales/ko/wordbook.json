@@ -1,0 +1,106 @@
+{
+  "countShort_other": "{{count}}개",
+  "wordCount_other": "{{count}}개 단어",
+  "moveModal": {
+    "title": "다른 단어장으로 이동",
+    "sub": "선택한 단어를 옮길 단어장을 골라주세요.",
+    "empty": "이동할 수 있는 다른 단어장이 없어요. 왼쪽에서 새 단어장을 먼저 만들어보세요."
+  },
+  "folderSelect": {
+    "none": "폴더 선택 안함",
+    "empty": "만든 폴더가 없어요"
+  },
+  "create": {
+    "titleFolder": "📁 새 폴더 만들기",
+    "titleBook": "📖 새 단어장 만들기",
+    "folderPh": "폴더 이름",
+    "bookPh": "단어장 이름",
+    "busy": "만드는 중...",
+    "submit": "만들기",
+    "failed": "만들지 못했어요. 잠시 후 다시 시도해주세요."
+  },
+  "addWord": {
+    "title": "단어 추가",
+    "sub": "\"{{name}}\"에 담을 일본어 단어를 입력해주세요. 발음·뜻은 자동으로 채워지고, 틀린 부분은 직접 고칠 수 있어요.",
+    "word": "단어",
+    "wordPh": "예: 食べる, たべる",
+    "pronunciation": "발음",
+    "looking": "찾는 중...",
+    "pronunciationPh": "예: たべる",
+    "meaning": "의미 (한 줄에 하나씩)",
+    "meaningPh": "예: 먹다",
+    "notFound": "사전에 없는 단어예요. 발음과 뜻을 직접 입력해주세요.",
+    "busy": "추가하는 중...",
+    "submit": "추가",
+    "failed": "추가하지 못했어요. 잠시 후 다시 시도해주세요."
+  },
+  "editWord": {
+    "title": "단어 수정",
+    "sub": "\"{{lemma}}\"의 발음·뜻을 고쳐요. 단어 표기 자체가 틀렸다면 삭제 후 다시 추가해주세요.",
+    "busy": "저장하는 중...",
+    "submit": "저장",
+    "failed": "수정하지 못했어요. 잠시 후 다시 시도해주세요."
+  },
+  "moveFolder": {
+    "title": "단어장 이동",
+    "sub": "\"{{name}}\"을(를) 옮길 폴더를 골라주세요.",
+    "busy": "이동 중...",
+    "failed": "이동하지 못했어요. 잠시 후 다시 시도해주세요."
+  },
+  "sidebar": {
+    "privateAria": "비공개 단어장",
+    "menuAria": "{{name}} 메뉴",
+    "makePrivate": "비공개로 전환",
+    "makePublic": "공개 전환",
+    "title": "내 단어장",
+    "newAria": "새로 만들기",
+    "createFolder": "📁 폴더 만들기",
+    "createBook": "📖 단어장 만들기",
+    "loadError": "불러오지 못했어요.",
+    "folderDeleteAria": "{{name}} 폴더 삭제",
+    "folderEmpty": "비어 있어요",
+    "browse": "단어장 둘러보기"
+  },
+  "main": {
+    "pick": "왼쪽에서 단어장을 선택하거나 새로 만들어보세요.",
+    "renameAria": "단어장 이름 편집",
+    "renameTitle": "이름 편집",
+    "selectCancel": "선택 취소",
+    "select": "선택하기",
+    "addWord": "+ 단어 추가",
+    "study": "학습하기",
+    "toList": "목록으로",
+    "loadError": "단어를 불러오지 못했어요.",
+    "empty": "아직 담긴 단어가 없어요. 위의 \"+ 단어 추가\"로 직접 넣거나, 곡 학습 화면에서 단어장 아이콘 버튼으로 추가해보세요.",
+    "selectAria": "{{lemma}} 선택",
+    "unstar": "즐겨찾기 해제",
+    "star": "즐겨찾기",
+    "meaningPending": "뜻 준비 중",
+    "studyCount": "학습 {{count}}회",
+    "editAria": "발음·뜻 수정",
+    "removeAria": "단어장에서 삭제",
+    "selectedCount": "{{count}}개 선택됨"
+  },
+  "confirm": {
+    "deleteFolder": "폴더를 정말로 삭제할까요? 안의 단어장은 지워지지 않고 폴더 밖으로 나가요.",
+    "removeWord": "이 단어를 단어장에서 지울까요?",
+    "removeWordFavorite": "이 단어를 단어장에서 지울까요?\n확인을 누르면 원래 단어장에서도 삭제됩니다.",
+    "removeSelected_other": "선택한 단어 {{count}}개를 단어장에서 지울까요?",
+    "visibilityFailed": "공개 설정을 바꾸지 못했어요. 잠시 후 다시 시도해주세요."
+  },
+  "deleteBook": {
+    "title": "단어장을 삭제할까요?",
+    "message": "\"{{name}}\" 단어장을 정말로 삭제할까요? 삭제하면 되돌릴 수 없어요."
+  },
+  "detail": {
+    "defaultName": "단어장",
+    "loadError": "단어장을 불러오지 못했어요.",
+    "empty": "아직 담긴 단어가 없어요. 곡 학습 화면에서 \"＋ 단어장\" 버튼으로 단어를 추가해보세요.",
+    "studyBtn": "🎴 플래시카드로 복습하기",
+    "reviewCount": "복습 {{count}}회",
+    "done_other": "{{count}}개 단어 복습을 끝냈어요!",
+    "tapToReveal": "탭해서 뜻 보기",
+    "dontKnow": "모른다",
+    "know": "안다"
+  }
+}

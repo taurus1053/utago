@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import TopBar from '../components/TopBar'
 import ConfirmModal from '../components/ConfirmModal'
 import {
@@ -15,11 +16,12 @@ import {
 import './Friends.css'
 
 // 검색 결과 버튼의 상태별 라벨/활성화 여부 — relation은 백엔드 FriendRelationStatus 그대로.
+// (버튼 문구는 화면에서 t(`relation.${relation}`)로 번역한다)
 const RELATION_META = {
-  NONE: { label: '요청 보내기', disabled: false },
-  PENDING_OUTGOING: { label: '요청 보냄', disabled: true },
-  PENDING_INCOMING: { label: '받은 요청 확인', disabled: true },
-  FRIENDS: { label: '친구', disabled: true },
+  NONE: { disabled: false },
+  PENDING_OUTGOING: { disabled: true },
+  PENDING_INCOMING: { disabled: true },
+  FRIENDS: { disabled: true },
 }
 
 function formatDate(iso) {
@@ -40,6 +42,7 @@ function Avatar({ color, initial }) {
 // 만들었다(마이페이지 사이드바 "+ 추가"가 여기로 연결된다). 디자인은 미리 Artifact로
 // 만든 목업을 그대로 코드화했다.
 export default function Friends() {
+  const { t } = useTranslation('friends')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -102,7 +105,7 @@ export default function Friends() {
           setResults(data || [])
           setSearchError(null)
         })
-        .catch(() => setSearchError('검색 중 문제가 발생했어요.'))
+        .catch(() => setSearchError(true))
         .finally(() => setSearching(false))
     }, 300)
     return () => clearTimeout(timer)
@@ -171,8 +174,8 @@ export default function Friends() {
 
       <div className="friends-shell">
         <div>
-          <h1 className="friends-title">친구</h1>
-          <div className="friends-sub">닉네임으로 친구를 검색하고 요청을 보내보세요</div>
+          <h1 className="friends-title">{t('title')}</h1>
+          <div className="friends-sub">{t('sub')}</div>
         </div>
 
         <div className="friends-search-bar">
@@ -182,7 +185,7 @@ export default function Friends() {
           </svg>
           <input
             type="text"
-            placeholder="닉네임으로 검색"
+            placeholder={t('searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -191,14 +194,14 @@ export default function Friends() {
         {query.trim() && (
           <section className="friends-card">
             <div className="friends-card-head">
-              <h2>검색 결과</h2>
+              <h2>{t('results')}</h2>
             </div>
             {searching ? (
-              <div className="friends-empty">검색 중...</div>
+              <div className="friends-empty">{t('searching')}</div>
             ) : searchError ? (
-              <div className="friends-empty">{searchError}</div>
+              <div className="friends-empty">{t('searchError')}</div>
             ) : results.length === 0 ? (
-              <div className="friends-empty">일치하는 사용자가 없어요.</div>
+              <div className="friends-empty">{t('noResults')}</div>
             ) : (
               results.map((r) => {
                 const meta = RELATION_META[r.relation] || RELATION_META.NONE
@@ -209,13 +212,7 @@ export default function Friends() {
                       <div>
                         <div className="friends-row-name">{r.nickname}</div>
                         <div className="friends-row-sub">
-                          {r.relation === 'FRIENDS'
-                            ? '이미 친구예요'
-                            : r.relation === 'PENDING_OUTGOING'
-                              ? '요청을 보냈어요'
-                              : r.relation === 'PENDING_INCOMING'
-                                ? '나에게 요청을 보냈어요'
-                                : '아직 친구가 아니에요'}
+                          {t(`relationSub.${RELATION_META[r.relation] ? r.relation : 'NONE'}`)}
                         </div>
                       </div>
                     </div>
@@ -225,7 +222,7 @@ export default function Friends() {
                       disabled={meta.disabled || sendingUserId === r.userId}
                       onClick={() => handleSendRequest(r.userId)}
                     >
-                      {sendingUserId === r.userId ? '보내는 중...' : meta.label}
+                      {sendingUserId === r.userId ? t('sending') : t(`relation.${RELATION_META[r.relation] ? r.relation : 'NONE'}`)}
                     </button>
                   </div>
                 )
@@ -236,13 +233,13 @@ export default function Friends() {
 
         <section className="friends-card">
           <div className="friends-card-head">
-            <h2>받은 요청</h2>
+            <h2>{t('incoming')}</h2>
             {incoming.length > 0 && <span className="friends-count">{incoming.length}</span>}
           </div>
           {incomingLoading ? (
-            <div className="friends-empty">불러오는 중...</div>
+            <div className="friends-empty">{t('common:actions.loading')}</div>
           ) : incoming.length === 0 ? (
-            <div className="friends-empty">받은 요청이 없어요.</div>
+            <div className="friends-empty">{t('incomingEmpty')}</div>
           ) : (
             incoming.map((r) => (
               <div className="friends-row" key={r.requestId}>
@@ -255,10 +252,10 @@ export default function Friends() {
                 </div>
                 <div className="friends-btn-group">
                   <button type="button" className="friends-btn friends-btn--outline" onClick={() => handleDecline(r.requestId)}>
-                    거절
+                    {t('decline')}
                   </button>
                   <button type="button" className="friends-btn friends-btn--primary" onClick={() => handleAccept(r.requestId)}>
-                    수락
+                    {t('accept')}
                   </button>
                 </div>
               </div>
@@ -268,13 +265,13 @@ export default function Friends() {
 
         <section className="friends-card">
           <div className="friends-card-head">
-            <h2>보낸 요청</h2>
+            <h2>{t('outgoing')}</h2>
             {outgoing.length > 0 && <span className="friends-count">{outgoing.length}</span>}
           </div>
           {outgoingLoading ? (
-            <div className="friends-empty">불러오는 중...</div>
+            <div className="friends-empty">{t('common:actions.loading')}</div>
           ) : outgoing.length === 0 ? (
-            <div className="friends-empty">보낸 요청이 없어요.</div>
+            <div className="friends-empty">{t('outgoingEmpty')}</div>
           ) : (
             outgoing.map((r) => (
               <div className="friends-row" key={r.requestId}>
@@ -282,11 +279,11 @@ export default function Friends() {
                   <Avatar color={r.avatarColor} initial={r.avatarInitial} />
                   <div>
                     <div className="friends-row-name">{r.nickname}</div>
-                    <div className="friends-row-sub">수락 대기 중</div>
+                    <div className="friends-row-sub">{t('waiting')}</div>
                   </div>
                 </div>
                 <button type="button" className="friends-btn friends-btn--ghost" onClick={() => handleCancel(r.requestId)}>
-                  요청 취소
+                  {t('cancelRequest')}
                 </button>
               </div>
             ))
@@ -295,13 +292,13 @@ export default function Friends() {
 
         <section className="friends-card">
           <div className="friends-card-head">
-            <h2>내 친구</h2>
+            <h2>{t('myFriends')}</h2>
             {friends.length > 0 && <span className="friends-count">{friends.length}</span>}
           </div>
           {friendsLoading ? (
-            <div className="friends-empty">불러오는 중...</div>
+            <div className="friends-empty">{t('common:actions.loading')}</div>
           ) : friends.length === 0 ? (
-            <div className="friends-empty">아직 친구가 없어요. 닉네임으로 검색해서 요청을 보내보세요.</div>
+            <div className="friends-empty">{t('friendsEmpty')}</div>
           ) : (
             <div className="friends-grid">
               {friends.map((f) => (
@@ -309,13 +306,13 @@ export default function Friends() {
                   <Avatar color={f.avatarColor} initial={f.avatarInitial} />
                   <div className="friends-friend-info">
                     <div className="friends-row-name">{f.nickname}</div>
-                    <div className="friends-row-sub">{f.statusMessage || '한 줄 소개 없음'}</div>
+                    <div className="friends-row-sub">{f.statusMessage || t('noStatus')}</div>
                   </div>
                   <button
                     type="button"
                     className="friends-remove-btn"
                     onClick={() => setRemoveTarget({ userId: f.userId, nickname: f.nickname })}
-                    aria-label="친구 삭제"
+                    aria-label={t('removeAria')}
                   >
                     &#10005;
                   </button>
@@ -328,9 +325,9 @@ export default function Friends() {
 
       {removeTarget && (
         <ConfirmModal
-          title="친구를 삭제할까요?"
-          message={`${removeTarget.nickname}님을 친구 목록에서 삭제합니다.`}
-          confirmLabel="삭제"
+          title={t('removeConfirm.title')}
+          message={t('removeConfirm.message', { nickname: removeTarget.nickname })}
+          confirmLabel={t('removeConfirm.confirm')}
           danger
           busy={removing}
           onConfirm={handleConfirmRemove}

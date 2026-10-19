@@ -1,5 +1,6 @@
 package com.utago.user;
 
+import com.utago.common.ApiException;
 import com.utago.board.WordbookPost;
 import com.utago.board.WordbookPostCommentRepository;
 import com.utago.board.WordbookPostRepository;
@@ -69,13 +70,13 @@ public class TitleService {
     @Transactional
     public TitlesResponse equip(Long userId, String code) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException("user.notFound", "사용자를 찾을 수 없습니다."));
         Title title = findTitle(code)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 칭호예요."));
+                .orElseThrow(() -> new ApiException("title.notFound", "존재하지 않는 칭호예요."));
         Map<String, Long> currentValues = computeCurrentValues(userId);
         long current = currentValues.getOrDefault(title.code(), 0L);
         if (current < title.threshold()) {
-            throw new IllegalStateException("아직 달성하지 못한 칭호는 착용할 수 없어요.");
+            throw new ApiException("title.notEarned", "아직 달성하지 못한 칭호는 착용할 수 없어요.");
         }
         user.setEquippedTitleCode(code);
         return getTitles(userId);

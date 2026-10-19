@@ -1,0 +1,11 @@
+{
+  "back": "← Back",
+  "title": "Credits",
+  "lead": "Utago is built with the help of the open data and open-source software below.",
+  "jmdictTitle": "JMdict (Japanese dictionary data)",
+  "jmdictDesc": "We use part of the JMdict dictionary data from the EDRDG (Electronic Dictionary Research and Development Group) to fill in word meanings. Korean meanings were created from this data.",
+  "kuromojiTitle": "Kuromoji (Japanese morphological analysis)",
+  "kuromojiDesc": "We use the open-source morphological analyzer Kuromoji (Atilika, Apache License 2.0) to generate furigana and extract words from lyrics.",
+  "audioTitle": "Music playback",
+  "audioDesc": "Music is played through the YouTube player."
+}

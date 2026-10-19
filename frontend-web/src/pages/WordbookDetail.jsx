@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   listWordbookItems,
   listWordbooks,
@@ -9,8 +10,6 @@ import {
 } from '../api/wordbook'
 import TopBar from '../components/TopBar'
 import './WordbookDetail.css'
-
-const LANG_LABEL = { JA: '일본어', KO: '한국어', EN: '영어' }
 
 // 학습횟수(repetitionCount) 구간별 배지 색 — SRS 복습 간격/완료 여부와는 별개로, 단순히
 // "이 단어를 몇 번 맞혔는지"를 한눈에 보여주는 용도. 구간이 올라갈수록 파스텔 배경이
@@ -28,6 +27,7 @@ function repetitionTierClass(count) {
 // 로그인 필수 — App.jsx의 RequireAuth가 비로그인 접근을 막는다. 본인 소유가 아닌
 // wordbookId면 서버가 403을 내려준다(requireOwnedWordbook).
 export default function WordbookDetail() {
+  const { t } = useTranslation('wordbook')
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -46,7 +46,7 @@ export default function WordbookDetail() {
     return Promise.all([listWordbooks(), listWordbookItems(id)])
       .then(([books, itemList]) => {
         const book = (books ?? []).find((b) => String(b.id) === String(id))
-        setBookName(book?.name ?? '단어장')
+        setBookName(book?.name ?? t('detail.defaultName'))
         setItems(itemList ?? [])
       })
       .catch((err) => setLoadError(err))
@@ -105,7 +105,7 @@ export default function WordbookDetail() {
         <button
           className="app-subbar-back"
           onClick={() => (mode === 'study' ? setMode('list') : navigate(-1))}
-          aria-label="뒤로 가기"
+          aria-label={t('common:actions.back')}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
@@ -115,21 +115,21 @@ export default function WordbookDetail() {
       </div>
 
       {loading ? (
-        <div className="wordbook-detail-status">불러오는 중...</div>
+        <div className="wordbook-detail-status">{t('common:actions.loading')}</div>
       ) : loadError ? (
-        <div className="wordbook-detail-status wordbook-detail-status--error">단어장을 불러오지 못했어요.</div>
+        <div className="wordbook-detail-status wordbook-detail-status--error">{t('detail.loadError')}</div>
       ) : mode === 'list' ? (
         <div className="wordbook-detail-content">
           {items.length === 0 ? (
             <div className="wordbook-detail-status">
-              아직 담긴 단어가 없어요. 곡 학습 화면에서 "＋ 단어장" 버튼으로 단어를 추가해보세요.
+              {t('detail.empty')}
             </div>
           ) : (
             <>
               <div className="wordbook-detail-header">
-                <span className="wordbook-detail-count">{items.length}개 단어</span>
+                <span className="wordbook-detail-count">{t('wordCount', { count: items.length })}</span>
                 <button type="button" className="wordbook-detail-study-btn" onClick={startStudy}>
-                  🎴 플래시카드로 복습하기
+                  {t('detail.studyBtn')}
                 </button>
               </div>
               <div className="wordbook-detail-list">
@@ -139,7 +139,7 @@ export default function WordbookDetail() {
                       type="button"
                       className={`wordbook-detail-star${item.starred ? ' wordbook-detail-star--on' : ''}`}
                       onClick={() => handleToggleStar(item.id)}
-                      aria-label={item.starred ? '즐겨찾기 해제' : '즐겨찾기'}
+                      aria-label={item.starred ? t('main.unstar') : t('main.star')}
                     >
                       {item.starred ? '★' : '☆'}
                     </button>
@@ -147,22 +147,22 @@ export default function WordbookDetail() {
                       <span className="wordbook-detail-row-word">
                         {item.lemma}
                         {item.reading && <span className="wordbook-detail-row-reading">{item.reading}</span>}
-                        <span className={`wordbook-detail-row-lang wordbook-detail-row-lang--${item.lang}`}>{LANG_LABEL[item.lang] ?? item.lang}</span>
+                        <span className={`wordbook-detail-row-lang wordbook-detail-row-lang--${item.lang}`}>{t(`common:langName.${item.lang}`, { defaultValue: item.lang })}</span>
                       </span>
                       <span className="wordbook-detail-row-meaning">
-                        {item.meanings && item.meanings.length > 0 ? item.meanings.join(', ') : '뜻 준비 중'}
+                        {item.meanings && item.meanings.length > 0 ? item.meanings.join(', ') : t('main.meaningPending')}
                       </span>
                     </div>
                     <span className={`wordbook-detail-badge ${repetitionTierClass(item.repetitionCount)}`}>
-                      {`복습 ${item.repetitionCount}회`}
+                      {t('detail.reviewCount', { count: item.repetitionCount })}
                     </span>
                     <button
                       type="button"
                       className="wordbook-detail-remove"
                       onClick={() => handleRemove(item.id)}
-                      aria-label="단어장에서 삭제"
+                      aria-label={t('main.removeAria')}
                     >
-                      삭제
+                      {t('common:actions.delete')}
                     </button>
                   </div>
                 ))}
@@ -174,9 +174,9 @@ export default function WordbookDetail() {
         <div className="wordbook-study-content">
           <div className="wordbook-study-done">
             <span className="wordbook-study-done-emoji">🎉</span>
-            <p className="wordbook-study-done-text">{items.length}개 단어 복습을 끝냈어요!</p>
+            <p className="wordbook-study-done-text">{t('detail.done', { count: items.length })}</p>
             <button type="button" className="wordbook-detail-study-btn" onClick={() => setMode('list')}>
-              목록으로
+              {t('main.toList')}
             </button>
           </div>
         </div>
@@ -190,19 +190,19 @@ export default function WordbookDetail() {
               <span className="wordbook-study-card-meaning">
                 {currentCard.meanings && currentCard.meanings.length > 0
                   ? currentCard.meanings.join(', ')
-                  : '뜻 준비 중'}
+                  : t('main.meaningPending')}
               </span>
             ) : (
-              <span className="wordbook-study-card-hint">탭해서 뜻 보기</span>
+              <span className="wordbook-study-card-hint">{t('detail.tapToReveal')}</span>
             )}
           </div>
           {revealed && (
             <div className="wordbook-study-actions">
               <button type="button" className="wordbook-study-btn wordbook-study-btn--no" onClick={() => handleReview(false)}>
-                모른다
+                {t('detail.dontKnow')}
               </button>
               <button type="button" className="wordbook-study-btn wordbook-study-btn--yes" onClick={() => handleReview(true)}>
-                안다
+                {t('detail.know')}
               </button>
             </div>
           )}

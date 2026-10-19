@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "continue": "続きから学習",
+    "review": "復習する",
+    "progressLines": "{{current}} / {{total}}行",
+    "completedCount": "完走{{count}}回",
+    "daysAgo": "{{count}}日前",
+    "albumAlt": "{{title}}のアルバムジャケット",
+    "emptyTitle": "復習できる曲がまだありません",
+    "emptySub1": "曲を1つ最後まで学習すると",
+    "emptySub2": "ここに復習リストができます",
+    "browse": "曲を探す"
+  },
+  "langFilter": {
+    "all": "すべて",
+    "JA": "日本語",
+    "KO": "韓国語",
+    "EN": "英語"
+  },
+  "loading": "読み込み中...",
+  "loginLink": "ログインはこちら →",
+  "refresh": "別の歌詞を見る",
+  "songOfDay": {
+    "label": "今日のおすすめ曲",
+    "loginPrompt": "ログインすると今日のおすすめ曲が見られます。",
+    "loadError": "おすすめ曲を読み込めませんでした。",
+    "empty": "まだ登録された曲がありません。",
+    "cta": "学習する →"
+  },
+  "lyricReview": {
+    "label": "歌詞を復習する",
+    "loginPrompt": "ログインすると、単語帳に入れた単語が出てくる歌詞を復習できます。",
+    "loadError": "歌詞を読み込めませんでした。",
+    "empty": "単語帳に入れた単語が出てくる歌詞がまだありません。",
+    "wordbookLink": "単語帳を見る →"
+  },
+  "lyric": {
+    "meaningPending": "意味を準備中",
+    "moreWords_other": "他{{count}}語"
+  },
+  "popular": {
+    "title": "急上昇"
+  },
+  "genre": {
+    "title": "ジャンル・難易度で探す",
+    "ballad": "バラード",
+    "beginner": "初級",
+    "advanced": "上級"
+  },
+  "mySongs": {
+    "title": "マイ曲",
+    "add": "+ 曲を追加",
+    "loginPrompt": "ログインすると、登録した曲がここに表示されます。",
+    "loadError": "マイ曲の一覧を読み込めませんでした。しばらくしてからもう一度お試しください。",
+    "empty": "まだ登録した曲がありません。好きな曲を追加してみましょう。"
+  },
+  "allSongs": {
+    "title": "すべての曲",
+    "count_other": "{{count}}曲",
+    "loadError": "曲の一覧を読み込めませんでした。しばらくしてからもう一度お試しください。",
+    "empty": "条件に合う曲がまだありません。"
+  },
+  "footer": {
+    "credits": "クレジット"
+  }
+}

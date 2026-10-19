@@ -1,5 +1,6 @@
 package com.utago.wordbook;
 
+import com.utago.common.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,13 +139,13 @@ public class WordbookController {
         } catch (IllegalStateException e) {
             // 소유권 체크 실패(단어장 없음/본인 것 아님) — 원래 메시지를 그대로 내려줘서
             // 디버깅 중엔 브라우저 네트워크 탭에서 바로 원인을 볼 수 있게 한다.
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiException.body(e));
         } catch (Exception e) {
             // AI 예문 생성 등 외부 호출 실패는 서비스 쪽에서 이미 흡수하지만, 혹시 모를
             // 다른 예기치 못한 오류는 403이 아니라 500으로 명확히 구분되게 하고 로그를 남긴다.
             log.error("[WordbookController] 단어장 항목 조회 중 예기치 못한 오류 (wordbookId={})", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "단어장을 불러오는 중 문제가 발생했어요."));
+                    .body(Map.of("message", "단어장을 불러오는 중 문제가 발생했어요.", "code", "wordbook.loadFailed"));
         }
     }
 

@@ -14,8 +14,9 @@ public class GlobalExceptionHandler {
 
     /** signup/login 등에서 던지는 "이미 가입됨", "비밀번호 불일치" 같은 도메인 에러 → 400. */
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException e) {
-        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
+        // ApiException이면 code/params가 같이 내려간다(다국어 UI — ApiException 참고).
+        return ResponseEntity.badRequest().body(ApiException.body(e));
     }
 
     /** @Valid 검증 실패(비밀번호 규칙 위반 등) → 필드별 에러 메시지. */

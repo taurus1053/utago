@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { measureMaxTextWidth } from '../utils/measureText'
 import './LangSwitcher.css'
 
@@ -12,6 +13,7 @@ export const DISPLAY_LANGS = [
 ]
 
 export default function LangSwitcher({ lang, setLang }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
   const current = DISPLAY_LANGS.find((l) => l.code === lang) ?? DISPLAY_LANGS[0]
@@ -53,7 +55,7 @@ export default function LangSwitcher({ lang, setLang }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="표시 언어 선택"
+        aria-label={t('langSwitcher.ariaLabel')}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"></circle>

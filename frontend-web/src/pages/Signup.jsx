@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   requestSignupCode,
   verifySignupCode,
@@ -23,6 +24,7 @@ const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,2
 const NICKNAME_PATTERN = /^[a-zA-Z0-9가-힣぀-ゟ゠-ヿ一-鿿]{2,12}$/
 
 export default function Signup() {
+  const { t } = useTranslation(['auth', 'landing'])
   const navigate = useNavigate()
   const location = useLocation()
   const [step, setStep] = useState('verify') // verify -> form -> done
@@ -59,16 +61,16 @@ export default function Signup() {
         />
         <div className={`signup-tagline${fromTransition ? ' signup-tagline--animate' : ''}`}>
           <div className="signup-tagline-main">
-            좋아하는 노래로,
+            {t('landing:heroTitle1')}
             <br />
-            새로운 언어를 배우다
+            {t('landing:heroTitle2')}
           </div>
         </div>
       </div>
 
       <div className="signup-form-area">
         <button type="button" className="signup-back-btn" onClick={handleBack}>
-          <span className="signup-back-arrow">&lt;</span> 뒤로가기
+          <span className="signup-back-arrow">&lt;</span> {t('common:actions.back')}
         </button>
         {step === 'verify' && <VerifyStep onVerified={() => setStep('form')} />}
         {step === 'form' && (
@@ -83,6 +85,7 @@ export default function Signup() {
 // ---------------- 1단계: 이메일 인증 ----------------
 
 function VerifyStep({ onVerified }) {
+  const { t } = useTranslation('auth')
   const [email, setEmail] = useState('')
   const [emailSubmitted, setEmailSubmitted] = useState(false)
   const [codeRequested, setCodeRequested] = useState(false)
@@ -110,7 +113,7 @@ function VerifyStep({ onVerified }) {
       await requestSignupCode(email.trim())
       setCodeRequested(true)
     } catch (err) {
-      setRequestError(err instanceof ApiError ? err.message : '인증코드 발송에 실패했습니다.')
+      setRequestError(err instanceof ApiError ? err.message : t('signup.errors.sendFailed'))
     } finally {
       setRequesting(false)
     }
@@ -173,7 +176,7 @@ function VerifyStep({ onVerified }) {
       sessionStorage.setItem('utago_signup_email', email.trim())
       onVerified()
     } catch (err) {
-      setVerifyError(err instanceof ApiError ? err.message : '인증에 실패했습니다.')
+      setVerifyError(err instanceof ApiError ? err.message : t('signup.errors.verifyFailed'))
     } finally {
       setVerifying(false)
     }
@@ -185,19 +188,19 @@ function VerifyStep({ onVerified }) {
       await requestSignupCode(email.trim())
       setResent(true)
     } catch (err) {
-      setRequestError(err instanceof ApiError ? err.message : '인증코드 재전송에 실패했습니다.')
+      setRequestError(err instanceof ApiError ? err.message : t('signup.errors.resendFailed'))
     }
   }
 
   return (
     <div className="signup-form">
       <div className="signup-heading">
-        <span className="signup-title-lg">회원가입</span>
-        <span className="signup-title">사용하실 이메일을 입력해주세요</span>
+        <span className="signup-title-lg">{t('signup.title')}</span>
+        <span className="signup-title" style={{ whiteSpace: 'pre-line' }}>{t('signup.verifySubtitle')}</span>
       </div>
 
       <label className="signup-field">
-        <span className="signup-label">이메일</span>
+        <span className="signup-label">{t('signup.email')}</span>
         <div className="signup-row">
           <input
             type="email"
@@ -214,22 +217,22 @@ function VerifyStep({ onVerified }) {
               onClick={handleRequestCode}
               disabled={requesting}
             >
-              {requesting ? '전송 중...' : '인증코드 받기'}
+              {requesting ? t('signup.sending') : t('signup.sendCode')}
             </button>
           ) : (
             <button type="button" className="signup-btn-outline" onClick={handleChangeEmail}>
-              변경
+              {t('signup.changeEmail')}
             </button>
           )}
         </div>
-        {showEmailError && <span className="signup-error-text">이메일 입력은 필수입니다.</span>}
+        {showEmailError && <span className="signup-error-text">{t('signup.emailRequired')}</span>}
         {requestError && <span className="signup-error-text">{requestError}</span>}
       </label>
 
       {codeRequested && (
         <>
           <div className="signup-field">
-            <span className="signup-label">인증코드</span>
+            <span className="signup-label">{t('signup.codeLabel')}</span>
             <div className="signup-code-row" onPaste={handlePaste}>
               {digits.map((digit, i) => (
                 <input
@@ -245,26 +248,26 @@ function VerifyStep({ onVerified }) {
                 />
               ))}
             </div>
-            {showCodeError && <span className="signup-error-text">인증코드를 입력해주세요.</span>}
+            {showCodeError && <span className="signup-error-text">{t('signup.codeRequired')}</span>}
             {verifyError && <span className="signup-error-text">{verifyError}</span>}
           </div>
 
           <button type="button" className="signup-submit" onClick={handleSubmitCode} disabled={verifying}>
-            {verifying ? '확인 중...' : '인증하고 계속하기'}
+            {verifying ? t('signup.verifying') : t('signup.verify')}
           </button>
 
           <div className="signup-muted-row">
-            코드를 못 받으셨나요?{' '}
+            {t('signup.noCode')}{' '}
             <a href="#" className="signup-link" onClick={(e) => { e.preventDefault(); handleResend() }}>
-              재전송
+              {t('signup.resend')}
             </a>
-            {resent && <span className="signup-success-text"> · 재전송했어요</span>}
+            {resent && <span className="signup-success-text"> · {t('signup.resent')}</span>}
           </div>
         </>
       )}
 
       <div className="signup-muted-row">
-        이미 계정이 있으신가요? <Link to="/login" className="signup-link">로그인</Link>
+        {t('signup.haveAccount')} <Link to="/login" className="signup-link">{t('signup.loginLink')}</Link>
       </div>
     </div>
   )
@@ -281,6 +284,7 @@ function FormStep({ onDone, navigate }) {
 }
 
 function FormStepInner({ onDone, navigate }) {
+  const { t } = useTranslation('auth')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [nickname, setNickname] = useState('')
@@ -309,13 +313,13 @@ function FormStepInner({ onDone, navigate }) {
   // 문구가 생겼다 사라질 때 아래 요소들이 밀리지 않게 한다.
   let confirmStatus
   if (submitted && !confirmOk) {
-    confirmStatus = { text: '비밀번호 확인은 필수입니다.', className: 'signup-confirm-status--error' }
+    confirmStatus = { text: t('signup.confirmRequired'), className: 'signup-confirm-status--error' }
   } else if (!confirmOk) {
     confirmStatus = { text: '', className: '' }
   } else if (!passwordMatch) {
-    confirmStatus = { text: '비밀번호가 일치하지 않습니다.', className: 'signup-confirm-status--error' }
+    confirmStatus = { text: t('signup.mismatch'), className: 'signup-confirm-status--error' }
   } else {
-    confirmStatus = { text: '비밀번호가 일치합니다.', className: 'signup-confirm-status--ok' }
+    confirmStatus = { text: t('signup.match'), className: 'signup-confirm-status--ok' }
   }
   const showNicknameFormatError = nicknameFormatError
   const showNicknameCheckError = submitted && !nicknameChecked && !showNicknameFormatError
@@ -375,7 +379,7 @@ function FormStepInner({ onDone, navigate }) {
       sessionStorage.removeItem('utago_signup_email')
       onDone()
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : '가입 중 문제가 발생했습니다.')
+      setSubmitError(err instanceof ApiError ? err.message : t('signup.errors.submitFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -384,13 +388,13 @@ function FormStepInner({ onDone, navigate }) {
   return (
     <form className="signup-form signup-form--wide" onSubmit={handleSubmit} noValidate>
       <div className="signup-heading">
-        <span className="signup-title-lg">회원가입</span>
-        <span className="signup-subtitle">이메일 인증 완료! 몇 가지만 더 입력해주세요</span>
+        <span className="signup-title-lg">{t('signup.title')}</span>
+        <span className="signup-subtitle">{t('signup.formSubtitle')}</span>
       </div>
 
       <div className="signup-fields">
         <label className="signup-field">
-          <span className="signup-label">이메일</span>
+          <span className="signup-label">{t('signup.email')}</span>
           <div className="signup-email-locked">
             <span>{sessionStorage.getItem('utago_signup_email') || ''}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f9e5c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -400,28 +404,28 @@ function FormStepInner({ onDone, navigate }) {
         </label>
 
         <label className="signup-field">
-          <span className="signup-label">비밀번호</span>
+          <span className="signup-label">{t('signup.password')}</span>
           <input
             type="password"
-            placeholder="8~20자, 영문 대/소문자+숫자+특수기호"
+            placeholder={t('signup.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={showPasswordError || showPasswordFormatError ? 'has-error' : ''}
           />
-          {showPasswordError && <span className="signup-error-text">비밀번호 입력은 필수입니다.</span>}
+          {showPasswordError && <span className="signup-error-text">{t('signup.passwordRequired')}</span>}
           {showPasswordFormatError && (
-            <span className="signup-error-text">8~20자, 영문 대/소문자+숫자+특수기호를 모두 포함해주세요.</span>
+            <span className="signup-error-text">{t('signup.passwordFormat')}</span>
           )}
           {!showPasswordError && !showPasswordFormatError && (
-            <span className="signup-hint-text">8~20자 · 영문 대문자·소문자·숫자·특수기호 모두 포함</span>
+            <span className="signup-hint-text">{t('signup.passwordHint')}</span>
           )}
         </label>
 
         <label className="signup-field">
-          <span className="signup-label">비밀번호 확인</span>
+          <span className="signup-label">{t('signup.confirmLabel')}</span>
           <input
             type="password"
-            placeholder="비밀번호를 다시 입력하세요"
+            placeholder={t('signup.confirmPlaceholder')}
             value={passwordConfirm}
             onChange={(e) => setPasswordConfirm(e.target.value)}
             className={showPasswordConfirmError || showPasswordMismatch ? 'has-error' : ''}
@@ -431,12 +435,12 @@ function FormStepInner({ onDone, navigate }) {
         </label>
 
         <label className="signup-field">
-          <span className="signup-label">닉네임</span>
+          <span className="signup-label">{t('signup.nicknameLabel')}</span>
           <div className="signup-row">
             <input
               type="text"
               maxLength={12}
-              placeholder="다른 사람에게 보여질 이름"
+              placeholder={t('signup.nicknamePlaceholder')}
               value={nickname}
               onChange={(e) => handleNicknameChange(e.target.value)}
               className={showNicknameFormatError || showNicknameCheckError ? 'has-error' : ''}
@@ -447,26 +451,26 @@ function FormStepInner({ onDone, navigate }) {
               onClick={handleCheckNickname}
               disabled={checkingNickname}
             >
-              {checkingNickname ? '확인 중...' : '중복확인'}
+              {checkingNickname ? t('signup.checking') : t('signup.checkNickname')}
             </button>
           </div>
           {showNicknameFormatError && (
-            <span className="signup-error-text">2~12자, 한글·영문·일본어·숫자만 사용할 수 있습니다.</span>
+            <span className="signup-error-text">{t('signup.nicknameFormat')}</span>
           )}
           {!showNicknameFormatError && showNicknameCheckError && (
-            <span className="signup-error-text">중복 확인은 필수입니다.</span>
+            <span className="signup-error-text">{t('signup.nicknameCheckRequired')}</span>
           )}
           {!showNicknameFormatError && nicknameChecked && !nicknameAvailable && (
-            <span className="signup-error-text">이미 사용 중인 닉네임입니다.</span>
+            <span className="signup-error-text">{t('signup.nicknameTaken')}</span>
           )}
-          {showNicknameAvailable && <span className="signup-success-text">사용 가능한 닉네임입니다.</span>}
+          {showNicknameAvailable && <span className="signup-success-text">{t('signup.nicknameOk')}</span>}
           {!showNicknameFormatError && !showNicknameCheckError && !nicknameChecked && (
-            <span className="signup-hint-text">2~12자 · 한글·영문·일본어·숫자만 (특수문자 제외)</span>
+            <span className="signup-hint-text">{t('signup.nicknameHint')}</span>
           )}
         </label>
 
         <div className="signup-field">
-          <span className="signup-label">모국어</span>
+          <span className="signup-label">{t('signup.nativeLangLabel')}</span>
           <div className="signup-lang-row">
             {NATIVE_LANGS.map((lang) => (
               <button
@@ -479,12 +483,12 @@ function FormStepInner({ onDone, navigate }) {
               </button>
             ))}
           </div>
-          <span className="signup-hint-text">나중에 설정에서 바꿀 수 있어요</span>
+          <span className="signup-hint-text">{t('signup.nativeLangHint')}</span>
         </div>
 
         <label className="signup-field">
           <span className="signup-label">
-            생년월일 <span className="signup-optional">(선택)</span>
+            {t('signup.birthLabel')} <span className="signup-optional">{t('signup.optional')}</span>
           </span>
           <DatePicker value={birthDate} onChange={setBirthDate} />
         </label>
@@ -493,7 +497,7 @@ function FormStepInner({ onDone, navigate }) {
       {submitError && <div className="signup-banner-error">{submitError}</div>}
 
       <button type="submit" className="signup-submit" disabled={submitting}>
-        {submitting ? '가입 처리 중...' : '가입하기'}
+        {submitting ? t('signup.submitting') : t('signup.submit')}
       </button>
     </form>
   )
@@ -502,6 +506,7 @@ function FormStepInner({ onDone, navigate }) {
 // ---------------- 3단계: 완료 ----------------
 
 function DoneStep({ navigate }) {
+  const { t } = useTranslation('auth')
   const { isLoggedIn } = requireAuthCheck()
 
   return (
@@ -511,18 +516,18 @@ function DoneStep({ navigate }) {
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
       </div>
-      <span className="signup-done-title">가입이 완료됐어요!</span>
+      <span className="signup-done-title">{t('signup.doneTitle')}</span>
       <span className="signup-done-sub">
-        이제 좋아하는 노래로
+        {t('signup.doneSub1')}
         <br />
-        언어 공부를 시작해보세요
+        {t('signup.doneSub2')}
       </span>
       <button
         type="button"
         className="signup-submit signup-done-btn"
         onClick={() => navigate(isLoggedIn ? '/' : '/login', { replace: true })}
       >
-        홈으로 가기
+        {t('signup.doneButton')}
       </button>
     </div>
   )
